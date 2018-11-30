@@ -77,6 +77,29 @@ void Compaction::SetInputVersion(Version* _input_version) {
   edit_.SetColumnFamily(cfd_->GetID());
 }
 
+/* 参数smallest_user_key和largest_user_key应该在构造函数已经初始化完毕，
+ * 且为key-range层的smallest_key和largest_key
+ */
+void Compaction::GetLevel01BoundaryKeys(
+	VersionStorageInfo* vstorage,
+	const std::vector<CompactionInputFiles>& inputs, Slice* smallest_user_key,
+	Slice* largest_user_key) {
+	const Comparator* ucmp = vstorage->InternalComparator()->user_comparator();
+	for (size_t i = 0; i < inputs.size(); i++) {
+		if (inputs[i].file.empty()) {
+			continue;
+		}
+		const Slice& start_user_key = inputs[i].files[0]->smallest.user_key();
+		if (ucmp->Compare(start_user_key, *smallest_user_key) < 0) {
+			*smallest_user_key = start_user_key;
+		}
+		const Slice& end_user_key = inputs[i].files.back()->largest.user_key();
+		if (ucmp->Compare(end_user_key, *largest_user_key) > 0) {
+			*largest_user_key = end_user_key;
+		}
+	}
+}
+
 void Compaction::GetBoundaryKeys(
     VersionStorageInfo* vstorage,
     const std::vector<CompactionInputFiles>& inputs, Slice* smallest_user_key,
@@ -87,6 +110,9 @@ void Compaction::GetBoundaryKeys(
     if (inputs[i].files.empty()) {
       continue;
     }
+	assert(input[i].level > 0);
+	/* added by ChengZhilong */
+	/*
     if (inputs[i].level == 0) {
       // we need to consider all files on level 0
       for (const auto* f : inputs[i].files) {
@@ -102,7 +128,8 @@ void Compaction::GetBoundaryKeys(
         }
         initialized = true;
       }
-    } else {
+    } else */
+    {
       // we only need to consider the first and last file
       const Slice& start_user_key = inputs[i].files[0]->smallest.user_key();
       if (!initialized ||
@@ -177,6 +204,10 @@ bool Compaction::IsBottommostLevel(
     }
     assert(static_cast<size_t>(output_l0_idx) < vstorage->LevelFiles(0).size());
   } else {
+  	// added by ChengZhilong
+  	if (output_level == 1) {
+		return false;	// 此返回值不重要，会在Compaction类的构造函数里重新被赋值
+  	}
     output_l0_idx = -1;
   }
   Slice smallest_key, largest_key;
@@ -204,7 +235,9 @@ bool Compaction::IsFullCompaction(
   for (size_t i = 0; i < inputs.size(); i++) {
     num_files_in_compaction += inputs[i].size();
   }
-  return num_files_in_compaction == total_num_files;
+  // added by ChengZhilong
+  //return num_files_in_compaction == total_num_files;
+  return false;
 }
 
 Compaction::Compaction(VersionStorageInfo* vstorage,
@@ -219,7 +252,8 @@ Compaction::Compaction(VersionStorageInfo* vstorage,
                        std::vector<FileMetaData*> _grandparents,
                        bool _manual_compaction, double _score,
                        bool _deletion_compaction,
-                       CompactionReason _compaction_reason)
+                       CompactionReason _compaction_reason,
+                       FixedRangeTab* picked_range_tab)
     : input_vstorage_(vstorage),
       start_level_(_inputs[0].level),
       output_level_(_output_level),
@@ -242,7 +276,8 @@ Compaction::Compaction(VersionStorageInfo* vstorage,
       is_full_compaction_(IsFullCompaction(vstorage, inputs_)),
       is_manual_compaction_(_manual_compaction),
       is_trivial_move_(false),
-      compaction_reason_(_compaction_reason) {
+      compaction_reason_(_compaction_reason),
+      fix_range_table_picker_(picked_range_tab){
   MarkFilesBeingCompacted(true);
   if (is_manual_compaction_) {
     compaction_reason_ = CompactionReason::kManualCompaction;
@@ -265,8 +300,19 @@ Compaction::Compaction(VersionStorageInfo* vstorage,
                                 &arena_);
     }
   }
-
-  GetBoundaryKeys(vstorage, inputs_, &smallest_user_key_, &largest_user_key_);
+  // added by ChengZhilong
+  if (start_level_ == 0) {
+  	// 需要给smallest_user_key_和largest_user_key_赋初值
+  	//vstorage->get_slice_key_range_boudary(&smallest_user_key_, &largest_user_key_);
+  	smallest_user_key_ = *picked_range_tab->RangeUsage().start();
+  	largest_user_key_ = *picked_range_tab->RangeUsage().end();
+	GetLevel01BoundaryKeys(vstorage, inputs_, &smallest_user_key_, &largest_user_key_);
+  	bottommost_level_ = (!vstorage->RangeMightExistAfterSortedRun(smallest_user_key_, largest_user_key_, output_level_, -1));
+	//fix_range_table_picker_ = vstorage->get_fix_range_tab();
+  } else {
+  	/* 获取inputs_保存的所有sst文件中记录的最小key和最大key，分别存放在smallest_user_key_和largest_user_key_ */
+  	GetBoundaryKeys(vstorage, inputs_, &smallest_user_key_, &largest_user_key_);
+  }
 }
 
 Compaction::~Compaction() {
@@ -301,7 +347,9 @@ bool Compaction::IsTrivialMove() const {
   // filter to be applied to that level, and thus cannot be a trivial move.
 
   // Check if start level have files with overlapping ranges
-  if (start_level_ == 0 && input_vstorage_->level0_non_overlapping() == false) {
+  // added by ChengZhilong
+  if (start_level_ == 0) {
+//  if (start_level_ == 0 && input_vstorage_->level0_non_overlapping() == false) {
     // We cannot move files from L0 to L1 if the files are overlapping
     return false;
   }
@@ -498,6 +546,11 @@ uint64_t Compaction::OutputFilePreallocationSize() const {
     for (const auto& file : level_files.files) {
       preallocation_size += file->fd.GetFileSize();
     }
+  }
+
+  // added by ChengZhilong
+  if (start_level_ == 0 && output_level_ == 1) {
+	preallocation_size += input_vstorage_->get_range_size();
   }
 
   if (max_output_file_size_ != port::kMaxUint64 &&

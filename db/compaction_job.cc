@@ -288,6 +288,11 @@ struct CompactionJob::CompactionState {
     // If there is no finished output, return an empty slice.
     return Slice(nullptr, 0);
   }
+
+  // added by ChengZhilong
+  void CleanupKeyRangeTab() {
+	compaction->CleanUpKeyRangeTab();
+  }
 };
 
 void CompactionJob::AggregateStatistics() {
@@ -433,6 +438,21 @@ void CompactionJob::Prepare() {
   } else {
     compact_->sub_compact_states.emplace_back(c, nullptr, nullptr);
   }
+}
+
+void CompactionJob::PrepareKeyRange()
+{
+	AutoThreadOperationStageUpdater stage_updater(
+      ThreadStatus::STAGE_COMPACTION_PREPARE);
+
+  // Generate file_levels_ for compaction berfore making Iterator
+  auto* c = compact_->compaction;
+  assert(c->column_family_data() != nullptr);
+  assert(c->column_family_data()->current()->storage_info()->NumLevelFiles(
+             compact_->compaction->level()) > 0);	
+
+  // 先暂时考虑只有单个sub_compaction
+  compact_->sub_compact_states.emplace_back(c, nullptr, nullptr);
 }
 
 struct RangeWithSize {
@@ -591,6 +611,10 @@ Status CompactionJob::Run() {
   // Wait for all other threads (if there are any) to finish execution
   for (auto& thread : thread_pool) {
     thread.join();
+  }
+
+  if (output_directory_) {
+    output_directory_->Fsync();					/* ??? */
   }
 
   compaction_stats_.micros = env_->NowMicros() - start_micros;
@@ -797,9 +821,26 @@ void CompactionJob::ProcessKeyValueCompaction(SubcompactionState* sub_compact) {
   ColumnFamilyData* cfd = sub_compact->compaction->column_family_data();
   std::unique_ptr<RangeDelAggregator> range_del_agg(
       new RangeDelAggregator(cfd->internal_comparator(), existing_snapshots_));
+
+  // added by ChengZhilong
+  int compact_level = sub_compact->compaction->start_level();
+  assert(compact_level >= 0);
+  
+  /* key points: versions_->MakeInputIterator(...) */
+  /* input记录着包括两层要compact的所有sst的iterator信息 */
+  /* 返回指针类型InternalIteartor* 应该是指向 BlockBasedTableIterator<DataBlockIter> */
+  std::unique_ptr<InternalIterator> input;
+  if (compact_level == 0) {
+  	input.reset(versions_->MakeKeyRangeBasedInputIterator(sub_compact->compaction,
+                                                          range_del_agg.get(), env_optiosn_for_read_));
+  } else {
+  	input.reset(versions_->MakeInputIterator(sub_compact->compaction,
+		range_del_agg.get(), env_optiosn_for_read_));
+  }
+  /*
   std::unique_ptr<InternalIterator> input(versions_->MakeInputIterator(
       sub_compact->compaction, range_del_agg.get(), env_optiosn_for_read_));
-
+  */
   AutoThreadOperationStageUpdater stage_updater(
       ThreadStatus::STAGE_COMPACTION_PROCESS_KV);
 
@@ -1518,6 +1559,9 @@ Status CompactionJob::OpenCompactionOutputFile(
 }
 
 void CompactionJob::CleanupCompaction() {
+  // added by ChengZhilong
+ compact_->CleanupKeyRangeTab();	/* if it's Key-Range Tab compaction, then cleanup it's resources needed! */
+
   for (SubcompactionState& sub_compact : compact_->sub_compact_states) {
     const auto& sub_status = sub_compact.status;
 

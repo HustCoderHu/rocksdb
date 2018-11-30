@@ -4240,6 +4240,45 @@ void VersionSet::AddLiveFiles(std::vector<FileDescriptor>* live_list) {
   }
 }
 
+/*
+ * Only level-0 Compaction can call it. It's similar to MakeInputIterator
+ */
+// Compaction c在函数LevelCompactionBuilder::PickCompaction被初始化
+// added by ChengZhilong
+InternalIterator* VersionSet::MakeKeyRangeBasedInputIterator(
+		const Compaction*c, RangeDelAggregator* range_del_agg,
+		const EnvOptions& env_options_compactions) {
+	auto cfd = c->column_family_data();
+	ReadOptions read_options;
+	read_options.verify_checksums = true;
+	read_options.fill_cache = false;
+	read_options.total_order_seek = true;
+
+	// TODO
+	const size_t space = c->num_input_levels();		// 若level-1没重叠的sst文件，则为1；否则为2
+	InternalIterator** list = new InternalIterator* [space];
+	size_t num = 0;
+
+	list[num++] = c->compacted_range()->NewIterator(cfd, nullptr);
+	for (size_t which = 1; which < space; which++) {
+		list[num++] = new LevelIterator(
+			cfd->table_cache(), read_options, env_options_compactions,
+            cfd->internal_comparator(), c->input_levels(which),
+            c->mutable_cf_options()->prefix_extractor.get(),
+            false /* should_sample */,
+            nullptr /* no per level latency histogram */,
+            true /* for_compaction */, false /* skip_filters */,
+            static_cast<int>(which) /* level */, range_del_agg);
+	}
+
+	assert(num <= space);
+	InternalIterator* result =
+      NewMergingIterator(&c->column_family_data()->internal_comparator(), list,
+                         static_cast<int>(num));
+	delete[] list;
+	return result;
+}
+
 InternalIterator* VersionSet::MakeInputIterator(
     const Compaction* c, RangeDelAggregator* range_del_agg,
     const EnvOptions& env_options_compactions) {
@@ -4325,7 +4364,14 @@ bool VersionSet::VerifyCompactionFileConsistency(Compaction* c) {
     }
   }
 
-  for (size_t input = 0; input < c->num_input_levels(); ++input) {
+  // added by ChengZhilong
+  size_t input;
+  if (c->start_level() == 0) 
+  	input = 1;
+  else 
+  	input = 0;
+  for (; input < c->num_input_levels(); ++input) {
+//  for (size_t input = 0; input < c->num_input_levels(); ++input) {
     int level = c->level(input);
     for (size_t i = 0; i < c->num_input_files(input); ++i) {
       uint64_t number = c->input(input, i)->fd.GetNumber();

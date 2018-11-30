@@ -26,6 +26,8 @@
 #include "rocksdb/options.h"
 #include "util/thread_local.h"
 
+#include "utilities/nvm_write_cache/fixed_range_tab.h"
+
 namespace rocksdb {
 
 class Version;
@@ -383,6 +385,9 @@ class ColumnFamilyData {
 
   Directory* GetDataDir(size_t path_id) const;
 
+  // added by ChengZhilong
+  Compaction* KeyRangePickCompaction();
+
  private:
   friend class ColumnFamilySet;
   ColumnFamilyData(uint32_t id, const std::string& name,
@@ -469,6 +474,13 @@ class ColumnFamilyData {
 
   // Directories corresponding to cf_paths.
   std::vector<std::unique_ptr<Directory>> data_dirs_;
+
+  // added by ChengZhilong
+  // For KeyRangeBased compaction (you can take it as level-0)
+  // Need initialized in constructure function
+  // in struct ImmutableCFOptions
+  // 在ColumnFamilyData类和vstorage类之间共享该指针???
+  //std::unique_ptr<FixedRangeChunkBasedNVMWriteCache> fix_range_compaction_picker_;
 };
 
 // ColumnFamilySet has interesting thread-safety requirements

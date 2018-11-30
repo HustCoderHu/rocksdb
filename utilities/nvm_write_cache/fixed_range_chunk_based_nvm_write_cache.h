@@ -21,7 +21,6 @@
 #include "common.h"
 
 using std::string;
-using std::mutex;
 using std::unordered_map;
 using namespace pmem::obj;
 using p_range::pmem_hash_map;
@@ -37,6 +36,8 @@ struct CompactionItem {
 
     CompactionItem(const CompactionItem &item)
             : pending_compated_range_(item.pending_compated_range_) {}
+
+    CompactionItem() = default;
 };
 
 struct ChunkMeta {
@@ -96,7 +97,7 @@ public:
     // get data from cache
     Status Get(const InternalKeyComparator &internal_comparator, const LookupKey &lkey, std::string *value) override;
 
-    void AppendToRange(const InternalKeyComparator &icmp, const string& bloom_data, const Slice &chunk_data,
+    void AppendToRange(const InternalKeyComparator &icmp, const string &bloom_data, const Slice &chunk_data,
                        const ChunkMeta &meta);
 
     // get iterator of the total cache
@@ -118,7 +119,8 @@ public:
 
 private:
 
-    persistent_ptr<NvRangeTab> NewContent(const string& prefix, size_t bufSize);
+    persistent_ptr<NvRangeTab> NewContent(const string &prefix, size_t bufSize);
+
     FixedRangeTab *NewRange(const std::string &prefix);
 
     void RebuildFromPersistentNode();
@@ -136,7 +138,7 @@ private:
 
     struct VolatileInfo {
         const FixedRangeBasedOptions *internal_options_;
-        unordered_map<string, FixedRangeTab*> prefix2range;
+        unordered_map<string, FixedRangeTab *> prefix2range;
         std::queue<CompactionItem> range_queue_;
         InstrumentedMutex queue_lock_;
 

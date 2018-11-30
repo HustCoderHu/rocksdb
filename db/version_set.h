@@ -45,6 +45,8 @@
 #include "port/port.h"
 #include "rocksdb/env.h"
 
+#include "utilities/nvm_write_cache/fixed_range_chunk_based_nvm_write_cache.h"
+
 namespace rocksdb {
 
 namespace log {
@@ -159,8 +161,11 @@ class VersionStorageInfo {
   void UpdateFilesByCompactionPri(CompactionPri compaction_pri);
 
   void GenerateLevel0NonOverlapping();
+
+  // added by ChengZhilong
   bool level0_non_overlapping() const {
-    return level0_non_overlapping_;
+    //return level0_non_overlapping_;
+    return false;
   }
 
   // Check whether each file in this version is bottommost (i.e., nothing in its
@@ -408,9 +413,69 @@ class VersionStorageInfo {
   // @param last_level Level after which we check for overlap
   // @param last_l0_idx If `last_level == 0`, index of L0 file after which we
   //    check for overlap; otherwise, must be -1
-  bool RangeMightExistAfterSortedRun(const Slice& smallest_user_key,
-                                     const Slice& largest_user_key,
-                                     int last_level, int last_l0_idx);
+  bool RangeMightExistAfterSortedRun(const Slice& smallest_key,
+                                     const Slice& largest_key, int last_level,
+                                     int last_l0_idx);
+
+/*    bool key_range_based_compaction_;
+  struct CompactionItem compact_item_;		// record chunk-set info
+  const int chunk_num_; 
+*/
+  /* added by ChengZhilong */
+  bool get_key_range_based_compaction() { return key_range_based_compaction_; }
+  void set_key_range_based_compaction() { 
+  	key_range_based_compaction_ = true;
+  }
+
+  void reset_key_range_based_compaction() {
+	key_range_based_compaction_ = false;
+  }
+
+  // added by ChengZhilong
+  // 暂时不支持key-range层的多线程compaction
+  /*void get_key_range_boundary(InternalKey* smallest, InternalKey* largest)
+  {
+    smallest->Clear(); 		largest->Clear();
+
+//	assert(key_range_based_compaction_ == true);
+
+	*smallest = *compaction_item_.pending_compated_range_->RangeUsage().start();
+	*largest = *compaction_item_.pending_compated_range_->RangeUsage().end();
+  }*/
+
+  /*void get_slice_key_range_boudary(Slice* smallest_key, Slice* largest_key)
+  {
+      unique_ptr<InternalKey> start = compaction_item_.pending_compated_range_->RangeUsage().start();
+      if(start != nullptr){
+          *smallest_key = start->user_key();
+      }
+      unique_ptr<InternalKey> end = compaction_item_.pending_compated_range_->RangeUsage().end();
+      if(end != nullptr){
+          *largest_key = end->user_key();
+      }
+
+  	*//*smallest_key = compaction_item_.pending_compated_range_->RangeUsage().start()->user_key();
+	largest_key = compaction_item_.pending_compated_range_->RangeUsage().end()->user_key();*//*
+  }*/
+
+  /*uint64_t get_range_size() { return compaction_item_.pending_compated_range_->RangeUsage().range_size; }*/
+
+  /*FixedRangeTab* get_fix_range_tab() { return compaction_item_.pending_compated_range_; }
+
+  void set_compaction_item(CompactionItem* compaction_item) {
+  	compaction_item_.pending_compated_range_ = compaction_item->pending_compated_range_;
+	*//*compaction_item_.start_key_ = compaction_item->start_key_;
+	compaction_item_.end_key_ = compaction_item->end_key_;
+	compaction_item_.chunk_num_ = compaction_item->chunk_num_;
+	compaction_item_.range_size_ = compaction_item->range_size_;*//*
+  }
+
+  void reset_compaction_item()
+  {
+  	memset(&compaction_item_, 0, sizeof(compaction_item_));
+	compaction_item_.pending_compated_range_ = nullptr;
+  }*/
+  
 
  private:
   const InternalKeyComparator* internal_comparator_;
@@ -431,6 +496,21 @@ class VersionStorageInfo {
   // List of files per level, files in each level are arranged
   // in increasing order of keys
   std::vector<FileMetaData*>* files_;
+
+  // added by ChengZhilong 
+  // for level-0 compaction
+  bool key_range_based_compaction_;
+
+/*  
+  typedef struct CompactionItem{
+	  FixedRange* pending_compated_range_;
+	  InternalKey start_key_, end_key_;
+	  uint64_t range_size_, chunk_num_;
+  } CompactionItem;
+ */
+  //CompactionItem compaction_item_;
+//  struct CompactionItem compact_item_;		// record chunk-set info
+  //const int chunk_num_;
 
   // Level that L0 data should be compacted to. All levels < base_level_ should
   // be empty. -1 if it is not level-compaction so it's not applicable.
@@ -937,6 +1017,10 @@ class VersionSet {
   InternalIterator* MakeInputIterator(
       const Compaction* c, RangeDelAggregator* range_del_agg,
       const EnvOptions& env_options_compactions);
+
+  InternalIterator* MakeKeyRangeBasedInputIterator(
+            const Compaction*c, RangeDelAggregator* range_del_agg,
+            const EnvOptions& env_options_compactions)
 
   // Add all files listed in any live version to *live.
   void AddLiveFiles(std::vector<FileDescriptor>* live_list);

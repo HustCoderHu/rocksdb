@@ -148,6 +148,8 @@ public:
     }
 
     ~RangeTabTest(){
+        delete foptions_->prefix_extractor_;
+        delete foptions_;
         delete tab;
         pop_.close();
     }

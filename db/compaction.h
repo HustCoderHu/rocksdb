@@ -76,7 +76,8 @@ class Compaction {
              std::vector<FileMetaData*> grandparents,
              bool manual_compaction = false, double score = -1,
              bool deletion_compaction = false,
-             CompactionReason compaction_reason = CompactionReason::kUnknown);
+             CompactionReason compaction_reason = CompactionReason::kUnknown,
+             FixedRangeTab* picked_range_tab = nullptr);
 
   // No copying allowed
   Compaction(const Compaction&) = delete;
@@ -291,10 +292,17 @@ class Compaction {
 
   uint64_t MaxInputFileCreationTime() const;
 
+  FixedRangeTab* compacted_range(){return fix_range_table_picker_;}
+
  private:
   // mark (or clear) all files that are being compacted
   void MarkFilesBeingCompacted(bool mark_as_compacted);
 
+  // added by ChengZhilong
+  void GetLevel01BoundaryKeys(VersionStorageInfo* vstorage,
+	const std::vector<CompactionInputFiles>& inputs, Slice* smallest_user_key,
+	Slice* largest_user_key);
+  
   // get the smallest and largest key present in files to be compacted
   static void GetBoundaryKeys(VersionStorageInfo* vstorage,
                               const std::vector<CompactionInputFiles>& inputs,
@@ -315,6 +323,22 @@ class Compaction {
 
   static bool IsFullCompaction(VersionStorageInfo* vstorage,
                                const std::vector<CompactionInputFiles>& inputs);
+
+  void CleanUpKeyRangeTab() {
+  	if (fix_range_table_picker_ != nullptr) {
+		fix_range_table_picker_->CleanUp();
+		//input_vstorage_->reset_compaction_item();
+  	}
+  }
+
+  // added by ChengZhilong
+  uint64_t getChunkNum()
+  {
+  	if (start_level_ == 0) {
+		return fix_range_table_picker_->RangeUsage().chunk_num;
+  	}
+	return 0;
+  }
 
   VersionStorageInfo* input_vstorage_;
 
@@ -374,6 +398,23 @@ class Compaction {
 
   // Reason for compaction
   CompactionReason compaction_reason_;
+
+
+  // added by ChengZhilong
+  // when start_level_ == 0
+  // struct CompactionItem {
+  // 	FixRange* pending_compacted_range_;
+  // 	Slice start_key_, end_key_;
+  // 	uint64_t range_size_, chunk_num_;
+  // };
+  // Called by CompactionItem* FixedRangeChunkBasedNVMWriteCache::GetCompactionData();
+  // Initialized in VersionSet when compact_level_ == 0, 
+  //struct CompactionItem compact_item_;		// record chunk-set info
+  //const int chunk_num_;
+
+  // similar to TableCache
+  // ��key_range׼��compactionʱ��ʼ����ֵ������һֱΪnullptr???
+  FixedRangeTab* fix_range_table_picker_;
 };
 
 // Utility function
