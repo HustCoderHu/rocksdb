@@ -476,6 +476,17 @@ ColumnFamilyData::ColumnFamilyData(
     }
   }
 
+  // NVMRangeCache:init nvm write cache
+  if(ioptions_.nvm_cache_setup.use_nvm_cache_){
+    string pmem_file_name(ioptions_.nvm_cache_setup.pmem_path + name_);
+    // TODO: multi type of cache
+    auto foptions = new FixedRangeBasedOptions(ioptions_.nvm_cache_setup.bloom_bits,
+                                               ioptions_.nvm_cache_setup.prefix_bytes,
+                                               1 << 27);
+    ioptions_.nvm_cache_options.nvm_write_cache_.reset(
+            NVMCacheOptions::NewFixedRangeChunkBasedCache(ioptions_.nvm_cache_options, foptions));
+  }
+
   RecalculateWriteStallConditions(mutable_cf_options_);
 }
 

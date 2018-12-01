@@ -15,6 +15,7 @@
 #include <vector>
 #include <limits>
 #include <unordered_map>
+#include <utilities/nvm_write_cache/nvm_cache_options.h>
 
 
 #include "rocksdb/advanced_options.h"
@@ -985,7 +986,8 @@ namespace rocksdb {
         bool atomic_flush = false;
 
 
-        std::shared_ptr<NVMCacheOptions> nvm_cache_options = nullptr;
+        //std::shared_ptr<NVMCacheOptions> nvm_cache_options = nullptr;
+        NVMCacheSetup nvm_cache_setup;
     };
 
 // Options to control the behavior of a database (passed to DB::Open)

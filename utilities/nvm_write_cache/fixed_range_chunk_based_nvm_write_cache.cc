@@ -48,6 +48,7 @@ FixedRangeChunkBasedNVMWriteCache::~FixedRangeChunkBasedNVMWriteCache() {
         delete range.second;
     }
     vinfo_->prefix2range.clear();
+    delete vinfo_->internal_options_;
     delete vinfo_;
     pop_.close();
 }

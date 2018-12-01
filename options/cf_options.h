@@ -121,6 +121,10 @@ namespace rocksdb {
         const SliceTransform *memtable_insert_with_hint_prefix_extractor;
 
         std::vector<DbPath> cf_paths;
+
+        NVMCacheSetup nvm_cache_setup;
+
+        NVMCacheOptions nvm_cache_options;
     };
 
     struct MutableCFOptions {

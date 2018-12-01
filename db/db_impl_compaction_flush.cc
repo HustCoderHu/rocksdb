@@ -265,7 +265,7 @@ namespace rocksdb {
                         &shutting_down_,
                         log_buffer,
                         stats_,
-                        immutable_db_options_.nvm_cache_options.get());
+                        &cfd->ioptions()->nvm_cache_options);
                 break;
             }
 
@@ -2072,7 +2072,7 @@ namespace rocksdb {
                         bg_job_limits.max_compactions, bg_flush_scheduled_,
                         bg_compaction_scheduled_);
             }
-            if(immutable_db_options_.nvm_cache_options != nullptr && immutable_db_options_.nvm_cache_options->use_nvm_write_cache_){
+            if(immutable_db_options_.nvm_cache_setup.use_nvm_cache_){
                 status = FlushMemTablesToNVMCache(bg_flush_args, made_progress, job_context, log_buffer);
             }else{
                 status = FlushMemTablesToOutputFiles(bg_flush_args, made_progress,

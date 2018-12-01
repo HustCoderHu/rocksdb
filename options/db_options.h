@@ -80,7 +80,9 @@ namespace rocksdb {
         bool two_write_queues;
         bool manual_wal_flush;
         bool atomic_flush;
-        shared_ptr<NVMCacheOptions> nvm_cache_options;
+        //shared_ptr<NVMCacheOptions> nvm_cache_options;
+        //TODO NVMCacheSetup Initialization
+        NVMCacheSetup nvm_cache_setup;
     };
 
     struct MutableDBOptions {

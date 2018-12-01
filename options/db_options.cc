@@ -86,7 +86,7 @@ ImmutableDBOptions::ImmutableDBOptions(const DBOptions& options)
       preserve_deletes(options.preserve_deletes),
       two_write_queues(options.two_write_queues),
       manual_wal_flush(options.manual_wal_flush),
-      nvm_cache_options(options.nvm_cache_options){
+      nvm_cache_setup(options.nvm_cache_setup){
 }
 
 void ImmutableDBOptions::Dump(Logger* log) const {
