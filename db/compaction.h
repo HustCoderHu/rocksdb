@@ -12,6 +12,7 @@
 #include "options/cf_options.h"
 #include "util/arena.h"
 #include "util/autovector.h"
+#include "utilities/nvm_write_cache/fixed_range_tab.h"
 
 namespace rocksdb {
 
@@ -76,7 +77,8 @@ class Compaction {
              std::vector<FileMetaData*> grandparents,
              bool manual_compaction = false, double score = -1,
              bool deletion_compaction = false,
-             CompactionReason compaction_reason = CompactionReason::kUnknown);
+             CompactionReason compaction_reason = CompactionReason::kUnknown,
+             FixedRangeTab* pendding_range = nullptr);
 
   // No copying allowed
   Compaction(const Compaction&) = delete;
@@ -291,6 +293,8 @@ class Compaction {
 
   uint64_t MaxInputFileCreationTime() const;
 
+  FixedRangeTab* pendding_range() const {return pendding_range_;}
+
  private:
   // mark (or clear) all files that are being compacted
   void MarkFilesBeingCompacted(bool mark_as_compacted);
@@ -374,6 +378,9 @@ class Compaction {
 
   // Reason for compaction
   CompactionReason compaction_reason_;
+
+  // Range pendding for compaction
+  FixedRangeTab* pendding_range_;
 };
 
 // Utility function

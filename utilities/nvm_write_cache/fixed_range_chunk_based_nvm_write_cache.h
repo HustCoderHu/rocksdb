@@ -32,6 +32,8 @@ namespace rocksdb {
 struct CompactionItem {
     FixedRangeTab *pending_compated_range_;
 
+    CompactionItem() =default;
+
     explicit CompactionItem(FixedRangeTab *range)
             : pending_compated_range_(range) {}
 

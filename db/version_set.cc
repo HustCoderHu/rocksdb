@@ -4297,6 +4297,44 @@ InternalIterator* VersionSet::MakeInputIterator(
   return result;
 }
 
+
+/*
+ * Only level-0 Compaction can call it. It's similar to MakeInputIterator
+ */
+// Compaction c在函数LevelCompactionBuilder::PickCompaction被初始化
+// added by ChengZhilong
+    InternalIterator* VersionSet::MakeKeyRangeBasedInputIterator(
+            const Compaction*c, RangeDelAggregator* range_del_agg,
+            const EnvOptions& env_options_compactions) {
+        auto cfd = c->column_family_data();
+        ReadOptions read_options;
+        read_options.verify_checksums = true;
+        read_options.fill_cache = false;
+        read_options.total_order_seek = true;
+        // TODO
+        const size_t space = c->num_input_levels();		// 若level-1没重叠的sst文件，则为1；否则为2
+        InternalIterator** list = new InternalIterator* [space];
+        size_t num = 0;
+        FixedRangeTab* pendding_range = c->pendding_range();
+        list[num++] = pendding_range->NewInternalIterator(cfd->ioptions()->internal_comparator, nullptr);
+        for (size_t which = 1; which < space; which++) {
+            list[num++] = new LevelIterator(
+                    cfd->table_cache(), read_options, env_options_compactions,
+                    cfd->internal_comparator(), c->input_levels(which),
+                    c->mutable_cf_options()->prefix_extractor.get(),
+                    false /* should_sample */,
+                    nullptr /* no per level latency histogram */,
+                    true /* for_compaction */, false /* skip_filters */,
+                    static_cast<int>(which) /* level */, range_del_agg);
+        }
+        assert(num <= space);
+        InternalIterator* result =
+                NewMergingIterator(&c->column_family_data()->internal_comparator(), list,
+                                   static_cast<int>(num));
+        delete[] list;
+        return result;
+    }
+
 // verify that the files listed in this compaction are present
 // in the current version
 bool VersionSet::VerifyCompactionFileConsistency(Compaction* c) {

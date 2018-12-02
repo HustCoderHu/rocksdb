@@ -90,6 +90,9 @@ enum class CompactionReason : int {
   kExternalSstIngestion,
   // total number of compaction reasons, new reasons must be added above this.
   kNumOfReasons,
+
+  // Add by Glitter
+  kNVMCacheRangeFull,
 };
 
 enum class FlushReason : int {

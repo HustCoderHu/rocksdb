@@ -2330,6 +2330,7 @@ namespace rocksdb {
         // InternalKey* manual_end = &manual_end_storage;
         bool sfm_reserved_compact_space = false;
         if (is_manual) {
+            // munal compaction
             ManualCompactionState *m = manual_compaction;
             assert(m->in_progress);
             if (!c) {
@@ -2367,6 +2368,7 @@ namespace rocksdb {
                 }
             }
         } else if (!is_prepicked && !compaction_queue_.empty()) {
+            // 条件：非manual && compaction_queue_不为空
             if (HasExclusiveManualCompaction()) {
                 // Can't compact right now, but try again later
                 TEST_SYNC_POINT("DBImpl::BackgroundCompaction()::Conflict");
@@ -2378,6 +2380,7 @@ namespace rocksdb {
             }
 
             // cfd is referenced here
+            // 从compaction_queue_中获取一个cfd
             auto cfd = PopFirstFromCompactionQueue();
             // We unreference here because the following code will take a Ref() on
             // this cfd if it is going to use it (Compaction class holds a
@@ -2385,6 +2388,8 @@ namespace rocksdb {
             // This will all happen under a mutex so we don't have to be afraid of
             // somebody else deleting it.
             if (cfd->Unref()) {
+                // 因为后面会有一个引用过程所以这里先解引用一下
+                // 如果在这个地方是最后一个引用这个cfd的，那么就没必要compaction了，直接丢掉吧
                 delete cfd;
                 // This was the last reference of the column family, so no need to
                 // compact.
@@ -2396,21 +2401,26 @@ namespace rocksdb {
             // Compaction makes a copy of the latest MutableCFOptions. It should be used
             // throughout the compaction procedure to make sure consistency. It will
             // eventually be installed into SuperVersion
+
+            // 获取mutable_cf_options
             auto *mutable_cf_options = cfd->GetLatestMutableCFOptions();
             if (!mutable_cf_options->disable_auto_compactions && !cfd->IsDropped()) {
                 // NOTE: try to avoid unnecessary copy of MutableCFOptions if
                 // compaction is not necessary. Need to make sure mutex is held
                 // until we make a copy in the following code
                 TEST_SYNC_POINT("DBImpl::BackgroundCompaction():BeforePickCompaction");
+                // PickCompaction
                 c.reset(cfd->PickCompaction(*mutable_cf_options, log_buffer));
                 TEST_SYNC_POINT("DBImpl::BackgroundCompaction():AfterPickCompaction");
 
                 if (c != nullptr) {
+                    // TODO：可能需要修改
                     bool enough_room = EnoughRoomForCompaction(
                             cfd, *(c->inputs()), &sfm_reserved_compact_space, log_buffer);
 
                     if (!enough_room) {
                         // Then don't do the compaction
+                        // 剩下的空间不够做compaction，暂时不管
                         c->ReleaseCompactionFiles(status);
                         c->column_family_data()
                                 ->current()
@@ -2429,19 +2439,28 @@ namespace rocksdb {
                         MeasureTime(stats_, NUM_FILES_IN_SINGLE_COMPACTION,
                                     c->inputs(0)->size());
                         // There are three things that can change compaction score:
+                        // 改变compaction score的三个方式
+
                         // 1) When flush or compaction finish. This case is covered by
                         // InstallSuperVersionAndScheduleWork
+                        // flush或者compaction结束之后由InstallSuperVersionAndScheduleWork执行
+
                         // 2) When MutableCFOptions changes. This case is also covered by
                         // InstallSuperVersionAndScheduleWork, because this is when the new
                         // options take effect.
+                        // 当MutableCFOptions被修改之后，由Installxxx来修改
+
                         // 3) When we Pick a new compaction, we "remove" those files being
                         // compacted from the calculation, which then influences compaction
                         // score. Here we check if we need the new compaction even without the
                         // files that are currently being compacted. If we need another
                         // compaction, we might be able to execute it in parallel, so we add
                         // it to the queue and schedule a new thread.
+                        // 当选取了一个compaction之后，移除这些文件再看看还需不需要compaction，如果
+                        // 仍然需要，那么我们再将这个compaction放到queue中，触发另一次compaction
                         if (cfd->NeedsCompaction()) {
                             // Yes, we need more compactions!
+                            // oh,more compactions!
                             AddToCompactionQueue(cfd);
                             ++unscheduled_compactions_;
                             MaybeScheduleFlushOrCompaction();
@@ -2451,6 +2470,7 @@ namespace rocksdb {
             }
         }
 
+        // compaction被选好了
         if (!c) {
             // Nothing to do
             ROCKS_LOG_BUFFER(log_buffer, "Compaction nothing to do");
@@ -2480,7 +2500,9 @@ namespace rocksdb {
                              c->column_family_data()->GetName().c_str(),
                              c->num_input_files(0));
             *made_progress = true;
-        } else if (!trivial_move_disallowed && c->IsTrivialMove()) {
+        } /*else if (!trivial_move_disallowed && c->IsTrivialMove()) {
+ * Modified by Glitter
+ * // TODO: No Trivial move allowed
             TEST_SYNC_POINT("DBImpl::BackgroundCompaction:TrivialMove");
             // Instrument for event update
             // TODO(yhchiang): add op details for showing trivial-move.
@@ -2553,7 +2575,7 @@ namespace rocksdb {
 
             // Clear Instrument
             ThreadStatusUtil::ResetThreadStatus();
-        } else if (!is_prepicked && c->output_level() > 0 &&
+        }*/ else if (!is_prepicked && c->output_level() > 0 &&
                    c->output_level() ==
                    c->column_family_data()
                            ->current()
@@ -2616,6 +2638,13 @@ namespace rocksdb {
             *made_progress = true;
         }
         if (c != nullptr) {
+            if(c->pendding_range() != nullptr){
+                // Add by Glittter
+                // 完成compaction之后的清理工作
+                c->pendding_range()->CleanUp();
+                c->pendding_range()->SetCompactionWorking(false);
+                c->pendding_range()->SetCompactionPendding(false);
+            }
             c->ReleaseCompactionFiles(status);
             *made_progress = true;
 
