@@ -1152,9 +1152,6 @@ namespace rocksdb {
             // in Intra-L0 compactions)
             void SetupInitialFiles();
 
-            // Pick the initial range from nvm write cache to compact to level-1
-            void SetupRangeCompactionFiles();
-
             // If the initial files are from L0 level, pick other L0
             // files if needed.
             bool SetupOtherL0FilesIfNeeded();
@@ -1253,7 +1250,8 @@ namespace rocksdb {
             // Find the compactions by size on all levels.
             // 选择一个待compaction的level
             bool skipped_l0_to_base = false;
-            if(ioptions_.nvm_cache_options.nvm_write_cache_->NeedCompaction()){
+            if(ioptions_.nvm_cache_options.nvm_write_cache_ != nullptr &&
+            ioptions_.nvm_cache_options.nvm_write_cache_->NeedCompaction()){
                 // TODO：权衡一下最优先compact NVMcache还是其他的level
                 start_level_ = 0;
                 output_level_ = vstorage_->base_level();
@@ -1357,36 +1355,6 @@ namespace rocksdb {
             }
         }
 
-        void LevelCompactionBuilder::SetupRangeCompactionFiles() {
-            // 1.从write cache获取一个range
-            // 2.获取这个range的真实keyrange
-            // 3.根据这个keyrange选择L1中的文件
-            auto nvm_write_cache = dynamic_cast<FixedRangeChunkBasedNVMWriteCache *>(
-                    ioptions_.nvm_cache_options.nvm_write_cache_.get());
-            CompactionItem compaction_item;
-            nvm_write_cache->GetCompactionData(&compaction_item);
-            pendding_compaction_ = compaction_item.pending_compated_range_;
-            Usage range_usage = pendding_compaction_->RangeUsage();
-
-            start_level_inputs_.clear();
-            start_level_inputs_.level = 0;
-            output_level_ = 1;
-
-            InternalKey smallest, largest;
-            if (range_usage.start() != nullptr) {
-                smallest = range_usage.start();
-            }
-            if (range_usage.end() != nullptr) {
-                largest = range_usage.end();
-            }
-            //TODO: assert(smallest&largest不为空)
-            CompactionInputFiles files_compaction_with_nvmcache;
-            assert(output_level_ == 1);
-            files_compaction_with_nvmcache.level = output_level_;
-            vstorage_->GetOverlappingInputs(output_level_, &smallest, &largest,
-                                            &files_compaction_with_nvmcache.files);
-        }
-
         bool LevelCompactionBuilder::SetupOtherL0FilesIfNeeded() {
             if (start_level_ == 0 && output_level_ != 0) {
                 return compaction_picker_->GetOverlappingL0Files(
@@ -1400,7 +1368,7 @@ namespace rocksdb {
             // Setup input files from output level. For output to L0, we only compact
             // spans of files that do not interact with any pending compactions, so don't
             // need to consider other levels.
-            if(output_level_ != 0){
+            if(start_level_ != 0){
                 output_level_inputs_.level = output_level_;
                 if (!compaction_picker_->SetupOtherInputs(
                         cf_name_, mutable_cf_options_, vstorage_, &start_level_inputs_,
@@ -1420,7 +1388,7 @@ namespace rocksdb {
                 Usage range_usage = pendding_compaction_->RangeUsage();
                 // 通过compaction_picker的SetupOtherInput获取output_level的file
                 output_level_inputs_.level = output_level_;
-                assert(output_level_ == 1);
+                assert(output_level_inputs_.level == 1);
                 InternalKey start,end;
                 if(range_usage.start()){
                     start = *range_usage.start();
@@ -1434,7 +1402,6 @@ namespace rocksdb {
                     return false;
                 }
             }
-
             if (!output_level_inputs_.empty()) {
                 compaction_inputs_.push_back(output_level_inputs_);
             }
@@ -1470,9 +1437,9 @@ namespace rocksdb {
 
             // If it is a L0 -> base level compaction, we need to set up other L0
             // files if needed.
-            if (!SetupOtherL0FilesIfNeeded()) {
+            /*if (!SetupOtherL0FilesIfNeeded()) {
                 return nullptr;
-            }
+            }*/
 
             // Pick files in the output level and expand more files in the start level
             // if needed.

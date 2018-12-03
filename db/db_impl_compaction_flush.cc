@@ -2414,7 +2414,7 @@ namespace rocksdb {
                 TEST_SYNC_POINT("DBImpl::BackgroundCompaction():AfterPickCompaction");
 
                 if (c != nullptr) {
-                    // TODO：可能需要修改
+                    // TODO：暂时不管SstFileManager
                     bool enough_room = EnoughRoomForCompaction(
                             cfd, *(c->inputs()), &sfm_reserved_compact_space, log_buffer);
 

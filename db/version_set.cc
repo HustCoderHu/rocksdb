@@ -1588,7 +1588,10 @@ uint32_t GetExpiredTtlFilesCount(const ImmutableCFOptions& ioptions,
 void VersionStorageInfo::ComputeCompactionScore(
     const ImmutableCFOptions& immutable_cf_options,
     const MutableCFOptions& mutable_cf_options) {
-  for (int level = 0; level <= MaxInputLevel(); level++) {
+  //for (int level = 0; level <= MaxInputLevel(); level++) {
+  // Modified by Glitter
+  // no L0 anymore
+  for (int level = 1; level <= MaxInputLevel(); level++) {
     double score;
     if (level == 0) {
       // We treat level-0 specially by bounding the number of files
@@ -1666,6 +1669,7 @@ void VersionStorageInfo::ComputeCompactionScore(
 
   // sort all the levels based on their score. Higher scores get listed
   // first. Use bubble sort because the number of entries are small.
+  assert(compaction_score_[0] = 0);
   for (int i = 0; i < num_levels() - 2; i++) {
     for (int j = i + 1; j < num_levels() - 1; j++) {
       if (compaction_score_[i] < compaction_score_[j]) {
