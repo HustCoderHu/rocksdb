@@ -1041,6 +1041,13 @@ if (WITH_TESTS)
         add_executable(${exename}${ARTIFACT_SUFFIX} ${sourcefile}
                 $<TARGET_OBJECTS:testharness>)
         target_link_libraries(${exename}${ARTIFACT_SUFFIX} gtest ${LIBS})
+
+        if("${exename}" MATCHES "db_bench")
+            link_directories(/usr/local/lib)
+            target_link_libraries(${CMAKE_PROJECT_NAME}_${exename}${ARTIFACT_SUFFIX} cityhash)
+            include_directories(/usr/local/include ${LIBPMEMOBJ++_INCLUDE_DIRS})
+        endif()
+
     endforeach (sourcefile ${BENCHMARKS})
 
     # For test util library that is build only in DEBUG mode
