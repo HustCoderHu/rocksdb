@@ -4321,7 +4321,7 @@ InternalIterator* VersionSet::MakeInputIterator(
         InternalIterator** list = new InternalIterator* [space];
         size_t num = 0;
         FixedRangeTab* pendding_range = c->pendding_range();
-        list[num++] = pendding_range->NewInternalIterator(cfd->ioptions()->internal_comparator, nullptr);
+        list[num++] = pendding_range->NewInternalIterator(&cfd->ioptions()->internal_comparator, nullptr);
         for (size_t which = 1; which < space; which++) {
             list[num++] = new LevelIterator(
                     cfd->table_cache(), read_options, env_options_compactions,
