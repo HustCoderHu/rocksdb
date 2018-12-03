@@ -56,12 +56,15 @@ FixedRangeChunkBasedNVMWriteCache::~FixedRangeChunkBasedNVMWriteCache() {
 Status FixedRangeChunkBasedNVMWriteCache::Get(const InternalKeyComparator &internal_comparator, const LookupKey &lkey,
                                               std::string *value) {
     std::string prefix = (*vinfo_->internal_options_->prefix_extractor_)(lkey.user_key().data(), lkey.user_key().size());
+    DBG_PRINT("prefix: [%s], size[%lu]", prefix.c_str(), prefix.size());
     auto found_tab = vinfo_->prefix2range.find(prefix);
     if (found_tab == vinfo_->prefix2range.end()) {
         // not found
+        DBG_PRINT("NotFound Key");
         return Status::NotFound("no this range");
     } else {
         // found
+        DBG_PRINT("Found key");
         FixedRangeTab *tab = found_tab->second;
         return tab->Get(internal_comparator, lkey, value);
     }
@@ -183,12 +186,21 @@ InternalIterator *FixedRangeChunkBasedNVMWriteCache::NewIterator(const InternalK
 }
 
 void FixedRangeChunkBasedNVMWriteCache::RangeExistsOrCreat(const std::string &prefix) {
+    DBG_PRINT("prefix:[%s]", prefix.c_str());
     auto tab_idx = vinfo_->prefix2range.find(prefix);
     if (tab_idx == vinfo_->prefix2range.end()) {
+        DBG_PRINT("Need to create range");
         NewRange(prefix);
+        DBG_PRINT("End of creating range");
     }
 }
 
+// IMPORTANT!!!
+// ONLY FOR TEST
+FixedRangeTab* FixedRangeChunkBasedNVMWriteCache::GetRangeTab(const std::string &prefix) {
+	auto res_ = vinfo_->prefix2range.find(prefix);
+	return res_->second;
+}
 
 } // namespace rocksdb
 

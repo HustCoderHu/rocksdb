@@ -6,6 +6,7 @@
 #include "rocksdb/iterator.h"
 #include "table/merging_iterator.h"
 #include "table/internal_iterator.h"
+#include "debug.h"
 
 #include "libpmemobj++/persistent_ptr.hpp"
 

@@ -103,6 +103,8 @@ Status FixedRangeTab::Get(const InternalKeyComparator &internal_comparator,
     PersistentChunkIterator *iter = new PersistentChunkIterator();
     // shared_ptr能够保证资源回收
     char* buf = raw_;
+    DBG_PRINT("blklist: size[%lu], pendding_clean[%lu]", blklist.size(), pendding_clean_);
+	assert(blklist.size() >= pendding_clean_);
     for (int i = blklist.size() - 1; i >= 0; i--) {
         assert(i >= 0);
         ChunkBlk &blk = blklist.at(i);
@@ -118,6 +120,7 @@ Status FixedRangeTab::Get(const InternalKeyComparator &internal_comparator,
             Status s = searchInChunk(iter, internal_comparator, lkey.user_key(), value);
             if (s.ok()) {
                 delete iter;
+                DBG_PRINT("found it!");
                 return s;
             }
         } else {
@@ -125,6 +128,7 @@ Status FixedRangeTab::Get(const InternalKeyComparator &internal_comparator,
         }
     } // 4.循环直到查找完所有的chunk
     delete iter;
+    DBG_PRINT("Not found");
     return Status::NotFound("not found");
 }
 
@@ -178,6 +182,8 @@ Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
     memcpy(dst, chunk_data.data(), chunk_data.size()); //+chunk data size
 
     {
+    	DBG_PRINT("write bloom size [%lu]", bloom_data.size());
+		DBG_PRINT("write chunk size [%lu]", chunk_data.size());
         //debug
         char* debug = raw_ + raw_cur;
         uint64_t chunk_size, bloom_size;
@@ -193,6 +199,9 @@ Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
     // transaction
 
     {
+    	if (raw_cur + chunk_blk_len >= max_range_size()) {
+			DBG_PRINT("assert: raw_cur[%lu] chunk_blk_len[%lu] max_range_size()[%lu]", raw_cur, chunk_blk_len, max_range_size());
+		}
         assert(raw_cur + chunk_blk_len < max_range_size());
         EncodeFixed64(raw_ - 2 * sizeof(uint64_t), raw_cur + chunk_blk_len);
         EncodeFixed64(raw_ - sizeof(uint64_t), last_seq + 1);
@@ -315,11 +324,10 @@ void FixedRangeTab::CleanUp() {
         persistent_ptr<NvRangeTab> obsolete_tab = nonVolatileTab_;
         NvRangeTab *vtab = obsolete_tab.get();
         nonVolatileTab_ = nonVolatileTab_->extra_buf;
-        Slice start, end;
-        GetRealRange(start, end);
+		nonVolatileTab_->extra_buf = nullptr;		// Clear it!
         transaction::run(pop_, [&] {
             delete_persistent<char[]>(vtab->prefix_, vtab->prefixLen);
-            delete_persistent<char[]>(vtab->key_range_, start.size() + end.size() + 2 * sizeof(uint64_t));
+            delete_persistent<char[]>(vtab->key_range_, vtab->rangebufLen);
             delete_persistent<char[]>(vtab->buf, vtab->bufSize);
             delete_persistent<NvRangeTab>(obsolete_tab);
         });
@@ -341,6 +349,7 @@ Status FixedRangeTab::searchInChunk(PersistentChunkIterator *iter, const Interna
                                     const Slice &key, std::string *value) {
     int left = 0, right = iter->count() - 1;
     const Comparator* cmp = icmp.user_comparator();
+    DBG_PRINT("left[%d]   right[%d]", left, right);
     while (left <= right) {
         int middle = left + ((right - left) >> 1);
         //printf("lest[%d], right[%d], middle[%d]\n", left, right, middle);
@@ -447,6 +456,11 @@ void FixedRangeTab::SetExtraBuf(persistent_ptr<rocksdb::NvRangeTab> extra_buf) {
     vtab->extra_buf = extra_buf;
     extra_buf->seq_num_ = vtab->seq_num_;
     raw_ = extra_buf->buf.get();
+	EncodeFixed64(raw_, 0);
+    // set seq_
+    uint64_t seq_ = DecodeFixed64(vtab->buf.get() + sizeof(uint64_t));
+    EncodeFixed64(raw_ + sizeof(uint64_t), seq_);
+    raw_ += 2 * sizeof(uint64_t);
 }
 
 //#ifdef TAB_DEBUG

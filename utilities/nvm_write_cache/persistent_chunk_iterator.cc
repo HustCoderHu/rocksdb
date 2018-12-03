@@ -17,6 +17,8 @@ PersistentChunkIterator::PersistentChunkIterator(char* data,
 
 //  nPairs = *(reinterpret_cast<size_t*>(nPairsOffset));
     //printf("nPairs [%lu] size [%lu]\n", nPairs, size);
+
+    DBG_PRINT("nPairs[%lu] size[%lu]", nPairs, size);
     vKey_.reserve(nPairs);
     vValue_.reserve(nPairs);
 

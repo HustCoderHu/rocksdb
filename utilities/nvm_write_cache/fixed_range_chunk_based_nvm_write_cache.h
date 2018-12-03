@@ -20,6 +20,8 @@
 #include "pmem_hash_map.h"
 #include "common.h"
 
+#include "debug.h"
+
 using std::string;
 using std::mutex;
 using std::unordered_map;
@@ -117,6 +119,8 @@ public:
     void MaybeNeedCompaction();
 
     void RangeExistsOrCreat(const std::string &prefix);
+
+	FixedRangeTab* GetRangeTab(const std::string &prefix);
 
 private:
 
