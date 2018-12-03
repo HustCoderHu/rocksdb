@@ -1310,6 +1310,14 @@ Status DBImpl::GetImpl(const ReadOptions& read_options,
       return s;
     }
   }
+  if (!done && cfd->ioptions()->nvm_cache_options.nvm_write_cache_ != nullptr){
+      s = cfd->ioptions()->nvm_cache_options.nvm_write_cache_->Get(
+              cfd->ioptions()->internal_comparator, lkey, pinnable_val->GetSelf());
+      if(s.ok()){
+          done = true;
+          pinnable_val->PinSelf();
+      }
+  }
   if (!done) {
     PERF_TIMER_GUARD(get_from_output_files_time);
     sv->current->Get(read_options, lkey, pinnable_val, &s, &merge_context,
