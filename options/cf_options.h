@@ -127,7 +127,7 @@ namespace rocksdb {
 
         shared_ptr<NVMCacheSetup> nvm_cache_setup;
 
-        unique_ptr<NVMCacheOptions> nvm_cache_options;
+        shared_ptr<NVMCacheOptions> nvm_cache_options;
     };
 
     struct MutableCFOptions {
