@@ -1378,9 +1378,6 @@ DEFINE_int16(chunk_bloom_bits,
 DEFINE_int16(prefix_bits,
 11, "prefix len of key");
 
-DEFINE_int16(range_num_threashold,
-0 "max num of ranges");
-
 DEFINE_int64(range_size_threashold,
 1<<27, "max size of a range");
 
@@ -3836,26 +3833,14 @@ private:
         }
 
         if (FLAGS_use_nvm_write_cache) {
-            auto nvm_cache_options = new NVMCacheOptions;
-            nvm_cache_options->use_nvm_write_cache_ = FLAGS_use_nvm_write_cache;
-            nvm_cache_options->reset_nvm_write_cache = FLAGS_reset_nvm_write_cache;
-            nvm_cache_options->nvm_cache_type_ = kRangeFixedChunk;
-            nvm_cache_options->pmem_info_.pmem_path_ = FLAGS_pmem_path;
-            nvm_cache_options->pmem_info_.pmem_size_ = FLAGS_pmem_size;
-            if (FLAGS_nvm_cache_type == "fixed_range_chunk_based") {
-                auto foptions = new FixedRangeBasedOptions(
-                        FLAGS_chunk_bloom_bits,
-                        FLAGS_prefix_bits,
-                        new SimplePrefixExtractor(FLAGS_prefix_bits),
-                        NewBloomFilterPolicy(FLAGS_chunk_bloom_bits, false),
-                        FLAGS_range_size
-                );
-                nvm_cache_options->nvm_write_cache_ = NVMCacheOptions::NewFixedRangeChunkBasedCache(
-                        nvm_cache_options,
-                        foptions);
-            }
-            options.nvm_cache_options.reset(nvm_cache_options);
-
+            auto nvm_cache_setup = new NVMCacheSetup;
+            nvm_cache_setup->bloom_bits = FLAGS_prefix_bits;
+            nvm_cache_setup->cache_type_ = kRangeFixedChunk;
+            nvm_cache_setup->prefix_bytes = FLAGS_prefix_bits;
+            nvm_cache_setup->reset_cache_ = FLAGS_reset_nvm_write_cache;
+            nvm_cache_setup->use_nvm_cache_ = FLAGS_use_nvm_write_cache;
+            nvm_cache_setup->pmem_path = FLAGS_pmem_path;
+            options.nvm_cache_setup.reset(nvm_cache_setup);
         }
 
         options.listeners.emplace_back(listener_);
