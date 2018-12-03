@@ -1044,7 +1044,7 @@ if (WITH_TESTS)
 
         if("${exename}" MATCHES "db_bench")
             link_directories(/usr/local/lib)
-            target_link_libraries(${CMAKE_PROJECT_NAME}_${exename}${ARTIFACT_SUFFIX} cityhash)
+            target_link_libraries(${exename}${ARTIFACT_SUFFIX} cityhash)
             include_directories(/usr/local/include ${LIBPMEMOBJ++_INCLUDE_DIRS})
         endif()
 
