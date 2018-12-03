@@ -77,7 +77,7 @@ ImmutableCFOptions::ImmutableCFOptions(const ImmutableDBOptions &db_options,
                   cf_options.memtable_insert_with_hint_prefix_extractor.get()),
           cf_paths(cf_options.cf_paths),
           nvm_cache_setup(db_options.nvm_cache_setup),
-          nvm_cache_options(nvm_cache_setup) {}
+          nvm_cache_options(new NVMCacheOptions(nvm_cache_setup)) {}
 
 // Multiple two operands. If they overflow, return op1.
 uint64_t MultiplyCheckOverflow(uint64_t op1, double op2) {

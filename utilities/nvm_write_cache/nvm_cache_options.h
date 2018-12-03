@@ -100,10 +100,10 @@ struct NVMCacheOptions {
     bool reset_nvm_write_cache;
     PMemInfo pmem_info_;
     NVMCacheType nvm_cache_type_;
-    unique_ptr<NVMWriteCache> nvm_write_cache_;
     DrainStrategy drain_strategy_;
+    NVMWriteCache* nvm_write_cache_;
 
-    static FixedRangeChunkBasedNVMWriteCache *NewFixedRangeChunkBasedCache(NVMCacheOptions *nvm_cache_options,
+    static FixedRangeChunkBasedNVMWriteCache *NewFixedRangeChunkBasedCache(const NVMCacheOptions *nvm_cache_options,
                                                                            FixedRangeBasedOptions *foptions);
 
 };

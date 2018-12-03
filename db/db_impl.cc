@@ -1185,9 +1185,9 @@ InternalIterator* DBImpl::NewInternalIterator(
     // Add by Glitter
     // 将NVM cache的iterator添加到DBIter中
     if (read_options.read_tier != kMemtableTier) {
-      if(cfd->ioptions()->nvm_cache_options.nvm_write_cache_!= nullptr){
+      if(cfd->ioptions()->nvm_cache_options->nvm_write_cache_!= nullptr){
           merge_iter_builder.AddIterator(
-                  cfd->ioptions()->nvm_cache_options.nvm_write_cache_->NewIterator(
+                  cfd->ioptions()->nvm_cache_options->nvm_write_cache_->NewIterator(
                           cfd->ioptions()->internal_comparator, arena));
       }
         // Collect iterators for files in L0 - Ln
@@ -1310,8 +1310,8 @@ Status DBImpl::GetImpl(const ReadOptions& read_options,
       return s;
     }
   }
-  if (!done && cfd->ioptions()->nvm_cache_options.nvm_write_cache_ != nullptr){
-      s = cfd->ioptions()->nvm_cache_options.nvm_write_cache_->Get(
+  if (!done && cfd->ioptions()->nvm_cache_options->nvm_write_cache_ != nullptr){
+      s = cfd->ioptions()->nvm_cache_options->nvm_write_cache_->Get(
               cfd->ioptions()->internal_comparator, lkey, pinnable_val->GetSelf());
       if(s.ok()){
           done = true;

@@ -1378,7 +1378,7 @@ namespace rocksdb {
                 compaction_inputs_.push_back(start_level_inputs_);
             }else{
                 auto nvm_write_cache = dynamic_cast<FixedRangeChunkBasedNVMWriteCache*>(
-                        ioptions_.nvm_cache_options.nvm_write_cache_.get()
+                        ioptions_.nvm_cache_options->nvm_write_cache_
                 );
                 CompactionItem citem;
                 nvm_write_cache->GetCompactionData(&citem);
