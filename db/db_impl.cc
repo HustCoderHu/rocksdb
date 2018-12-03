@@ -1188,7 +1188,7 @@ InternalIterator* DBImpl::NewInternalIterator(
       if(cfd->ioptions()->nvm_cache_options->nvm_write_cache_!= nullptr){
           merge_iter_builder.AddIterator(
                   cfd->ioptions()->nvm_cache_options->nvm_write_cache_->NewIterator(
-                          cfd->ioptions()->internal_comparator, arena));
+                          &cfd->ioptions()->internal_comparator, arena));
       }
         // Collect iterators for files in L0 - Ln
       super_version->current->AddIterators(read_options, env_options_,
