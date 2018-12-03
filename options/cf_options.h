@@ -12,7 +12,7 @@
 #include "options/db_options.h"
 #include "rocksdb/options.h"
 #include "util/compression.h"
-#include "utilities/nvm_write_cache/nvm_cache_options.h"
+
 
 namespace rocksdb {
 
@@ -20,6 +20,7 @@ namespace rocksdb {
 // subset of Options that should not be changed during the entire lifetime
 // of DB. Raw pointers defined in this struct do not have ownership to the data
 // they point to. Options contains shared_ptr to these data.
+    class NVMCacheOptions;
     struct ImmutableCFOptions {
         ImmutableCFOptions();
 

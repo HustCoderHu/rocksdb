@@ -17,6 +17,7 @@
 #include "port/port.h"
 #include "rocksdb/env.h"
 #include "rocksdb/options.h"
+#include "utilities/nvm_write_cache/nvm_cache_options.h"
 
 namespace rocksdb {
 
