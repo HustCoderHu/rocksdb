@@ -26,7 +26,6 @@
 #include "rocksdb/iterator.h"
 #include "rocksdb/options.h"
 #include "rocksdb/status.h"
-#include "rocksdb/filter_policy.h"
 
 namespace rocksdb {
 
@@ -38,7 +37,6 @@ struct TableReaderOptions;
 struct TableBuilderOptions;
 class TableBuilder;
 class TableReader;
-class TableFactory;
 class WritableFileWriter;
 struct EnvOptions;
 struct Options;

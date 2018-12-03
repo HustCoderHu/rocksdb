@@ -15,7 +15,6 @@
 #include <vector>
 #include <limits>
 #include <unordered_map>
-#include <utilities/nvm_write_cache/nvm_cache_options.h>
 
 
 #include "rocksdb/advanced_options.h"
