@@ -113,6 +113,13 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
             // this range has already in compaction queue
             continue;
         }
+
+        if(range.second->IsExtraBufExists()){
+            // 对于已有extra buffer的range直接加入
+            pendding_compact.emplace_back(range.second);
+            continue;
+        }
+
         Usage range_usage = range.second->RangeUsage();
         if (range_usage.range_size >= range.second->max_range_size() * 0.8) {
             pendding_compact.emplace_back(range.second);
@@ -157,6 +164,7 @@ void FixedRangeChunkBasedNVMWriteCache::RebuildFromPersistentNode() {
         string recoverd_prefix(content->prefix_.get(), content->prefixLen);
         vinfo_->prefix2range[recoverd_prefix] = recovered_tab;
     }
+    MaybeNeedCompaction();
 }
 
 

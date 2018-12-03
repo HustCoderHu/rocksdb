@@ -62,8 +62,6 @@ FixedRangeTab::FixedRangeTab(pool_base &pop, const rocksdb::FixedRangeBasedOptio
         // rebuild
         RebuildBlkList();
         DBG_PRINT("after rebuild");
-        raw_ = raw_tab->buf.get();
-        raw_ += 2 * sizeof(uint64_t);
         GetProperties();
         DBG_PRINT("end rebuild");
     }
@@ -383,17 +381,31 @@ void FixedRangeTab::RebuildBlkList() {
     dataLen = nonVolatileTab_->dataLen;
     DBG_PRINT("dataLen = %lu", dataLen);
     char* raw_buf = nonVolatileTab_->buf.get();
-    char* chunk_head = raw_buf + 2 * sizeof(uint64_t);
     // TODO
     // range 从一开始就存 chunk ?
     uint64_t offset = 0;
-    while (offset < dataLen) {
-        uint64_t bloom_size = DecodeFixed64(chunk_head);
-        uint64_t chunk_size = DecodeFixed64(chunk_head + bloom_size + sizeof(uint64_t));
-        blklist.emplace_back(bloom_size, offset, chunk_size);
-        // next chunk block
-        offset += bloom_size + chunk_size + sizeof(uint64_t) * 2;
-        //DBG_PRINT("off = %lu, bloom_size = %lu, chunk_size = %lu", offset, bloom_size, chunk_size);
+    auto build_blklist = [&](){
+        char* chunk_head = raw_buf + 2 * sizeof(uint64_t);
+        while (offset < dataLen) {
+            uint64_t bloom_size = DecodeFixed64(chunk_head);
+            uint64_t chunk_size = DecodeFixed64(chunk_head + bloom_size + sizeof(uint64_t));
+            blklist.emplace_back(bloom_size, offset, chunk_size);
+            // next chunk block
+            offset += bloom_size + chunk_size + sizeof(uint64_t) * 2;
+            //DBG_PRINT("off = %lu, bloom_size = %lu, chunk_size = %lu", offset, bloom_size, chunk_size);
+        }
+    };
+
+    build_blklist();
+    raw_ = raw_buf + 2 * sizeof(uint64_t);
+
+    if(nonVolatileTab_->extra_buf != nullptr){
+        pendding_clean_ = blklist.size();
+        dataLen = nonVolatileTab_->extra_buf->dataLen;
+        offset = 0;
+        raw_buf = nonVolatileTab_->extra_buf->buf.get();
+        build_blklist();
+        raw_ = raw_buf + 2 * sizeof(uint64_t);
     }
 }
 
