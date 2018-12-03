@@ -271,7 +271,7 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const InternalKeyComparator &icmp, co
                     memcpy(p_new_range + sizeof(uint64_t), cur_end.data(), cur_end.size());
 
                     // switch old range with new range
-                    delete_persistent<char[]>(p_content->key_range_;, p_content->rangebufLen);
+                    delete_persistent<char[]>(p_content->key_range_, p_content->rangebufLen);
                     p_content->key_range_ = new_range;
                     p_content->rangebufLen = range_size;
                 });
@@ -285,7 +285,7 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const InternalKeyComparator &icmp, co
                 AllocBufAndUpdate(nonVolatileTab_->rangebufLen / 2);
             }else{
                 // 直接写进去
-                char *range_buf = nonVolatileTab_->key_range.get();
+                char *range_buf = nonVolatileTab_->key_range_.get();
                 // put start
                 EncodeFixed64(range_buf, cur_start.size());
                 memcpy(range_buf + sizeof(uint64_t), cur_start.data(), cur_start.size());
@@ -297,9 +297,9 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const InternalKeyComparator &icmp, co
         };
 
         if(nonVolatileTab_->extra_buf == nullptr){
-            UpdateRangeBuf(nonVolatileTab_->key_range);
+            UpdateRangeBuf(nonVolatileTab_->key_range_);
         }else{
-            UpdateRangeBuf(nonVolatileTab_->extra_buf->key_range);
+            UpdateRangeBuf(nonVolatileTab_->extra_buf->key_range_);
         }
 
     }
