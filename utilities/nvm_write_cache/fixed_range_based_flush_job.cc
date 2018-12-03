@@ -9,6 +9,7 @@
 #include <db/snapshot_checker.h>
 #include <db/compaction_iterator.h>
 #include <db/event_helpers.h>
+#include <db/internal_stats.h>
 #include "nvm_write_cache.h"
 #include "db/column_family.h"
 #include "util/log_buffer.h"
@@ -244,7 +245,7 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
 
 
     if (iter->Valid() || !range_del_agg->IsEmpty()) {
-        PrefixExtractor *prefix_extractor = nvm_write_cache_->internal_options()->prefix_extractor_;
+        PrefixExtractor *prefix_extractor = nvm_write_cache_->internal_options()->prefix_extractor_.get();
 
 
         MergeHelper merge(db_options_.env, internal_comparator.user_comparator(),
