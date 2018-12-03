@@ -297,9 +297,9 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const InternalKeyComparator &icmp, co
         };
 
         if(nonVolatileTab_->extra_buf == nullptr){
-            UpdateRangeBuf(nonVolatileTab_->key_range_);
+            UpdateRangeBuf(nonVolatileTab_);
         }else{
-            UpdateRangeBuf(nonVolatileTab_->extra_buf->key_range_);
+            UpdateRangeBuf(nonVolatileTab_->extra_buf);
         }
 
     }

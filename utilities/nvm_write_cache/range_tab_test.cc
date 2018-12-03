@@ -121,8 +121,6 @@ public:
         foptions_ = new FixedRangeBasedOptions(
                 16,
                 prefix.size(),
-                new SimplePrefixExtractor(prefix.size()),
-                NewBloomFilterPolicy(16, false),
                 1 << 27
         );
         if (file_exists(pmem_path_.c_str()) != 0) {
