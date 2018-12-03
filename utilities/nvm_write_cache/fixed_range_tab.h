@@ -1,9 +1,9 @@
-#ifndef PERSISTENT_RANGE_MEM_H
-#define PERSISTENT_RANGE_MEM_H
-
+#pragma once
 #include <list>
 #include <memory>
-#include <db/db_impl.h>
+
+
+#include "monitoring/instrumented_mutex.h"
 
 //#include "libpmemobj.h"
 #include "libpmemobj++/p.hpp"
@@ -204,4 +204,3 @@ private:
 
 } // namespace rocksdb
 
-#endif // PERSISTENT_RANGE_MEM_H
