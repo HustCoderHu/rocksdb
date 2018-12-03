@@ -26,6 +26,7 @@
 
 #include "utilities/nvm_write_cache/nvm_cache_options.h"
 #include "utilities/nvm_write_cache/nvm_flush_job.h"
+#include "utilities/nvm_write_cache/fixed_range_tab.h"
 #include "utilities/nvm_write_cache/fixed_range_based_flush_job.h"
 
 namespace rocksdb {
@@ -250,7 +251,7 @@ namespace rocksdb {
 
         NVMFlushJob* nvm_flush_job = nullptr;
 
-        switch(immutable_db_options_.nvm_cache_options->nvm_cache_type_){
+        switch(cfd->ioptions()->nvm_cache_options->nvm_cache_type_){
             case kRangeFixedChunk:{
                 nvm_flush_job = new FixedRangeBasedFlushJob(
                         dbname_,
@@ -265,7 +266,7 @@ namespace rocksdb {
                         &shutting_down_,
                         log_buffer,
                         stats_,
-                        &cfd->ioptions()->nvm_cache_options);
+                        cfd->ioptions()->nvm_cache_options.get());
                 break;
             }
 
@@ -2072,7 +2073,7 @@ namespace rocksdb {
                         bg_job_limits.max_compactions, bg_flush_scheduled_,
                         bg_compaction_scheduled_);
             }
-            if(immutable_db_options_.nvm_cache_setup.use_nvm_cache_){
+            if(immutable_db_options_.nvm_cache_setup->use_nvm_cache_){
                 status = FlushMemTablesToNVMCache(bg_flush_args, made_progress, job_context, log_buffer);
             }else{
                 status = FlushMemTablesToOutputFiles(bg_flush_args, made_progress,
