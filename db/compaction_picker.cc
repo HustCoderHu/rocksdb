@@ -1154,7 +1154,7 @@ namespace rocksdb {
 
             // If the initial files are from L0 level, pick other L0
             // files if needed.
-            bool SetupOtherL0FilesIfNeeded();
+            //bool SetupOtherL0FilesIfNeeded();
 
             // Based on initial files, setup other files need to be compacted
             // in this compaction, accordingly.
@@ -1250,8 +1250,8 @@ namespace rocksdb {
             // Find the compactions by size on all levels.
             // 选择一个待compaction的level
             bool skipped_l0_to_base = false;
-            if(ioptions_.nvm_cache_options.nvm_write_cache_ != nullptr &&
-            ioptions_.nvm_cache_options.nvm_write_cache_->NeedCompaction()){
+            if(ioptions_.nvm_cache_options->nvm_write_cache_ != nullptr &&
+            ioptions_.nvm_cache_options->nvm_write_cache_->NeedCompaction()){
                 // TODO：权衡一下最优先compact NVMcache还是其他的level
                 start_level_ = 0;
                 output_level_ = vstorage_->base_level();
@@ -1355,13 +1355,13 @@ namespace rocksdb {
             }
         }
 
-        bool LevelCompactionBuilder::SetupOtherL0FilesIfNeeded() {
+        /*bool LevelCompactionBuilder::SetupOtherL0FilesIfNeeded() {
             if (start_level_ == 0 && output_level_ != 0) {
                 return compaction_picker_->GetOverlappingL0Files(
                         vstorage_, &start_level_inputs_, output_level_, &parent_index_);
             }
             return true;
-        }
+        }*/
 
         // Modified by Glitter
         bool LevelCompactionBuilder::SetupOtherInputsIfNeeded() {
