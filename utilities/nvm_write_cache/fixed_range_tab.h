@@ -147,6 +147,14 @@ public:
         return nonVolatileTab_->bufSize;
     }
 
+    void lock(){
+        tab_lock_.Lock();
+    }
+
+    void unlock(){
+        tab_lock_.Unlock();
+    }
+
 //#ifdef TAB_DEBUG
     // 输出range信息
     void GetProperties();
@@ -183,6 +191,7 @@ private:
 
     // volatile info
     const FixedRangeBasedOptions *interal_options_;
+    InstrumentedMutex tab_lock_;
     vector<ChunkBlk> blklist;
     char *raw_;
     bool in_compaction_;

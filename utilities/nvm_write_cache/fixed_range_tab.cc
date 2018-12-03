@@ -215,6 +215,7 @@ Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
 
     // record this offset to volatile vector
     blklist.emplace_back(bloom_data.size(), raw_cur, chunk_data.size());
+    tab_lock_.Unlock();
 
     return Status::OK();
 }

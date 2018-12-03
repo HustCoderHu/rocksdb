@@ -78,11 +78,14 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
     auto tab_found = vinfo_->prefix2range.find(meta.prefix);
     assert(tab_found != vinfo_->prefix2range.end());
     now_range = tab_found->second;
+
+    now_range->lock();
     if (now_range->IsCompactWorking() && !now_range->IsExtraBufExists()) {
         persistent_ptr<NvRangeTab> p_content = NewContent(meta.prefix, vinfo_->internal_options_->range_size_);
         now_range->SetExtraBuf(p_content);
     }
     now_range->Append(icmp, bloom_data, chunk_data, meta.cur_start, meta.cur_end);
+    now_range->unlock();
 }
 
 persistent_ptr<NvRangeTab> FixedRangeChunkBasedNVMWriteCache::NewContent(const string &prefix, size_t bufSize) {
@@ -109,7 +112,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
     // 选择所有range中数据大小占总容量80%的range并按照总容量的大小顺序插入compaction queue
     std::vector<CompactionItem> pendding_compact;
     for (auto range : vinfo_->prefix2range) {
-        if (range.second->IsCompactPendding()) {
+        if (range.second->IsCompactPendding() || range.second->IsCompactWorking()) {
             // this range has already in compaction queue
             continue;
         }

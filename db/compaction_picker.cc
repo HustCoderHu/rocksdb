@@ -1384,7 +1384,9 @@ namespace rocksdb {
                 nvm_write_cache->GetCompactionData(&citem);
                 pendding_compaction_ = citem.pending_compated_range_;
                 assert(pendding_compaction_ != nullptr);
+                pendding_compaction_->lock();
                 pendding_compaction_->SetCompactionWorking(true);
+                pendding_compaction_->unlock();
                 Usage range_usage = pendding_compaction_->RangeUsage();
                 // 通过compaction_picker的SetupOtherInput获取output_level的file
                 output_level_inputs_.level = output_level_;
