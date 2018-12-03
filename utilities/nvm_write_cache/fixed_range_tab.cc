@@ -254,7 +254,7 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const InternalKeyComparator &icmp, co
     //cout<<"update_start["<<cur_start.data()<<"]"<<"update_end["<<cur_end.data()<<"]"<<endl;
     if (update_start || update_end) {
         size_t range_data_size = cur_start.size() + cur_end.size() + 2 * sizeof(uint64_t);
-        auto UpdateRangeBuf = [&](NvRangeTab* p_content){
+        auto UpdateRangeBuf = [&](persistent_ptr<NvRangeTab> p_content){
 
             auto AllocBufAndUpdate = [&](size_t range_size){
                 persistent_ptr<char[]> new_range = nullptr;
