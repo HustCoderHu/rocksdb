@@ -25,6 +25,7 @@
 #include "rocksdb/env.h"
 #include "rocksdb/options.h"
 #include "util/thread_local.h"
+#include "utilities/nvm_write_cache/nvm_cache_options.h"
 
 namespace rocksdb {
 

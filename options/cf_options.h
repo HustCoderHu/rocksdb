@@ -12,6 +12,7 @@
 #include "options/db_options.h"
 #include "rocksdb/options.h"
 #include "util/compression.h"
+#include "utilities/nvm_write_cache/nvm_cache_options.h"
 
 namespace rocksdb {
 
