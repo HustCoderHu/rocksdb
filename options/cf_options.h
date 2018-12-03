@@ -21,6 +21,7 @@ namespace rocksdb {
 // of DB. Raw pointers defined in this struct do not have ownership to the data
 // they point to. Options contains shared_ptr to these data.
     class NVMCacheOptions;
+
     struct ImmutableCFOptions {
         ImmutableCFOptions();
 

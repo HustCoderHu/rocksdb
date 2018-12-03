@@ -12,9 +12,10 @@
 #include "options/cf_options.h"
 #include "util/arena.h"
 #include "util/autovector.h"
-#include "utilities/nvm_write_cache/fixed_range_tab.h"
 
 namespace rocksdb {
+
+class FixedRangeTab;
 
 // Utility for comparing sstable boundary keys. Returns -1 if either a or b is
 // null which provides the property that a==null indicates a key that is less
