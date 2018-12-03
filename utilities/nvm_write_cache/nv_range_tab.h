@@ -39,14 +39,19 @@ public:
     bool equals(NvRangeTab &b);
 
     p<uint64_t> hash_;
+
     p<size_t> prefixLen; // string prefix_ tail 0 not included
     p_buf prefix_; // prefix
+
+    p<size_t> rangebufLen;
     p_buf key_range_; //key range
+
     p<size_t> chunk_num_;
     p<uint64_t> seq_num_;
 
     p<size_t> bufSize; // capacity
     p<size_t> dataLen; // exact data len
+
     persistent_ptr<NvRangeTab> extra_buf;
     p_buf buf; // buf data
 

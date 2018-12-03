@@ -11,7 +11,8 @@ NvRangeTab::NvRangeTab(pool_base &pop, const string &prefix, uint64_t range_size
         prefix_ = make_persistent<char[]>(prefix.size());
         memcpy(prefix_.get(), prefix.c_str(), prefix.size());
 
-        key_range_ = nullptr;
+        rangebufLen = 200;
+        key_range_ = make_persistent<char[]>(200);
         extra_buf = nullptr;
         buf = make_persistent<char[]>(range_size);
 

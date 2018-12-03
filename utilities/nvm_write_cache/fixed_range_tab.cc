@@ -244,45 +244,55 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const InternalKeyComparator &icmp, co
 
     //cout<<"update_start["<<cur_start.data()<<"]"<<"update_end["<<cur_end.data()<<"]"<<endl;
     if (update_start || update_end) {
-        persistent_ptr<char[]> new_range = nullptr;
-        transaction::run(pop_, [&] {
-            new_range = make_persistent<char[]>(cur_start.size() + cur_end.size()
-                                                + 2 * sizeof(uint64_t));
-            // get raw ptr
-            char *p_new_range = new_range.get();
-            // put start
-            EncodeFixed64(p_new_range, cur_start.size());
-            memcpy(p_new_range + sizeof(uint64_t), cur_start.data(), cur_start.size());
-            // put end
-            p_new_range += sizeof(uint64_t) + cur_start.size();
-            EncodeFixed64(p_new_range, cur_end.size());
-            memcpy(p_new_range + sizeof(uint64_t), cur_end.data(), cur_end.size());
-        });
+        size_t range_data_size = cur_start.size() + cur_end.size() + 2 * sizeof(uint64_t);
+        auto UpdateRangeBuf = [&](NvRangeTab* p_content){
 
-        auto switch_pbuf = [&](persistent_ptr<char[]>& old_buf, size_t size, persistent_ptr<char[]>& new_buf) {
-            transaction::run(pop_, [&]{
-                delete_persistent<char[]>(old_buf, size);
-                old_buf = new_buf;
-            });
+            auto AllocBufAndUpdate = [&](size_t range_size){
+                persistent_ptr<char[]> new_range = nullptr;
+                transaction::run(pop_, [&] {
+                    new_range = make_persistent<char[]>(range_size);
+                    // get raw ptr
+                    char *p_new_range = new_range.get();
+                    // put start
+                    EncodeFixed64(p_new_range, cur_start.size());
+                    memcpy(p_new_range + sizeof(uint64_t), cur_start.data(), cur_start.size());
+                    // put end
+                    p_new_range += sizeof(uint64_t) + cur_start.size();
+                    EncodeFixed64(p_new_range, cur_end.size());
+                    memcpy(p_new_range + sizeof(uint64_t), cur_end.data(), cur_end.size());
+
+                    // switch old range with new range
+                    delete_persistent<char[]>(p_content->key_range_;, p_content->rangebufLen);
+                    p_content->key_range_ = new_range;
+                    p_content->rangebufLen = range_size;
+                });
+            };
+
+            if(range_data_size > nonVolatileTab_->rangebufLen){
+                // 新的range data size大于已有的range buf空间
+                AllocBufAndUpdate(range_data_size);
+            }else if(range_data_size < (nonVolatileTab_->rangebufLen / 2)){
+                // 此时rangebuf大小缩减一半
+                AllocBufAndUpdate(nonVolatileTab_->rangebufLen / 2);
+            }else{
+                // 直接写进去
+                char *range_buf = nonVolatileTab_->key_range.get();
+                // put start
+                EncodeFixed64(range_buf, cur_start.size());
+                memcpy(range_buf + sizeof(uint64_t), cur_start.data(), cur_start.size());
+                // put end
+                range_buf += sizeof(uint64_t) + cur_start.size();
+                EncodeFixed64(range_buf, cur_end.size());
+                memcpy(range_buf + sizeof(uint64_t), cur_end.data(), cur_end.size());
+            }
         };
 
-        if (nonVolatileTab_->extra_buf != nullptr) {
-            if (nonVolatileTab_->extra_buf->key_range_ != nullptr) {
-                switch_pbuf(nonVolatileTab_->extra_buf->key_range_,
-                            cur_start.size() + cur_end.size() + 2 * sizeof(uint64_t),
-                            new_range);
-            } else {
-                nonVolatileTab_->extra_buf->key_range_ = new_range;
-            }
-        } else {
-            if (nonVolatileTab_->key_range_ != nullptr) {
-                switch_pbuf(nonVolatileTab_->key_range_,
-                            cur_start.size() + cur_end.size() + 2 * sizeof(uint64_t),
-                            new_range);
-            } else {
-                nonVolatileTab_->key_range_ = new_range;
-            }
+        if(nonVolatileTab_->extra_buf == nullptr){
+            UpdateRangeBuf(nonVolatileTab_->key_range);
+        }else{
+            UpdateRangeBuf(nonVolatileTab_->extra_buf->key_range);
         }
+
     }
 
 }
