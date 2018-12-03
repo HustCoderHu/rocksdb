@@ -51,6 +51,7 @@
 #include "util/stop_watch.h"
 #include "util/string_util.h"
 #include "util/sync_point.h"
+#include "utilities/nvm_write_cache/fixed_range_tab.h"
 
 namespace rocksdb {
 
