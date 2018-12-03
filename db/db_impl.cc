@@ -1182,8 +1182,15 @@ InternalIterator* DBImpl::NewInternalIterator(
   }
   TEST_SYNC_POINT_CALLBACK("DBImpl::NewInternalIterator:StatusCallback", &s);
   if (s.ok()) {
-    // Collect iterators for files in L0 - Ln
+    // Add by Glitter
+    // 将NVM cache的iterator添加到DBIter中
     if (read_options.read_tier != kMemtableTier) {
+      if(cfd->ioptions()->nvm_cache_options.nvm_write_cache_!= nullptr){
+          merge_iter_builder.AddIterator(
+                  cfd->ioptions()->nvm_cache_options.nvm_write_cache_->NewIterator(
+                          cfd->ioptions()->internal_comparator, arena));
+      }
+        // Collect iterators for files in L0 - Ln
       super_version->current->AddIterators(read_options, env_options_,
                                            &merge_iter_builder, range_del_agg);
     }
