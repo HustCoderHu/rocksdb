@@ -92,7 +92,7 @@ struct NVMCacheSetup{
 struct NVMCacheOptions {
     NVMCacheOptions();
 
-    NVMCacheOptions(const NVMCacheSetup& setup);
+    NVMCacheOptions(const shared_ptr<NVMCacheSetup> setup);
 
     ~NVMCacheOptions() =default;
 

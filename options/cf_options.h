@@ -123,7 +123,7 @@ namespace rocksdb {
 
         std::vector<DbPath> cf_paths;
 
-        NVMCacheSetup nvm_cache_setup;
+        shared_ptr<NVMCacheSetup> nvm_cache_setup;
 
         NVMCacheOptions nvm_cache_options;
     };

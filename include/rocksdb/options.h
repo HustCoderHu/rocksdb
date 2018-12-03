@@ -986,7 +986,7 @@ namespace rocksdb {
 
 
         //std::shared_ptr<NVMCacheOptions> nvm_cache_options = nullptr;
-        NVMCacheSetup nvm_cache_setup;
+        std::shared_ptr<NVMCacheSetup> nvm_cache_setup;
     };
 
 // Options to control the behavior of a database (passed to DB::Open)
