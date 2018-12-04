@@ -35,5 +35,19 @@ namespace rocksdb{
     private:
         uint16_t prefix_bits_;
     };
+
+
+    class DBBenchDedicatedExtractor: public PrefixExtractor{
+    public:
+        explicit DBBenchDedicatedExtractor(uint16_t prefix_len);
+        ~DBBenchDedicatedExtractor() = default;
+
+        std::string operator()(const char* input, size_t length);
+
+        static  DBBenchDedicatedExtractor* NewDBBenchDedicatedExtractor(uint16_t prefix_bits);
+
+    private:
+        uint16_t prefix_bits_;
+    };
 }// end rocksdb
 
