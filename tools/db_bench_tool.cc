@@ -1366,9 +1366,9 @@ DEFINE_bool(reset_nvm_write_cache, false, "reset nvm cache");
 
 DEFINE_string(pmem_path, "/pmem/nvm_rocksdb", "the path of pmem file");
 
-DEFINE_int16(chunk_bloom_bits, 16, "size of bloom filer of chunk");
+DEFINE_int32(chunk_bloom_bits, 16, "size of bloom filer of chunk");
 
-DEFINE_int16(prefix_bits, 11, "prefix len of key");
+DEFINE_int32(prefix_bits, 11, "prefix len of key");
 
 namespace rocksdb {
 
