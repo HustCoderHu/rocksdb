@@ -477,7 +477,7 @@ namespace rocksdb {
         }
 
         // NVMRangeCache:init nvm write cache
-        if (ioptions_.nvm_cache_setup->use_nvm_cache_) {
+        if (ioptions_.nvm_cache_setup->use_nvm_cache_ && name_.size() != 0) {
             string pmem_file_name(ioptions_.nvm_cache_setup->pmem_path + name_);
             // TODO: multi type of cache
             auto foptions = new FixedRangeBasedOptions(ioptions_.nvm_cache_setup->bloom_bits,
