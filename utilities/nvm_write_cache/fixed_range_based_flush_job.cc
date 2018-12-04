@@ -264,7 +264,6 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
         for (; c_iter.Valid(); c_iter.Next()) {
             const Slice &key = c_iter.key();
             const Slice &value = c_iter.value();
-            //printf("get key %s\n", key.data_);
             ParsedInternalKey ikey;
             ParseInternalKey(key, &ikey);
             //DBG_PRINT("key data[%s] size[%lu]", key.data(), key.size());
@@ -334,6 +333,7 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
                 running_thread.join();
             }
             // check if there is need for compaction
+            DBG_PRINT("end this flush");
             nvm_write_cache_->MaybeNeedCompaction();
 
         } else {

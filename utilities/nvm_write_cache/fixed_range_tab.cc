@@ -234,24 +234,19 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const InternalKeyComparator &icmp, co
     Slice cur_start, cur_end;
     bool update_start = false, update_end = false;
     GetRealRange(cur_start, cur_end);
-    //cout<<"cur_start["<<cur_start.data()<<"]"<<"cur_end["<<cur_end.data()<<"]"<<endl;
-    //cout<<"new_start["<<new_start.data()<<"]["<<new_start.size()<<"], new_end["<<new_end.data()<<"]["<<new_end.size()<<"]"<<endl;
 
     if(cur_start.size() != 0) cout<<icmp.Compare(cur_start, new_start)<<endl;
     if (cur_start.size() == 0 || icmp.Compare(cur_start, new_start) >= 0) {
-        //cout<<"update start"<<endl;
         cur_start = new_start;
         update_start = true;
     }
 
     if(cur_end.size() != 0) cout<<icmp.Compare(cur_end, new_end)<<endl;
     if (cur_end.size() == 0 || icmp.Compare(cur_end, new_end) <= 0) {
-        //cout<<"update end"<<endl;
         cur_end = new_end;
         update_end = true;
     }
 
-    //cout<<"update_start["<<cur_start.data()<<"]"<<"update_end["<<cur_end.data()<<"]"<<endl;
     if (update_start || update_end) {
         size_t range_data_size = cur_start.size() + cur_end.size() + 2 * sizeof(uint64_t);
         auto UpdateRangeBuf = [&](persistent_ptr<NvRangeTab> p_content){

@@ -191,7 +191,7 @@ void FixedRangeChunkBasedNVMWriteCache::RangeExistsOrCreat(const std::string &pr
     if (tab_idx == vinfo_->prefix2range.end()) {
         DBG_PRINT("Need to create range");
         NewRange(prefix);
-        DBG_PRINT("End of creating range");
+        //DBG_PRINT("End of creating range");
     }
 }
 
