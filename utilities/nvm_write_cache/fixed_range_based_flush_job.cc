@@ -267,6 +267,7 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
             //printf("get key %s\n", key.data_);
             ParsedInternalKey ikey;
             ParseInternalKey(key, &ikey);
+            DBG_PRINT("key data[%s] size[%lu]", key.data(), key.size());
             std::string now_prefix = (*prefix_extractor)(ikey.user_key.data(), ikey.user_key.size());
             DBG_PRINT("user_key[%s], prefix[%s]", ikey.user_key.data(), now_prefix.c_str());
             if (now_prefix == last_prefix && last_chunk != nullptr) {
