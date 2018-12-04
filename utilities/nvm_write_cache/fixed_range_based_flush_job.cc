@@ -281,12 +281,14 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
                 auto chunk_found = pending_output_chunk.find(now_prefix);
                 if (chunk_found == pending_output_chunk.end()) {
                     //this is a new build a new chunk
+                    DBG_PRINT("New Prefix [%s]", now_prefix.c_str());
                     auto new_chunk = new BuildingChunk(
                             nvm_write_cache_->internal_options()->filter_policy_,
                             now_prefix);
                     pending_output_chunk[now_prefix] = new_chunk;
                     now_chunk = new_chunk;
                 } else {
+                    DBG_PRINT("Existed Prefix [%s]", now_prefix.c_str());
                     now_chunk = chunk_found->second;
                 }
                 // add data to this chunk
@@ -299,6 +301,7 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
         s = c_iter.status();
         if (s.ok()) {
             // check is the prefix existing in nvm cache or create it
+            DBG_PRINT("total prefix num[%d]", pending_output_chunk.size());
             for(auto pendding_chunk:pending_output_chunk){
                 nvm_write_cache_->RangeExistsOrCreat(pendding_chunk.first);
             }
