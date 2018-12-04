@@ -24,7 +24,7 @@ namespace rocksdb{
     std::string DBBenchDedicatedExtractor::operator()(const char *input, size_t length) {
         uint64_t intkey;
         memcpy(static_cast<void*>(&intkey), input, 8);
-        for(size_t i = 0; i < (16 - prefix_bits_); i++){
+        for(int i = 0; i < (16 - prefix_bits_); i++){
             intkey /= 10;
         }
         uint16_t len = prefix_bits_;
