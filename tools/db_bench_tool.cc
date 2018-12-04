@@ -12,7 +12,7 @@
 #endif
 
 /// TODO: ifdef
-#ifndef GFLAGS
+#ifdef GFLAGS
 #ifdef NUMA
                                                                                                                         #include <numa.h>
 #include <numaif.h>
