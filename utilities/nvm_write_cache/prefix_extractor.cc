@@ -25,7 +25,7 @@ namespace rocksdb{
         uint64_t intkey;
         void* rawkey = static_cast<void*>(&intkey);
         for(int i = 0; i < 8; i++){
-            memcpy(static_cast<char *>(rawkey+(7-i)), input+i, 1);
+            memcpy(static_cast<char *>(rawkey)+(7-i), input+i, 1);
         }
         for(int i = 0; i < (16 - prefix_bits_); i++){
             intkey /= 10;
