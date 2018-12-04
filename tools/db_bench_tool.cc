@@ -4143,6 +4143,11 @@ private:
                 int64_t rand_num = key_gens[id]->Next();
                 GenerateKeyFromInt(rand_num, FLAGS_num, &key);
                 DBG_PRINT("gen key[%ld]to[%s]/FLAGS_num[%ld]",rand_num, std::string(key.data(), key.size()).c_str(), FLAGS_num);
+                for(int i = 0; i < key.size(); i++){
+                    printf("%d ", key.data()[i]);
+                }
+                printf("\n");
+                getchar();
                 if (use_blob_db_) {
 #ifndef ROCKSDB_LITE
                     Slice val = gen.Generate(value_size_);
