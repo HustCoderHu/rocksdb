@@ -156,6 +156,7 @@ Status FixedRangeTab::Get(const InternalKeyComparator &internal_comparator,
 Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
                              const string& bloom_data, const Slice &chunk_data,
                              const Slice &start, const Slice &end) {
+    DBG_PRINT("start append");
     if (nonVolatileTab_->dataLen + chunk_data.size_ >= nonVolatileTab_->bufSize
         || nonVolatileTab_->chunk_num_ > max_chunk_num_to_flush()) {
         // TODO：mark tab as pendding compaction
@@ -225,6 +226,7 @@ Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
     // record this offset to volatile vector
     blklist.emplace_back(bloom_data.size(), raw_cur, chunk_data.size());
     tab_lock_.Unlock();
+    DBG_PRINT("end append");
 
     return Status::OK();
 }
