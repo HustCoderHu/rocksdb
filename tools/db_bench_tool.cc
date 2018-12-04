@@ -1360,29 +1360,15 @@ static const bool FLAGS_table_cache_numshardbits_dummy __attribute__((__unused__
         RegisterFlagValidator(&FLAGS_table_cache_numshardbits,
                               &ValidateTableCacheNumshardbits);
 
-DEFINE_bool(use_nvm_write_cache,
-false, "use nvm write cache");
+DEFINE_bool(use_nvm_write_cache, false, "use nvm write cache");
 
-DEFINE_bool(reset_nvm_write_cache,
-false, "reset nvm cache");
+DEFINE_bool(reset_nvm_write_cache, false, "reset nvm cache");
 
-DEFINE_string(pmem_path,
-"/pmem/nvm_rocksdb", "the path of pmem file");
+DEFINE_string(pmem_path, "/pmem/nvm_rocksdb", "the path of pmem file");
 
-DEFINE_int64(pmem_size,
-40ul * 1024 * 1024 * 1024, "size of nvm space");
+DEFINE_int16(chunk_bloom_bits, 16, "size of bloom filer of chunk");
 
-DEFINE_int16(chunk_bloom_bits,
-16, "size of bloom filer of chunk");
-
-DEFINE_int16(prefix_bits,
-11, "prefix len of key");
-
-DEFINE_int64(range_size_threashold,
-1<<27, "max size of a range");
-
-DEFINE_string(nvm_cache_type,
-"fixed_range_chunk_based", "type of nvm write cache to use");
+DEFINE_int16(prefix_bits, 11, "prefix len of key");
 
 namespace rocksdb {
 
@@ -3834,7 +3820,7 @@ private:
 
         if (FLAGS_use_nvm_write_cache) {
             auto nvm_cache_setup = new NVMCacheSetup;
-            nvm_cache_setup->bloom_bits = FLAGS_prefix_bits;
+            nvm_cache_setup->bloom_bits = FLAGS_chunk_bloom_bits;
             nvm_cache_setup->cache_type_ = kRangeFixedChunk;
             nvm_cache_setup->prefix_bytes = FLAGS_prefix_bits;
             nvm_cache_setup->reset_cache_ = FLAGS_reset_nvm_write_cache;
