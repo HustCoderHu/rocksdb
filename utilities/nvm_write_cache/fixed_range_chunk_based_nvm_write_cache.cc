@@ -116,6 +116,7 @@ FixedRangeTab *FixedRangeChunkBasedNVMWriteCache::NewRange(const std::string &pr
 }
 
 void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
+    DBG_PRINT("start compaction check");
     // 选择所有range中数据大小占总容量80%的range并按照总容量的大小顺序插入compaction queue
     std::vector<CompactionItem> pendding_compact;
     for (auto range : vinfo_->prefix2range) {
@@ -150,6 +151,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
         }
     }
     vinfo_->queue_lock_.Unlock();
+    DBG_PRINT("end compaction check");
 }
 
 void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionItem *compaction) {
