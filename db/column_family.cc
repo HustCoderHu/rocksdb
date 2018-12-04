@@ -1314,6 +1314,7 @@ namespace rocksdb {
             const std::string &name, uint32_t id, Version *dummy_versions,
             const ColumnFamilyOptions &options) {
         assert(column_families_.find(name) == column_families_.end());
+        DBG_PRINT("create columnfamily [%d][%s]", id, name.c_str());
         ColumnFamilyData *new_cfd = new ColumnFamilyData(
                 id, name, dummy_versions, table_cache_, write_buffer_manager_, options,
                 *db_options_, env_options_, this);
