@@ -267,9 +267,9 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
             //printf("get key %s\n", key.data_);
             ParsedInternalKey ikey;
             ParseInternalKey(key, &ikey);
-            DBG_PRINT("key data[%s] size[%lu]", key.data(), key.size());
+            //DBG_PRINT("key data[%s] size[%lu]", key.data(), key.size());
             std::string now_prefix = (*prefix_extractor)(ikey.user_key.data(), ikey.user_key.size());
-            DBG_PRINT("user_key[%s], prefix[%s]", ikey.user_key.data(), now_prefix.c_str());
+            //DBG_PRINT("user_key[%s], prefix[%s]", ikey.user_key.data(), now_prefix.c_str());
             if (now_prefix == last_prefix && last_chunk != nullptr) {
                 last_chunk->Insert(key, value);
             } else {
@@ -283,14 +283,14 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
                 auto chunk_found = pending_output_chunk.find(now_prefix);
                 if (chunk_found == pending_output_chunk.end()) {
                     //this is a new build a new chunk
-                    DBG_PRINT("New Prefix [%s]", now_prefix.c_str());
+                    //DBG_PRINT("New Prefix [%s]", now_prefix.c_str());
                     auto new_chunk = new BuildingChunk(
                             nvm_write_cache_->internal_options()->filter_policy_,
                             now_prefix);
                     pending_output_chunk[now_prefix] = new_chunk;
                     now_chunk = new_chunk;
                 } else {
-                    DBG_PRINT("Existed Prefix [%s]", now_prefix.c_str());
+                    //DBG_PRINT("Existed Prefix [%s]", now_prefix.c_str());
                     now_chunk = chunk_found->second;
                 }
                 // add data to this chunk
