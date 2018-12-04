@@ -4144,7 +4144,7 @@ private:
                 GenerateKeyFromInt(rand_num, FLAGS_num, &key);
                 DBG_PRINT("gen key[%ld]to[%s]/FLAGS_num[%ld]",rand_num, std::string(key.data(), key.size()).c_str(), FLAGS_num);
                 for(size_t i = 0; i < key.size(); i++){
-                    printf("%d ", key.data()[i]);
+                    printf("%c ", key.data()[i]);
                 }
                 printf("\n");
                 //getchar();
