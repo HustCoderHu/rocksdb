@@ -4147,7 +4147,7 @@ private:
                     printf("%d ", key.data()[i]);
                 }
                 printf("\n");
-                getchar();
+                //getchar();
                 if (use_blob_db_) {
 #ifndef ROCKSDB_LITE
                     Slice val = gen.Generate(value_size_);
