@@ -76,6 +76,7 @@
 #include "utilities/merge_operators.h"
 #include "utilities/merge_operators/bytesxor.h"
 #include "utilities/persistent_cache/block_cache_tier.h"
+#include "utilities/nvm_write_cache/debug.h"
 
 #ifdef OS_WIN
 
