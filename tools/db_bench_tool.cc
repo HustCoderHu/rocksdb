@@ -3818,7 +3818,7 @@ private:
                     FLAGS_rate_limiter_auto_tuned));
         }
 
-        if (FLAGS_use_nvm_write_cache) {
+        if (FLAGS_use_nvm_write_cache && options.nvm_cache_setup == nullptr) {
             auto nvm_cache_setup = new NVMCacheSetup;
             nvm_cache_setup->bloom_bits = FLAGS_chunk_bloom_bits;
             nvm_cache_setup->cache_type_ = kRangeFixedChunk;

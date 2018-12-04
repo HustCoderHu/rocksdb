@@ -495,6 +495,7 @@ namespace rocksdb {
 
 // DB mutex held
     ColumnFamilyData::~ColumnFamilyData() {
+        DBG_PRINT("Deconstructor of cfd[%d][%s]", id_, name_.c_str());
         assert(refs_.load(std::memory_order_relaxed) == 0);
         // remove from linked list
         auto prev = prev_;

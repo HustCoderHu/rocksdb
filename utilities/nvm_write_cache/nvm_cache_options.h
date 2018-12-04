@@ -94,7 +94,9 @@ struct NVMCacheOptions {
 
     NVMCacheOptions(const shared_ptr<NVMCacheSetup> setup);
 
-    ~NVMCacheOptions() =default;
+    ~NVMCacheOptions(){
+        delete nvm_write_cache_;
+    }
 
     bool use_nvm_write_cache_;
     bool reset_nvm_write_cache;
@@ -105,7 +107,6 @@ struct NVMCacheOptions {
 
     static FixedRangeChunkBasedNVMWriteCache *NewFixedRangeChunkBasedCache(const NVMCacheOptions *nvm_cache_options,
                                                                            FixedRangeBasedOptions *foptions);
-
 };
 
 
