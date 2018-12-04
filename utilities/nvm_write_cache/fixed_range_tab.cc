@@ -168,8 +168,8 @@ Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
     size_t chunk_blk_len = bloom_data.size() + chunk_data.size() + 2 * sizeof(uint64_t);
     uint64_t raw_cur = DecodeFixed64(raw_ - 2 * sizeof(uint64_t));
     uint64_t last_seq = DecodeFixed64(raw_ - sizeof(uint64_t));
-    //printf("raw_cur[%lu] chunk size[%lu]\n", raw_cur, chunk_data.size());
-    //printf("num from chunk[%lu]\n", DecodeFixed64(chunk_data.data() + chunk_data.size() - 8));
+
+    DBG_PRINT("in 1/4 append");
 
     char *dst = raw_ + raw_cur; // move to start of this chunk
     // append bloom data
@@ -182,6 +182,8 @@ Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
     // append data
     memcpy(dst, chunk_data.data(), chunk_data.size()); //+chunk data size
 
+    DBG_PRINT("in append");
+
     /*{
     	DBG_PRINT("write bloom size [%lu]", bloom_data.size());
 		DBG_PRINT("write chunk size [%lu]", chunk_data.size());
@@ -193,8 +195,6 @@ Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
         DBG_PRINT("read bloom size [%lu]", bloom_size);
         DBG_PRINT("read chunk size [%lu]", chunk_size);
     }*/
-
-    //printf("kv num[%lu]\n", DecodeFixed64(dst+chunk_data.size()- sizeof(uint64_t)));
 
     // update cur and seq
     // transaction
@@ -210,7 +210,7 @@ Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
     // update meta info
 
     CheckAndUpdateKeyRange(icmp, start, end);
-
+    DBG_PRINT("in 3/4 append");
     // update version
     // transaction
     if (nonVolatileTab_->extra_buf != nullptr) {
