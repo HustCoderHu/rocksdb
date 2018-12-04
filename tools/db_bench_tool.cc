@@ -4142,7 +4142,7 @@ private:
             for (int64_t j = 0; j < entries_per_batch_; j++) {
                 int64_t rand_num = key_gens[id]->Next();
                 GenerateKeyFromInt(rand_num, FLAGS_num, &key);
-                DBG_PRINT("gen key[%s]", std::string(key.data(), key.size()).c_str());
+                DBG_PRINT("gen key[%ld]to[%s]/FLAGS_num[%ld]",rand_num, std::string(key.data(), key.size()).c_str(), FLAGS_num);
                 if (use_blob_db_) {
 #ifndef ROCKSDB_LITE
                     Slice val = gen.Generate(value_size_);
