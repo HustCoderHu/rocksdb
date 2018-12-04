@@ -82,13 +82,17 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
     assert(tab_found != vinfo_->prefix2range.end());
     now_range = tab_found->second;
 
+    DBG_PRINT("before append");
     now_range->lock();
+    DBG_PRINT("start append");
     if (now_range->IsCompactWorking() && !now_range->IsExtraBufExists()) {
         persistent_ptr<NvRangeTab> p_content = NewContent(meta.prefix, vinfo_->internal_options_->range_size_);
         now_range->SetExtraBuf(p_content);
     }
     now_range->Append(icmp, bloom_data, chunk_data, meta.cur_start, meta.cur_end);
     now_range->unlock();
+    DBG_PRINT("end append");
+
 }
 
 persistent_ptr<NvRangeTab> FixedRangeChunkBasedNVMWriteCache::NewContent(const string &prefix, size_t bufSize) {
@@ -186,10 +190,9 @@ InternalIterator *FixedRangeChunkBasedNVMWriteCache::NewIterator(const InternalK
 }
 
 void FixedRangeChunkBasedNVMWriteCache::RangeExistsOrCreat(const std::string &prefix) {
-    DBG_PRINT("prefix:[%s]", prefix.c_str());
     auto tab_idx = vinfo_->prefix2range.find(prefix);
     if (tab_idx == vinfo_->prefix2range.end()) {
-        DBG_PRINT("Need to create range");
+        DBG_PRINT("Need to create range[%s]", prefix.c_str());
         NewRange(prefix);
         //DBG_PRINT("End of creating range");
     }

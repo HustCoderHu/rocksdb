@@ -48,7 +48,6 @@ FixedRangeTab::FixedRangeTab(pool_base &pop, const rocksdb::FixedRangeBasedOptio
     pendding_compaction_ = false;
     DBG_PRINT("seq_num is %lu", raw_tab->seq_num_.get_ro());
     if (0 == raw_tab->seq_num_.get_ro()) {
-        DBG_PRINT("seq = 0");
         // new node
         raw_ = raw_tab->buf.get();
         // set cur_
@@ -56,7 +55,7 @@ FixedRangeTab::FixedRangeTab(pool_base &pop, const rocksdb::FixedRangeBasedOptio
         // set seq_
         EncodeFixed64(raw_ + sizeof(uint64_t), 0);
         raw_ += 2 * sizeof(uint64_t);
-        GetProperties();
+        //GetProperties();
     } else {
         DBG_PRINT("seq != 0");
         // rebuild

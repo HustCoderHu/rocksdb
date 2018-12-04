@@ -322,7 +322,6 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
                 nvm_write_cache_->AppendToRange(internal_comparator, bloom_data, output_data->c_str(), meta);
                 // TODO:Slice是否需要delete
                 delete output_data;
-                DBG_PRINT("end append [%s]", prefix.c_str());
             };
 
             auto pending_chunk = pending_output_chunk.begin();
