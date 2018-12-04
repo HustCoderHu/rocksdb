@@ -1044,7 +1044,7 @@ if (WITH_TESTS)
         if("${exename}" MATCHES "db_bench")
             link_directories(/usr/local/lib)
             target_link_libraries(${exename}${ARTIFACT_SUFFIX} cityhash)
-            target_include_directories(${exename}${ARTIFACT_SUFFIX} /usr/local/include ${LIBPMEMOBJ++_INCLUDE_DIRS})
+            include_directories(/usr/local/include ${LIBPMEMOBJ++_INCLUDE_DIRS})
         endif()
     endforeach (sourcefile ${BENCHMARKS})
 
