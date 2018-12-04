@@ -156,7 +156,6 @@ Status FixedRangeTab::Get(const InternalKeyComparator &internal_comparator,
 Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
                              const string& bloom_data, const Slice &chunk_data,
                              const Slice &start, const Slice &end) {
-    DBG_PRINT("start append");
     if (nonVolatileTab_->dataLen + chunk_data.size_ >= nonVolatileTab_->bufSize
         || nonVolatileTab_->chunk_num_ > max_chunk_num_to_flush()) {
         // TODO：mark tab as pendding compaction
@@ -168,9 +167,6 @@ Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
     size_t chunk_blk_len = bloom_data.size() + chunk_data.size() + 2 * sizeof(uint64_t);
     uint64_t raw_cur = DecodeFixed64(raw_ - 2 * sizeof(uint64_t));
     uint64_t last_seq = DecodeFixed64(raw_ - sizeof(uint64_t));
-
-    DBG_PRINT("in 1/4 append");
-
     char *dst = raw_ + raw_cur; // move to start of this chunk
     // append bloom data
     EncodeFixed64(dst, bloom_data.size()); //+8
@@ -181,9 +177,6 @@ Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
     dst += bloom_data.size() + sizeof(uint64_t) * 2;
     // append data
     memcpy(dst, chunk_data.data(), chunk_data.size()); //+chunk data size
-
-    DBG_PRINT("in append");
-
     /*{
     	DBG_PRINT("write bloom size [%lu]", bloom_data.size());
 		DBG_PRINT("write chunk size [%lu]", chunk_data.size());
@@ -210,7 +203,6 @@ Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
     // update meta info
 
     CheckAndUpdateKeyRange(icmp, start, end);
-    DBG_PRINT("in 3/4 append");
     // update version
     // transaction
     if (nonVolatileTab_->extra_buf != nullptr) {
@@ -226,7 +218,6 @@ Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
     // record this offset to volatile vector
     blklist.emplace_back(bloom_data.size(), raw_cur, chunk_data.size());
     tab_lock_.Unlock();
-    DBG_PRINT("end append");
 
     return Status::OK();
 }
@@ -237,13 +228,11 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const InternalKeyComparator &icmp, co
     bool update_start = false, update_end = false;
     GetRealRange(cur_start, cur_end);
 
-    if(cur_start.size() != 0) cout<<icmp.Compare(cur_start, new_start)<<endl;
     if (cur_start.size() == 0 || icmp.Compare(cur_start, new_start) >= 0) {
         cur_start = new_start;
         update_start = true;
     }
 
-    if(cur_end.size() != 0) cout<<icmp.Compare(cur_end, new_end)<<endl;
     if (cur_end.size() == 0 || icmp.Compare(cur_end, new_end) <= 0) {
         cur_end = new_end;
         update_end = true;
