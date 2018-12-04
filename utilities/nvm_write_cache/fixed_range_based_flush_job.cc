@@ -310,6 +310,7 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
             std::vector<port::Thread> thread_pool;
             thread_pool.clear();
             auto finish_build_chunk = [&](std::string prefix) {
+                DBG_PRINT("start append [%s]", prefix.c_str());
                 // get chunk data
                 string bloom_data;
                 ChunkMeta meta;
@@ -321,6 +322,7 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
                 nvm_write_cache_->AppendToRange(internal_comparator, bloom_data, output_data->c_str(), meta);
                 // TODO:Slice是否需要delete
                 delete output_data;
+                DBG_PRINT("end append [%s]", prefix.c_str());
             };
 
             auto pending_chunk = pending_output_chunk.begin();
