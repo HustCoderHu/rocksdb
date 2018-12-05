@@ -87,6 +87,7 @@ void BuildingChunk::Insert(const rocksdb::Slice &key, const rocksdb::Slice &valu
     // InternalKey in keys
     keys_.emplace_back(key_rep, key.size());
     user_keys_.emplace_back(key_rep, key.size() - 8);
+    num_entries_++;
 }
 
 
@@ -100,7 +101,7 @@ std::string *BuildingChunk::Finish(string& bloom_data, rocksdb::Slice &cur_start
     // get key range
     cur_start = keys_[0];
     cur_end = keys_[keys_.size() - 1];
-    DBG_PRINT("Get Kv Item num[%lu]", DecodeFixed64(chunk_data->c_str() - 8));
+    DBG_PRINT("Get Kv Item num[%lu] recorded[%lu]", DecodeFixed64(chunk_data->c_str() - 8), num_entries_);
     //delete chunk_bloom_data;
     return chunk_data;
 }
