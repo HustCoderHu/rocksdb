@@ -134,7 +134,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
         }
 
         Usage range_usage = range.second->RangeUsage();
-        DBG_PRINT("range size[%f]MB threshold [%f]MB", range_usage.range_size / 1048576.0, range.second->max_range_size() * 0.8);
+        DBG_PRINT("range size[%f]MB threshold [%f]MB", range_usage.range_size / 1048576.0, (range.second->max_range_size() / 1048576.0) * 0.8);
         if (range_usage.range_size >= range.second->max_range_size() * 0.8) {
             pendding_compact.emplace_back(range.second);
         }
