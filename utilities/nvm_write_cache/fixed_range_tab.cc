@@ -157,7 +157,7 @@ Status FixedRangeTab::Get(const InternalKeyComparator &internal_comparator,
 Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
                              const string& bloom_data, const Slice &chunk_data,
                              const Slice &start, const Slice &end) {
-    DBG_PRINT("start Append");
+    //DBG_PRINT("start Append");
     if (nonVolatileTab_->dataLen + chunk_data.size_ >= nonVolatileTab_->bufSize
         || nonVolatileTab_->chunk_num_ > max_chunk_num_to_flush()) {
         // TODO：mark tab as pendding compaction
@@ -219,23 +219,23 @@ Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
 
     // record this offset to volatile vector
     blklist.emplace_back(bloom_data.size(), raw_cur, chunk_data.size());
-    DBG_PRINT("end Append");
+    //DBG_PRINT("end Append");
 
     return Status::OK();
 }
 
 void FixedRangeTab::CheckAndUpdateKeyRange(const InternalKeyComparator &icmp, const Slice &new_start,
                                            const Slice &new_end) {
-    DBG_PRINT("start update range");
+    //DBG_PRINT("start update range");
     Slice cur_start, cur_end;
     bool update_start = false, update_end = false;
     GetRealRange(cur_start, cur_end);
-    DBG_PRINT("compare start");
+    //DBG_PRINT("compare start");
     if (cur_start.size() == 0 || icmp.Compare(cur_start, new_start) >= 0) {
         cur_start = new_start;
         update_start = true;
     }
-    DBG_PRINT("compare end");
+    //DBG_PRINT("compare end");
     if (cur_end.size() == 0 || icmp.Compare(cur_end, new_end) <= 0) {
         cur_end = new_end;
         update_end = true;
@@ -286,14 +286,14 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const InternalKeyComparator &icmp, co
         };
 
         if(nonVolatileTab_->extra_buf == nullptr){
-            DBG_PRINT("update key range");
+            //DBG_PRINT("update key range");
             UpdateRangeBuf(nonVolatileTab_);
         }else{
             UpdateRangeBuf(nonVolatileTab_->extra_buf);
         }
 
     }
-    DBG_PRINT("end update range");
+    //DBG_PRINT("end update range");
 
 }
 

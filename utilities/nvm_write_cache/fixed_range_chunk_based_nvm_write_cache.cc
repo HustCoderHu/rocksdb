@@ -83,16 +83,16 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
     assert(tab_found != vinfo_->prefix2range.end());
     now_range = tab_found->second;
 
-    DBG_PRINT("before append");
+    //DBG_PRINT("before append");
     now_range->lock();
-    DBG_PRINT("start append");
+    //DBG_PRINT("start append");
     if (now_range->IsCompactWorking() && !now_range->IsExtraBufExists()) {
         persistent_ptr<NvRangeTab> p_content = NewContent(meta.prefix, vinfo_->internal_options_->range_size_);
         now_range->SetExtraBuf(p_content);
     }
     now_range->Append(icmp, bloom_data, chunk_data, meta.cur_start, meta.cur_end);
     now_range->unlock();
-    DBG_PRINT("end append");
+    //DBG_PRINT("end append");
 
 }
 
@@ -117,7 +117,7 @@ FixedRangeTab *FixedRangeChunkBasedNVMWriteCache::NewRange(const std::string &pr
 }
 
 void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
-    DBG_PRINT("start compaction check");
+    //DBG_PRINT("start compaction check");
     // 选择所有range中数据大小占总容量80%的range并按照总容量的大小顺序插入compaction queue
     std::vector<CompactionItem> pendding_compact;
     for (auto range : vinfo_->prefix2range) {
@@ -145,33 +145,33 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
               });
 
     // TODO 是否需要重新添加queue
-    DBG_PRINT("Cache lock[%d]", vinfo_->lock_count);
-    //vinfo_->queue_lock_.Lock();
+    //DBG_PRINT("Cache lock[%d]", vinfo_->lock_count);
+    vinfo_->queue_lock_.Lock();
     vinfo_->lock_count++;
-    DBG_PRINT("In cache lock[%d]", vinfo_->lock_count);
+    //DBG_PRINT("In cache lock[%d]", vinfo_->lock_count);
     for (auto pendding_range : pendding_compact) {
         if (!pendding_range.pending_compated_range_->IsCompactPendding()) {
             pendding_range.pending_compated_range_->SetCompactionPendding(true);
             vinfo_->range_queue_.push(std::move(pendding_range));
         }
     }
-    //vinfo_->queue_lock_.Unlock();
+    vinfo_->queue_lock_.Unlock();
     vinfo_->lock_count--;
-    DBG_PRINT("end compaction check and unlock[%d]", vinfo_->lock_count);
+    //DBG_PRINT("end compaction check and unlock[%d]", vinfo_->lock_count);
 }
 
 void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionItem *compaction) {
 
     assert(!vinfo_->range_queue_.empty());
-    DBG_PRINT("Cache lock[%d]", vinfo_->lock_count);
-    //vinfo_->queue_lock_.Lock();
+    //DBG_PRINT("Cache lock[%d]", vinfo_->lock_count);
+    vinfo_->queue_lock_.Lock();
     vinfo_->lock_count++;
-    DBG_PRINT("In cache lock[%d]", vinfo_->lock_count);
+    //DBG_PRINT("In cache lock[%d]", vinfo_->lock_count);
     *compaction = vinfo_->range_queue_.front();
     vinfo_->range_queue_.pop();
-    //vinfo_->queue_lock_.Unlock();
+    vinfo_->queue_lock_.Unlock();
     vinfo_->lock_count--;
-    DBG_PRINT("end get compaction and unlock[%d]", vinfo_->lock_count);
+    //DBG_PRINT("end get compaction and unlock[%d]", vinfo_->lock_count);
 
 }
 

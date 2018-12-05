@@ -149,17 +149,17 @@ public:
     }
 
     void lock(){
-        DBG_PRINT("tab lock[%d]", lock_count);
-        //tab_lock_.Lock();
+        //DBG_PRINT("tab lock[%d]", lock_count);
+        tab_lock_.Lock();
         lock_count++;
-        DBG_PRINT("in tab lock[%d]", lock_count);
+        //DBG_PRINT("in tab lock[%d]", lock_count);
     }
 
     void unlock(){
-        DBG_PRINT("before tab unlock[%d]", lock_count);
-        //tab_lock_.Unlock();
+        //DBG_PRINT("before tab unlock[%d]", lock_count);
+        tab_lock_.Unlock();
         lock_count--;
-        DBG_PRINT("tab unlock[%d]", lock_count);
+        //DBG_PRINT("tab unlock[%d]", lock_count);
     }
 
 //#ifdef TAB_DEBUG
