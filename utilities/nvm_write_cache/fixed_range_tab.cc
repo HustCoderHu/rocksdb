@@ -269,7 +269,7 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const InternalKeyComparator &icmp, co
             if(range_data_size > nonVolatileTab_->rangebufLen){
                 // 新的range data size大于已有的range buf空间
                 AllocBufAndUpdate(range_data_size);
-            }else if(range_data_size < (nonVolatileTab_->rangebufLen / 2)){
+            }else if(range_data_size < (nonVolatileTab_->rangebufLen / 2) && nonVolatileTab_->rangebufLen > 200){
                 // 此时rangebuf大小缩减一半
                 AllocBufAndUpdate(nonVolatileTab_->rangebufLen / 2);
             }else{
