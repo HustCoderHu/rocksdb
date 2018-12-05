@@ -230,12 +230,12 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const InternalKeyComparator &icmp, co
     Slice cur_start, cur_end;
     bool update_start = false, update_end = false;
     GetRealRange(cur_start, cur_end);
-
+    DBG_PRINT("compare start");
     if (cur_start.size() == 0 || icmp.Compare(cur_start, new_start) >= 0) {
         cur_start = new_start;
         update_start = true;
     }
-
+    DBG_PRINT("compare end");
     if (cur_end.size() == 0 || icmp.Compare(cur_end, new_end) <= 0) {
         cur_end = new_end;
         update_end = true;
@@ -286,6 +286,7 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const InternalKeyComparator &icmp, co
         };
 
         if(nonVolatileTab_->extra_buf == nullptr){
+            DBG_PRINT("update key range");
             UpdateRangeBuf(nonVolatileTab_);
         }else{
             UpdateRangeBuf(nonVolatileTab_->extra_buf);
