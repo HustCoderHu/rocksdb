@@ -40,7 +40,8 @@ FixedRangeTab::FixedRangeTab(pool_base &pop, const rocksdb::FixedRangeBasedOptio
                              persistent_ptr<NvRangeTab> &nonVolatileTab)
         : pop_(pop),
           nonVolatileTab_(nonVolatileTab),
-          interal_options_(options){
+          interal_options_(options),
+          tab_lock_(false){
     DBG_PRINT("constructor of FixedRangeTab");
     NvRangeTab *raw_tab = nonVolatileTab_.get();
     pendding_clean_ = 0;

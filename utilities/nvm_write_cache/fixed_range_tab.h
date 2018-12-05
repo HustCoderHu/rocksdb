@@ -196,7 +196,7 @@ private:
 
     // volatile info
     const FixedRangeBasedOptions *interal_options_;
-    InstrumentedMutex tab_lock_;
+    port::Mutex tab_lock_;
     vector<ChunkBlk> blklist;
     char *raw_;
     bool in_compaction_;
