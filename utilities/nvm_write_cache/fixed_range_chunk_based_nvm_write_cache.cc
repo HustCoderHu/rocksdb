@@ -121,6 +121,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
     // 选择所有range中数据大小占总容量80%的range并按照总容量的大小顺序插入compaction queue
     std::vector<CompactionItem> pendding_compact;
     for (auto range : vinfo_->prefix2range) {
+
         if (range.second->IsCompactPendding() || range.second->IsCompactWorking()) {
             // this range has already in compaction queue
             continue;
@@ -133,6 +134,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
         }
 
         Usage range_usage = range.second->RangeUsage();
+        DBG_PRINT("range size[%f]MB threshold [%f]MB", range_usage.range_size / 1048576.0, range.second->max_range_size() * 0.8);
         if (range_usage.range_size >= range.second->max_range_size() * 0.8) {
             pendding_compact.emplace_back(range.second);
         }
