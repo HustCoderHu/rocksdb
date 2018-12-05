@@ -188,6 +188,7 @@ Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
         uint64_t kv_item_num;
         kv_item_num = DecodeFixed64(debug - 8);
         DBG_PRINT("appended chunk include items[%lu]", kv_item_num);
+        DBG_PRINT("decode from raw chunk data[%lu]", DecodeFixed64(chunk_data.data() + chunk_data.size() - 8));
         //chunk_size = DecodeFixed64(debug + 8 + bloom_size);
         //("read bloom size [%lu]", bloom_size);
         //DBG_PRINT("read chunk size [%lu]", chunk_size);

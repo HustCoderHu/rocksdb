@@ -53,7 +53,7 @@ std::string *ArrayBasedChunk::Finish() {
         PutFixed64(&raw_data_, offset);
     }
     // 写num_pairs
-    DBG_PRINT("has kv item [%lu]", entry_offset_.size());
+    //DBG_PRINT("has kv item [%lu]", entry_offset_.size());
     PutFixed64(&raw_data_, entry_offset_.size());
     auto *result = new std::string(raw_data_);
     return result;
