@@ -137,7 +137,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
             pendding_compact.emplace_back(range.second);
         }
     }
-    //DBG_PRINT("[%lu]range need compaction", pendding_compact.size());
+    DBG_PRINT("[%lu]range need compaction", pendding_compact.size());
     std::sort(pendding_compact.begin(), pendding_compact.end(),
               [](const CompactionItem &litem, const CompactionItem &ritem) {
                   return litem.pending_compated_range_->RangeUsage().range_size >
