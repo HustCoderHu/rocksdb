@@ -65,6 +65,7 @@ BuildingChunk::BuildingChunk(const FilterPolicy *filter_policy, const std::strin
     if (filter_policy_ == nullptr) {
         printf("empty filter policy\n");
     }
+    num_entries_ = 0;
 
 }
 
