@@ -45,6 +45,7 @@ FixedRangeTab::FixedRangeTab(pool_base &pop, const rocksdb::FixedRangeBasedOptio
     DBG_PRINT("constructor of FixedRangeTab");
     NvRangeTab *raw_tab = nonVolatileTab_.get();
     pendding_clean_ = 0;
+    lock_count = 0;
     in_compaction_ = false;
     pendding_compaction_ = false;
     DBG_PRINT("seq_num is %lu", raw_tab->seq_num_.get_ro());

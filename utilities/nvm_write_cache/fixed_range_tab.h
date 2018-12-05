@@ -149,15 +149,17 @@ public:
     }
 
     void lock(){
-        DBG_PRINT("tab lock");
+        DBG_PRINT("tab lock[%d]", lock_count);
         tab_lock_.Lock();
-        DBG_PRINT("in tab lock");
+        lock_count++;
+        DBG_PRINT("in tab lock[%d]", lock_count);
     }
 
     void unlock(){
-        DBG_PRINT("before tab unlock");
+        DBG_PRINT("before tab unlock[%d]", lock_count);
         tab_lock_.Unlock();
-        DBG_PRINT("tab unlock");
+        lock_count--;
+        DBG_PRINT("tab unlock[%d]", lock_count);
     }
 
 //#ifdef TAB_DEBUG
@@ -197,6 +199,7 @@ private:
     // volatile info
     const FixedRangeBasedOptions *interal_options_;
     port::Mutex tab_lock_;
+    int lock_count;
     vector<ChunkBlk> blklist;
     char *raw_;
     bool in_compaction_;
