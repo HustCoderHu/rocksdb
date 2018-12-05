@@ -205,7 +205,7 @@ InternalIterator *FixedRangeChunkBasedNVMWriteCache::NewIterator(const InternalK
 void FixedRangeChunkBasedNVMWriteCache::RangeExistsOrCreat(const std::string &prefix) {
     auto tab_idx = vinfo_->prefix2range.find(prefix);
     if (tab_idx == vinfo_->prefix2range.end()) {
-        DBG_PRINT("Need to create range[%s][%d]", prefix.c_str(), prefix.size());
+        DBG_PRINT("Need to create range[%s][%lu]", prefix.c_str(), prefix.size());
         NewRange(prefix);
         //DBG_PRINT("End of creating range");
     }
