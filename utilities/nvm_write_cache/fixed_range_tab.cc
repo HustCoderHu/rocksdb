@@ -184,7 +184,7 @@ Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
     	//DBG_PRINT("write bloom size [%lu]", bloom_data.size());
 		//DBG_PRINT("write chunk size [%lu]", chunk_data.size());
         //debug
-        char* debug = raw_ + chunk_blk_len;
+        char* debug = raw_ + raw_cur + chunk_blk_len;
         uint64_t kv_item_num;
         kv_item_num = DecodeFixed64(debug - 8);
         DBG_PRINT("appended chunk include items[%lu]", kv_item_num);
