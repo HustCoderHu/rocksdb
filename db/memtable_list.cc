@@ -564,6 +564,7 @@ Status MemTableList::TryInstallMemtableFlushResults(
   // Flush was successful
   // Record the status on the memtable object. Either this call or a call by a
   // concurrent flush thread will read the status and write it to manifest.
+  // 设置被flush的memtable的状态
   for (size_t i = 0; i < mems.size(); ++i) {
     // All the edits are associated with the first memtable of this batch.
     assert(i == 0 || mems[i]->GetEdits()->NumEntries() == 0);
@@ -584,6 +585,7 @@ Status MemTableList::TryInstallMemtableFlushResults(
 
   // Retry until all completed flushes are committed. New flushes can finish
   // while the current thread is writing manifest where mutex is released.
+  // 循环直到所有的flush都完成
   while (s.ok()) {
     auto& memlist = current_->memlist_;
     // The back is the oldest; if flush_completed_ is not set to it, it means
@@ -605,8 +607,10 @@ Status MemTableList::TryInstallMemtableFlushResults(
     for (auto it = memlist.rbegin(); it != memlist.rend(); ++it) {
       MemTable* m = *it;
       if (!m->flush_completed_) {
+          // 跳过没有完成的
         break;
       }
+      // TODO
       if (it == memlist.rbegin() || batch_file_number != m->file_number_) {
         batch_file_number = m->file_number_;
         ROCKS_LOG_BUFFER(log_buffer,
@@ -660,7 +664,7 @@ Status MemTableList::TryInstallMemtableFlushResults(
           ROCKS_LOG_BUFFER(log_buffer, "[%s] Level-0 commit table #%" PRIu64
                                        ": memtable #%" PRIu64 " done",
                            cfd->GetName().c_str(), m->file_number_, mem_id);
-          assert(m->file_number_ > 0);
+          assert(m->file_number_ >= 0);
           current_->Remove(m, to_delete);
           ++mem_id;
         }
