@@ -331,6 +331,7 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
                         meta.cur_start, meta.cur_end);
                 // append to range tab
                 //range_found->second.Append(bloom_data/*char**/, output_data/*Slice*/,ChunkMeta(internal_comparator, cur_start, cur_end));
+                DBG_PRINT("decode from raw chunk data[%lu]", DecodeFixed64(output_data->data() + output_data->size() - 8));
                 nvm_write_cache_->AppendToRange(internal_comparator, bloom_data, output_data->c_str(), meta);
                 // TODO:Slice是否需要delete
                 delete output_data;
