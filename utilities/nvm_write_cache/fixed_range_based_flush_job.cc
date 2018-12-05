@@ -136,12 +136,13 @@ Status FixedRangeBasedFlushJob::Run() {
     if (!s.ok()) {
         cfd_->imm()->RollbackMemtableFlush(mems_, 0);
     } else if (write_manifest_) {
-        TEST_SYNC_POINT("FlushJob::InstallResults");
+        DBG_PRINT("TryInstallMemtableFlushResults");
         // Replace immutable memtable with the generated Table
         s = cfd_->imm()->TryInstallMemtableFlushResults(
                 cfd_, mutable_cf_options_, mems_, nullptr, versions_, db_mutex_,
                 0, &job_context_->memtables_to_free, nullptr,
                 log_buffer_);
+        DBG_PRINT("end TryInstallMemtableFlushResults");
     }
 
     return s;
