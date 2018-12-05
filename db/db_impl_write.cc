@@ -12,6 +12,7 @@
 #define __STDC_FORMAT_MACROS
 #endif
 #include <inttypes.h>
+#include <utilities/nvm_write_cache/debug.h>
 #include "db/error_handler.h"
 #include "db/event_helpers.h"
 #include "monitoring/perf_context_imp.h"
@@ -1249,6 +1250,7 @@ Status DBImpl::DelayWrite(uint64_t num_bytes,
       // fail any pending writers with no_slowdown
       write_thread_.BeginWriteStall();
       TEST_SYNC_POINT("DBImpl::DelayWrite:Wait");
+      DBG_PRINT("DBImpl::DelayWrite:Wait");
       bg_cv_.Wait();
       write_thread_.EndWriteStall();
     }
@@ -1272,6 +1274,7 @@ Status DBImpl::DelayWrite(uint64_t num_bytes,
   if (error_handler_.IsDBStopped()) {
     s = error_handler_.GetBGError();
   }
+  DBG_PRINT("end delay write");
   return s;
 }
 

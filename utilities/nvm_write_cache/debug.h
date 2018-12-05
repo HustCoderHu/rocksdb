@@ -9,7 +9,7 @@ namespace rocksdb{
 #ifdef NVM_DEBUG
 
 #define DBG_PRINT(format, a...) \
-    printf("DEBUG: %s %-40s %4d: " format "\n", __FILE__, __FUNCTION__, __LINE__, ##a)
+    printf("DEBUG: %s %4d %-40s : " format "\n", __FILE__,__LINE__, __FUNCTION__,  ##a)
 
 #define DBG_TRACE() \
     printf("TRACE: %-40s %4d: \n" format, __FUNCTION__, __LINE__)
