@@ -325,7 +325,7 @@ namespace rocksdb {
         if (s.ok()) {
             InstallSuperVersionAndScheduleWork(cfd, superversion_context,
                                                mutable_cf_options);
-            DBG_PRINT("flush ok, install new sv");
+            //DBG_PRINT("flush ok, install new sv");
             if (made_progress) {
                 *made_progress = true;
             }
