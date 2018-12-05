@@ -104,7 +104,7 @@ Status FixedRangeTab::Get(const InternalKeyComparator &internal_comparator,
     PersistentChunkIterator *iter = new PersistentChunkIterator();
     // shared_ptr能够保证资源回收
     char* buf = raw_;
-    DBG_PRINT("blklist: size[%lu], pendding_clean[%lu]", blklist.size(), pendding_clean_);
+    //DBG_PRINT("blklist: size[%lu], pendding_clean[%lu]", blklist.size(), pendding_clean_);
 	assert(blklist.size() >= pendding_clean_);
     for (int i = blklist.size() - 1; i >= 0; i--) {
         assert(i >= 0);
@@ -117,7 +117,7 @@ Status FixedRangeTab::Get(const InternalKeyComparator &internal_comparator,
         uint64_t bloom_bytes = blk.bloom_bytes_;
         if (interal_options_->filter_policy_->KeyMayMatch(lkey.user_key(), Slice(chunk_head + 8, bloom_bytes))) {
             // 3.如果有则读取元数据进行chunk内的查找
-            DBG_PRINT("Key in chunk and search");
+            //DBG_PRINT("Key in chunk and search");
             new(iter) PersistentChunkIterator(buf + blk.getDatOffset(), blk.chunkLen_, nullptr);
             Status s = searchInChunk(iter, internal_comparator, lkey.user_key(), value);
             if (s.ok()) {
@@ -187,8 +187,8 @@ Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
         char* debug = raw_ + raw_cur + chunk_blk_len;
         uint64_t kv_item_num;
         kv_item_num = DecodeFixed64(debug - 8);
-        DBG_PRINT("appended chunk include items[%lu]", kv_item_num);
-        DBG_PRINT("decode from raw chunk data[%lu] chunkdata size[%lu]", DecodeFixed64(chunk_data.data() + chunk_data.size() - 8), chunk_data.size());
+        //DBG_PRINT("appended chunk include items[%lu]", kv_item_num);
+        //DBG_PRINT("decode from raw chunk data[%lu] chunkdata size[%lu]", DecodeFixed64(chunk_data.data() + chunk_data.size() - 8), chunk_data.size());
         //chunk_size = DecodeFixed64(debug + 8 + bloom_size);
         //("read bloom size [%lu]", bloom_size);
         //DBG_PRINT("read chunk size [%lu]", chunk_size);
@@ -343,7 +343,7 @@ Status FixedRangeTab::searchInChunk(PersistentChunkIterator *iter, const Interna
                                     const Slice &key, std::string *value) {
     int left = 0, right = iter->count() - 1;
     const Comparator* cmp = icmp.user_comparator();
-    DBG_PRINT("left[%d]   right[%d]", left, right);
+    //DBG_PRINT("left[%d]   right[%d]", left, right);
     while (left <= right) {
         int middle = left + ((right - left) >> 1);
         //printf("lest[%d], right[%d], middle[%d]\n", left, right, middle);

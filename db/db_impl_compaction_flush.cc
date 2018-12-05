@@ -2281,6 +2281,7 @@ namespace rocksdb {
                                         JobContext *job_context,
                                         LogBuffer *log_buffer,
                                         PrepickedCompaction *prepicked_compaction) {
+        DBG_PRINT("start compaction");
         ManualCompactionState *manual_compaction =
                 prepicked_compaction == nullptr
                 ? nullptr
