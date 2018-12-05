@@ -61,11 +61,11 @@ Status FixedRangeChunkBasedNVMWriteCache::Get(const InternalKeyComparator &inter
     auto found_tab = vinfo_->prefix2range.find(prefix);
     if (found_tab == vinfo_->prefix2range.end()) {
         // not found
-        DBG_PRINT("NotFound Key");
+        DBG_PRINT("NotFound prefix");
         return Status::NotFound("no this range");
     } else {
         // found
-        DBG_PRINT("Found key");
+        DBG_PRINT("Found prefix");
         FixedRangeTab *tab = found_tab->second;
         return tab->Get(internal_comparator, lkey, value);
     }

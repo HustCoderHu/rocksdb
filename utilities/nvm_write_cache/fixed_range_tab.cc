@@ -117,6 +117,7 @@ Status FixedRangeTab::Get(const InternalKeyComparator &internal_comparator,
         uint64_t bloom_bytes = blk.bloom_bytes_;
         if (interal_options_->filter_policy_->KeyMayMatch(lkey.user_key(), Slice(chunk_head + 8, bloom_bytes))) {
             // 3.如果有则读取元数据进行chunk内的查找
+            DBG_PRINT("Key in chunk and search");
             new(iter) PersistentChunkIterator(buf + blk.getDatOffset(), blk.chunkLen_, nullptr);
             Status s = searchInChunk(iter, internal_comparator, lkey.user_key(), value);
             if (s.ok()) {
