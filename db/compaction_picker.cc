@@ -1377,6 +1377,7 @@ namespace rocksdb {
                 }
                 compaction_inputs_.push_back(start_level_inputs_);
             }else{
+                DBG_PRINT("Set range compaction file");
                 auto nvm_write_cache = dynamic_cast<FixedRangeChunkBasedNVMWriteCache*>(
                         ioptions_.nvm_cache_options->nvm_write_cache_
                 );
@@ -1384,9 +1385,12 @@ namespace rocksdb {
                 nvm_write_cache->GetCompactionData(&citem);
                 pendding_compaction_ = citem.pending_compated_range_;
                 assert(pendding_compaction_ != nullptr);
+                DBG_PRINT("before lock");
                 pendding_compaction_->lock();
+                DBG_PRINT("after lock");
                 pendding_compaction_->SetCompactionWorking(true);
                 pendding_compaction_->unlock();
+                DBG_PRINT("end lock");
                 Usage range_usage = pendding_compaction_->RangeUsage();
                 // 通过compaction_picker的SetupOtherInput获取output_level的file
                 output_level_inputs_.level = output_level_;
@@ -1403,6 +1407,7 @@ namespace rocksdb {
                                                          &output_level_inputs_, &parent_index_, base_index_)){
                     return false;
                 }
+                DBG_PRINT("End set range compaction file");
             }
             if (!output_level_inputs_.empty()) {
                 compaction_inputs_.push_back(output_level_inputs_);
