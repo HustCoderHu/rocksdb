@@ -9,6 +9,7 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
         const FixedRangeBasedOptions *ioptions,
         const string &file, uint64_t pmem_size,
         bool reset) {
+    vinfo_->lock_count = 0;
     //bool justCreated = false;
     vinfo_ = new VolatileInfo(ioptions);
     if (file_exists(file.c_str()) != 0) {
