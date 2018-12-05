@@ -4320,7 +4320,7 @@ InternalIterator* VersionSet::MakeInputIterator(
         const size_t space = c->num_input_levels();		// 若level-1没重叠的sst文件，则为1；否则为2
         InternalIterator** list = new InternalIterator* [space];
         size_t num = 0;
-        FixedRangeTab* pendding_range = c->pendding_range();
+        FixedRangeTab* pendding_range = c->compaction_range();
         list[num++] = pendding_range->NewInternalIterator(&cfd->ioptions()->internal_comparator, nullptr);
         for (size_t which = 1; which < space; which++) {
             list[num++] = new LevelIterator(

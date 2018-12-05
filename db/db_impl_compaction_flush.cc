@@ -2639,12 +2639,12 @@ namespace rocksdb {
             *made_progress = true;
         }
         if (c != nullptr) {
-            if(c->pendding_range() != nullptr){
+            if(c->compaction_range() != nullptr){
                 // Add by Glittter
                 // 完成compaction之后的清理工作
-                c->pendding_range()->CleanUp();
-                c->pendding_range()->SetCompactionWorking(false);
-                c->pendding_range()->SetCompactionPendding(false);
+                c->compaction_range()->CleanUp();
+                c->compaction_range()->SetCompactionWorking(false);
+                c->compaction_range()->SetCompactionPendding(false);
             }
             c->ReleaseCompactionFiles(status);
             *made_progress = true;

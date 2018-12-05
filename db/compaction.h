@@ -294,7 +294,7 @@ class Compaction {
 
   uint64_t MaxInputFileCreationTime() const;
 
-  FixedRangeTab* pendding_range() const {return pendding_range_;}
+  FixedRangeTab* compaction_range() const {return pendding_range_;}
 
  private:
   // mark (or clear) all files that are being compacted
