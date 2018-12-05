@@ -1436,7 +1436,7 @@ namespace rocksdb {
             // 选取compaction的初始file
             SetupInitialFiles();
 
-            if (start_level_inputs_.empty()) {
+            if (start_level_ != 0 && start_level_inputs_.empty()) {
                 return nullptr;
             }
             assert(start_level_ >= 0 && output_level_ >= 0);
