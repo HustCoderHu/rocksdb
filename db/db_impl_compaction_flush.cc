@@ -256,6 +256,8 @@ namespace rocksdb {
                 nvm_flush_job = new FixedRangeBasedFlushJob(
                         dbname_,
                         immutable_db_options_,
+                        mutable_cf_options,
+                        versions_.get(),
                         job_context,
                         &event_logger_,
                         cfd,
@@ -266,7 +268,8 @@ namespace rocksdb {
                         &shutting_down_,
                         log_buffer,
                         stats_,
-                        cfd->ioptions()->nvm_cache_options.get());
+                        cfd->ioptions()->nvm_cache_options.get(),
+                        true);
                 break;
             }
 

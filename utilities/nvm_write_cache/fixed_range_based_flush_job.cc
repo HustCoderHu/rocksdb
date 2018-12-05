@@ -62,19 +62,24 @@ const char *NVMGetFlushReasonString(FlushReason flush_reason) {
 
 FixedRangeBasedFlushJob::FixedRangeBasedFlushJob(const std::string &dbname,
                                                  const ImmutableDBOptions &db_options,
+                                                 const MutableCFOptions &mutable_cf_options,
+                                                 VersionSet* versions,
                                                  JobContext *job_context,
                                                  EventLogger *event_logger,
-                                                 rocksdb::ColumnFamilyData *cfd,
+                                                 ColumnFamilyData *cfd,
                                                  std::vector<SequenceNumber> existing_snapshots,
                                                  SequenceNumber earliest_write_conflict_snapshot,
                                                  SnapshotChecker *snapshot_checker,
-                                                 rocksdb::InstrumentedMutex *db_mutex,
+                                                 InstrumentedMutex *db_mutex,
                                                  std::atomic<bool> *shutting_down,
                                                  LogBuffer *log_buffer,
                                                  Statistics* stats,
-                                                 rocksdb::NVMCacheOptions *nvm_cache_options)
+                                                 NVMCacheOptions *nvm_cache_options,
+                                                 bool write_manifest)
         : dbname_(dbname),
           db_options_(db_options),
+          mutable_cf_options_(mutable_cf_options),
+          versions_(versions),
           job_context_(job_context),
           event_logger_(event_logger),
           cfd_(cfd),
@@ -88,7 +93,8 @@ FixedRangeBasedFlushJob::FixedRangeBasedFlushJob(const std::string &dbname,
           nvm_cache_options_(nvm_cache_options),
           nvm_write_cache_(dynamic_cast<FixedRangeChunkBasedNVMWriteCache *>(nvm_cache_options_->nvm_write_cache_)),
           //range_list_(nvm_write_cache_->GetRangeList()),
-          last_chunk(nullptr) {
+          last_chunk(nullptr),
+          write_manifest_(write_manifest){
 
 }
 
@@ -129,8 +135,13 @@ Status FixedRangeBasedFlushJob::Run() {
 
     if (!s.ok()) {
         cfd_->imm()->RollbackMemtableFlush(mems_, 0);
-    } else {
-        // record this flush to manifest or not?
+    } else if (write_manifest_) {
+        TEST_SYNC_POINT("FlushJob::InstallResults");
+        // Replace immutable memtable with the generated Table
+        s = cfd_->imm()->TryInstallMemtableFlushResults(
+                cfd_, mutable_cf_options_, mems_, nullptr, versions_, db_mutex_,
+                0, &job_context_->memtables_to_free, nullptr,
+                log_buffer_);
     }
 
     return s;

@@ -20,6 +20,8 @@ class ColumnFamilyData;
 
 class MemTable;
 
+class VersionSet;
+
 struct NVMCacheOptions;
 struct FixedRangeChunkBasedCacheStats;
 
@@ -45,6 +47,8 @@ public:
     explicit FixedRangeBasedFlushJob(
             const std::string &dbname,
             const ImmutableDBOptions &db_options,
+            const MutableCFOptions &mutable_cf_options,
+            VersionSet* versions,
             JobContext *job_context,
             EventLogger *event_logger,
             ColumnFamilyData *cfd,
@@ -55,7 +59,8 @@ public:
             std::atomic<bool> *shutting_down,
             LogBuffer *log_buffer,
             Statistics* stats,
-            NVMCacheOptions *nvm_cache_options);
+            NVMCacheOptions *nvm_cache_options,
+            bool write_manifest);
 
     ~FixedRangeBasedFlushJob() override;
 
@@ -81,6 +86,8 @@ private:
 
     const std::string &dbname_;
     const ImmutableDBOptions &db_options_;
+    const MutableCFOptions &mutable_cf_options_;
+    VersionSet* versions_;
     JobContext *job_context_;
     EventLogger *event_logger_;
     ColumnFamilyData *cfd_;
@@ -106,6 +113,8 @@ private:
     std::string last_prefix;
 
     BuildingChunk *last_chunk;
+
+    const bool write_manifest_;
 
 
 };
