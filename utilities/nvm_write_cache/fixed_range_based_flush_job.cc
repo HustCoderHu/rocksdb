@@ -314,7 +314,7 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
         s = c_iter.status();
         if (s.ok()) {
             // check is the prefix existing in nvm cache or create it
-            DBG_PRINT("total prefix num[%lu]", pending_output_chunk.size());
+            //DBG_PRINT("total prefix num[%lu]", pending_output_chunk.size());
             for(auto pendding_chunk:pending_output_chunk){
                 nvm_write_cache_->RangeExistsOrCreat(pendding_chunk.first);
             }

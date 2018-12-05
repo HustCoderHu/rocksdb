@@ -180,17 +180,18 @@ Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
     dst += bloom_data.size() + sizeof(uint64_t) * 2;
     // append data
     memcpy(dst, chunk_data.data(), chunk_data.size()); //+chunk data size
-    /*{
-    	DBG_PRINT("write bloom size [%lu]", bloom_data.size());
-		DBG_PRINT("write chunk size [%lu]", chunk_data.size());
+    {
+    	//DBG_PRINT("write bloom size [%lu]", bloom_data.size());
+		//DBG_PRINT("write chunk size [%lu]", chunk_data.size());
         //debug
-        char* debug = raw_ + raw_cur;
-        uint64_t chunk_size, bloom_size;
-        bloom_size = DecodeFixed64(debug);
-        chunk_size = DecodeFixed64(debug + 8 + bloom_size);
-        DBG_PRINT("read bloom size [%lu]", bloom_size);
-        DBG_PRINT("read chunk size [%lu]", chunk_size);
-    }*/
+        char* debug = raw_ + chunk_blk_len;
+        uint64_t kv_item_num;
+        kv_item_num = DecodeFixed64(debug - 8);
+        DBG_PRINT("appended chunk include items[%lu]", kv_item_num);
+        //chunk_size = DecodeFixed64(debug + 8 + bloom_size);
+        //("read bloom size [%lu]", bloom_size);
+        //DBG_PRINT("read chunk size [%lu]", chunk_size);
+    }
 
     // update cur and seq
     // transaction
