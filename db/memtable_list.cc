@@ -664,7 +664,7 @@ Status MemTableList::TryInstallMemtableFlushResults(
           ROCKS_LOG_BUFFER(log_buffer, "[%s] Level-0 commit table #%" PRIu64
                                        ": memtable #%" PRIu64 " done",
                            cfd->GetName().c_str(), m->file_number_, mem_id);
-          assert(m->file_number_ >= 0);
+          //assert(m->file_number_ >= 0);
           current_->Remove(m, to_delete);
           ++mem_id;
         }
