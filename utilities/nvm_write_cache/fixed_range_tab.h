@@ -149,11 +149,15 @@ public:
     }
 
     void lock(){
+        DBG_PRINT("tab lock");
         tab_lock_.Lock();
+        DBG_PRINT("in tab lock");
     }
 
     void unlock(){
+        DBG_PRINT("before tab unlock");
         tab_lock_.Unlock();
+        DBG_PRINT("tab unlock");
     }
 
 //#ifdef TAB_DEBUG
