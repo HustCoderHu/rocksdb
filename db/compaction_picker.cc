@@ -1256,6 +1256,7 @@ namespace rocksdb {
                 start_level_ = 0;
                 output_level_ = vstorage_->base_level();
                 compaction_reason_ = CompactionReason::kNVMCacheRangeFull;
+                DBG_PRINT("Need Compaction");
                 return;
             }
             for (int i = 0; i < compaction_picker_->NumberLevels() - 1; i++) {
@@ -1369,6 +1370,7 @@ namespace rocksdb {
             // spans of files that do not interact with any pending compactions, so don't
             // need to consider other levels.
             if(start_level_ != 0){
+                DBG_PRINT("Set origin compaction file[%d]", start_level_);
                 output_level_inputs_.level = output_level_;
                 if (!compaction_picker_->SetupOtherInputs(
                         cf_name_, mutable_cf_options_, vstorage_, &start_level_inputs_,
