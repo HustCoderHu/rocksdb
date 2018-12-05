@@ -145,6 +145,7 @@ private:
         unordered_map<string, FixedRangeTab*> prefix2range;
         std::queue<CompactionItem> range_queue_;
         InstrumentedMutex queue_lock_;
+        int lock_count;
 
 
         explicit VolatileInfo(const FixedRangeBasedOptions *ioptions)
