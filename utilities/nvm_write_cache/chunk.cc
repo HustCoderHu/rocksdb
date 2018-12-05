@@ -100,6 +100,7 @@ std::string *BuildingChunk::Finish(string& bloom_data, rocksdb::Slice &cur_start
     // get key range
     cur_start = keys_[0];
     cur_end = keys_[keys_.size() - 1];
+    DBG_PRINT("Get Kv Item num[%lu]", DecodeFixed64(chunk_data->c_str() - 8));
     //delete chunk_bloom_data;
     return chunk_data;
 }
