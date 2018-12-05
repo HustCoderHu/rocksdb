@@ -2388,6 +2388,7 @@ namespace rocksdb {
             // cfd is referenced here
             // 从compaction_queue_中获取一个cfd
             auto cfd = PopFirstFromCompactionQueue();
+            DBG_PRINT("pop cfd from compaction queue");
             // We unreference here because the following code will take a Ref() on
             // this cfd if it is going to use it (Compaction class holds a
             // reference).
@@ -2417,6 +2418,7 @@ namespace rocksdb {
                 TEST_SYNC_POINT("DBImpl::BackgroundCompaction():BeforePickCompaction");
                 // PickCompaction
                 c.reset(cfd->PickCompaction(*mutable_cf_options, log_buffer));
+                DBG_PRINT("[%s]", c->compaction_range() != nullptr ? "get a range" : "didn't get a range");
                 TEST_SYNC_POINT("DBImpl::BackgroundCompaction():AfterPickCompaction");
 
                 if (c != nullptr) {
@@ -2593,6 +2595,7 @@ namespace rocksdb {
             // such that compactions unlikely to contribute to write stalls can be
             // delayed or deprioritized.
             TEST_SYNC_POINT("DBImpl::BackgroundCompaction:ForwardToBottomPriPool");
+            DBG_PRINT("do Compaction");
             CompactionArg *ca = new CompactionArg;
             ca->db = this;
             ca->prepicked_compaction = new PrepickedCompaction;
@@ -2626,16 +2629,19 @@ namespace rocksdb {
                     c->mutable_cf_options()->report_bg_io_stats, dbname_,
                     &compaction_job_stats);
             compaction_job.Prepare();
+            DBG_PRINT("after compaction prepare");
 
             NotifyOnCompactionBegin(c->column_family_data(), c.get(), status,
                                     compaction_job_stats, job_context->job_id);
 
             mutex_.Unlock();
             compaction_job.Run();
+            DBG_PRINT("after compaction run");
             TEST_SYNC_POINT("DBImpl::BackgroundCompaction:NonTrivial:AfterRun");
             mutex_.Lock();
 
             status = compaction_job.Install(*c->mutable_cf_options());
+            DBG_PRINT("after compaction install");
             if (status.ok()) {
                 InstallSuperVersionAndScheduleWork(
                         c->column_family_data(), &job_context->superversion_contexts[0],
@@ -2650,6 +2656,7 @@ namespace rocksdb {
                 c->compaction_range()->CleanUp();
                 c->compaction_range()->SetCompactionWorking(false);
                 c->compaction_range()->SetCompactionPendding(false);
+                DBG_PRINT("clean up range");
             }
             c->ReleaseCompactionFiles(status);
             *made_progress = true;
