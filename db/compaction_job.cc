@@ -583,6 +583,7 @@ Status CompactionJob::Run() {
     LogCompaction();
 
     const size_t num_threads = compact_->sub_compact_states.size();
+    DBG_PRINT("num threads[%lu]", num_threads);
     assert(num_threads > 0);
     const uint64_t start_micros = env_->NowMicros();
 

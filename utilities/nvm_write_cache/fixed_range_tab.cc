@@ -95,7 +95,7 @@ InternalIterator *FixedRangeTab::NewInternalIterator(
             pchk.reset(blklist.at(i).bloom_bytes_, blklist.at(i).chunkLen_, pbuf + blklist.at(i).getDatOffset());
             //merge_iter_builder.AddIterator(pchk.NewIterator(arena));
             list[num++] = pchk.NewIterator(arena);
-            printf("get chunk iter");
+            //printf("get chunk iter");
         }
         printf("get all iter");
         //return NewMergingIterator(icmp, list, num, arena, false);
