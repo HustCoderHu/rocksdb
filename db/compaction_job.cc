@@ -1446,7 +1446,7 @@ Status CompactionJob::InstallCompactionResults(
 
     for (const auto &sub_compact : compact_->sub_compact_states) {
         for (const auto &out : sub_compact.outputs) {
-            DBG_PRINT("Generate File [%lu] size [%lu]", out.meta.fd.packed_number_and_path_id, out.meta.compensated_file_size);
+            DBG_PRINT("Generate File [%lu] size [%lu]", out.meta.fd.packed_number_and_path_id, out.meta.fd.file_size);
             compaction->edit()->AddFile(compaction->output_level(), out.meta);
         }
     }
