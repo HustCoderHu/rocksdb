@@ -170,8 +170,9 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
             vinfo_->range_queue_.push(std::move(pendding_range));
         }
     }
-    vinfo_->queue_lock_.Unlock();
     vinfo_->lock_count--;
+    vinfo_->queue_lock_.Unlock();
+
     //DBG_PRINT("end compaction check and unlock[%d]", vinfo_->lock_count);
 }
 
