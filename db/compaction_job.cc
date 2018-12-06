@@ -577,6 +577,7 @@ Status CompactionJob::Run() {
     AutoThreadOperationStageUpdater stage_updater(
             ThreadStatus::STAGE_COMPACTION_RUN);
     TEST_SYNC_POINT("CompactionJob::Run():Start");
+    DBG_PRINT("CompactionJob Run");
     log_buffer_->FlushBufferToLog();
     LogCompaction();
 
@@ -595,6 +596,7 @@ Status CompactionJob::Run() {
     // Always schedule the first subcompaction (whether or not there are also
     // others) in the current thread to be efficient with resources
     ProcessKeyValueCompaction(&compact_->sub_compact_states[0]);
+    DBG_PRINT("After Process KV Compaction");
 
     // Wait for all other threads (if there are any) to finish execution
     for (auto &thread : thread_pool) {
@@ -701,6 +703,7 @@ Status CompactionJob::Run() {
     TEST_SYNC_POINT("CompactionJob::Run():End");
 
     compact_->status = status;
+    DBG_PRINT("CompactionJob::Run():End");
     return status;
 }
 
