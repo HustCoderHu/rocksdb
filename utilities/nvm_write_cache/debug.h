@@ -12,7 +12,7 @@ namespace rocksdb{
 #ifdef NVM_DEBUG
 
 #define DBG_PRINT(format, a...) \
-    std::cout<<std::this_thread::get_id() \
+    std::cout<<std::this_thread::get_id(); \
     printf(" DEBUG:%4d %-40s : " format "\n", __LINE__, __FUNCTION__,  ##a)
 
 #define DBG_TRACE() \
