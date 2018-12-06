@@ -134,6 +134,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
 
         if(range.second->IsExtraBufExists()){
             // 对于已有extra buffer的range直接加入
+            DBG_PRINT("range has Extra buf");
             pendding_compact.emplace_back(range.second);
             continue;
         }
