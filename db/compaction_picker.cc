@@ -1490,6 +1490,8 @@ Compaction *LevelCompactionBuilder::PickCompaction() {
     if (!SetupOtherInputsIfNeeded()) {
         return nullptr;
     }
+    DBG_PRINT("start_level_input size[%lu], level[%d]", start_level_inputs_.size(), start_level_inputs_.level);
+    DBG_PRINT("output_level_input size[%lu], level[%d]", output_level_inputs_.size(), output_level_inputs_.level);
 
     // Form a compaction object containing the files we picked.
     Compaction *c = GetCompaction();
