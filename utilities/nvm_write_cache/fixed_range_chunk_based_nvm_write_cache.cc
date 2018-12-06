@@ -83,7 +83,7 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
     assert(tab_found != vinfo_->prefix2range.end());
     now_range = tab_found->second;
 
-    //DBG_PRINT("before append");
+    DBG_PRINT("Append to Range[%s]", meta.prefix.c_str());
     now_range->lock();
     //DBG_PRINT("start append");
     if (now_range->IsCompactWorking() && !now_range->IsExtraBufExists()) {
