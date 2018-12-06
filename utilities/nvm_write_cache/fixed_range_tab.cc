@@ -79,6 +79,7 @@ FixedRangeTab::FixedRangeTab(pool_base &pop, const rocksdb::FixedRangeBasedOptio
 
 InternalIterator *FixedRangeTab::NewInternalIterator(
         const InternalKeyComparator *icmp, Arena *arena, bool for_comapction) {
+    DBG_PRINT("In NewIterator");
     //InternalIterator *internal_iter;
     //MergeIteratorBuilder merge_iter_builder(icmp, arena);
     char* pbuf = nonVolatileTab_->buf.get() + 2 * sizeof(uint64_t);
@@ -105,6 +106,7 @@ InternalIterator *FixedRangeTab::NewInternalIterator(
     }
     InternalIterator* result = NewMergingIterator(icmp, list, num, arena, false);
     delete[] list;
+    DBG_PRINT("End Newiterator");
     return result;
     // TODO
     // 预设 range 持久化
