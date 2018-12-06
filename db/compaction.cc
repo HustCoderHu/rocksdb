@@ -270,6 +270,7 @@ Compaction::Compaction(VersionStorageInfo *vstorage,
         }
     }
     if(start_level_ == 0){
+        //TODO ÅÐ¶ÏÊÇ·ñÎª¿Õ
         smallest_user_key_ = pendding_range_->RangeUsage().start()->user_key();
         largest_user_key_ = pendding_range_->RangeUsage().end()->user_key();
     }else{
@@ -309,7 +310,8 @@ bool Compaction::IsTrivialMove() const {
     // filter to be applied to that level, and thus cannot be a trivial move.
 
     // Check if start level have files with overlapping ranges
-    if (start_level_ == 0 && input_vstorage_->level0_non_overlapping() == false) {
+    return false;
+    /*if (start_level_ == 0 && input_vstorage_->level0_non_overlapping() == false) {
         // We cannot move files from L0 to L1 if the files are overlapping
         return false;
     }
@@ -351,7 +353,7 @@ bool Compaction::IsTrivialMove() const {
         }
     }
 
-    return true;
+    return true;*/
 }
 
 void Compaction::AddInputDeletions(VersionEdit *out_edit) {
