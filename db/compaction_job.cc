@@ -816,7 +816,7 @@ void CompactionJob::ProcessKeyValueCompaction(SubcompactionState *sub_compact) {
             new RangeDelAggregator(cfd->internal_comparator(), existing_snapshots_));
     std::unique_ptr<InternalIterator> input = nullptr;
     if (compact_->compaction->start_level() == 0) {
-        DBG_PRINT("before get range iter")
+        DBG_PRINT("before get range iter");
         input.reset(versions_->MakeKeyRangeBasedInputIterator(
                 sub_compact->compaction, range_del_agg.get(), env_optiosn_for_read_));
         DBG_PRINT("get range iter");
