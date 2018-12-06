@@ -443,7 +443,7 @@ uint64_t Compaction::CalculateTotalInputSize() const {
     if(pendding_range_ != nullptr){
         from_nvm_cache = pendding_range_->RangeUsage().range_size;
         size += from_nvm_cache;
-        DBG_PRINT("Input from range[]MB", from_nvm_cache / 1048576.0);
+        DBG_PRINT("Input from range[%f]MB", from_nvm_cache / 1048576.0);
     }
     for (auto &input_level : inputs_) {
         for (auto f : input_level.files) {
