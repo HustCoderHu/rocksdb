@@ -813,7 +813,7 @@ Status CompactionJob::Install(const MutableCFOptions &mutable_cf_options) {
 }
 
 void CompactionJob::ProcessKeyValueCompaction(SubcompactionState *sub_compact) {
-    DBG_PRINT("In Process");
+    DBG_PRINT("In Process [%d]", getpid());
     assert(sub_compact != nullptr);
     ColumnFamilyData *cfd = sub_compact->compaction->column_family_data();
     std::unique_ptr<RangeDelAggregator> range_del_agg(
