@@ -1228,7 +1228,7 @@ public:
 
     const MutableCFOptions &mutable_cf_options_;
     const ImmutableCFOptions &ioptions_;
-    FixedRangeTab *pendding_compaction_;
+    FixedRangeTab *pendding_compaction_ = nullptr;
 
     // Pick a path ID to place a newly generated file, with its level
     static uint32_t GetPathId(const ImmutableCFOptions &ioptions,
@@ -1407,6 +1407,7 @@ bool LevelCompactionBuilder::SetupOtherInputsIfNeeded() {
             return false;
         }
         compaction_inputs_.push_back(start_level_inputs_);
+        assert(pendding_compaction_ == nullptr);
     } else {
         DBG_PRINT("Set range compaction file");
         auto nvm_write_cache = dynamic_cast<FixedRangeChunkBasedNVMWriteCache *>(
