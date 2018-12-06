@@ -2639,7 +2639,7 @@ namespace rocksdb {
                                     compaction_job_stats, job_context->job_id);
 
             mutex_.Unlock();
-            DBG_PRINT("Compaction run [%d]");
+            DBG_PRINT("Compaction run");
             compaction_job.Run();
             DBG_PRINT("after compaction run");
             TEST_SYNC_POINT("DBImpl::BackgroundCompaction:NonTrivial:AfterRun");
