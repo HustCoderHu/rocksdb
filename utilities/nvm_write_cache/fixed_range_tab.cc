@@ -323,7 +323,7 @@ void FixedRangeTab::CleanUp() {
 
     NvRangeTab *raw_tab = nonVolatileTab_.get();
     if (raw_tab->extra_buf != nullptr) {
-        DBG_PRINT("clean up and extra buf not null");
+        DBG_PRINT("clean up [%s] and extra buf not null", string(raw_tab->prefix_.get(), raw_tab->prefixLen).c_str());
         persistent_ptr<NvRangeTab> obsolete_tab = nonVolatileTab_;
         NvRangeTab *vtab = obsolete_tab.get();
         nonVolatileTab_ = nonVolatileTab_->extra_buf;
@@ -334,6 +334,7 @@ void FixedRangeTab::CleanUp() {
             delete_persistent<NvRangeTab>(obsolete_tab);
         });
     } else {
+        DBG_PRINT("clean up [%s]", string(raw_tab->prefix_.get(), raw_tab->prefixLen).c_str());
         transaction::run(pop_, [&] {
             raw_tab->chunk_num_ = 0;
             raw_tab->dataLen = 0;
@@ -458,6 +459,7 @@ void FixedRangeTab::ConsistencyCheck() {
 
 void FixedRangeTab::SetExtraBuf(persistent_ptr<rocksdb::NvRangeTab> extra_buf) {
     NvRangeTab *vtab = nonVolatileTab_.get();
+    DBG_PRINT("set extra buf for[%s]", string(vtab->prefix_.get(), vtab->prefixLen).c_str());
     vtab->extra_buf = extra_buf;
     extra_buf->seq_num_ = vtab->seq_num_;
     raw_ = extra_buf->buf.get();
