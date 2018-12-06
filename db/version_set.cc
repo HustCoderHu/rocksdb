@@ -4324,6 +4324,7 @@ InternalIterator* VersionSet::MakeInputIterator(
         size_t num = 0;
         FixedRangeTab* pendding_range = c->compaction_range();
         list[num++] = pendding_range->NewInternalIterator(&cfd->ioptions()->internal_comparator, nullptr, true);
+        DBG_PRINT("after new range iter, space[%lu]", space);
         for (size_t which = 1; which < space; which++) {
             DBG_PRINT("Get L-[%lu] iter", which);
             list[num++] = new LevelIterator(
@@ -4340,6 +4341,7 @@ InternalIterator* VersionSet::MakeInputIterator(
                 NewMergingIterator(&c->column_family_data()->internal_comparator(), list,
                                    static_cast<int>(num));
         delete[] list;
+        DBG_PRINT("after new iter, space[%lu]", space);
         return result;
     }
 
