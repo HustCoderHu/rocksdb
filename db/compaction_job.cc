@@ -356,6 +356,7 @@ CompactionJob::CompactionJob(
 }
 
 CompactionJob::~CompactionJob() {
+    DBG_PRINT("In Deconstructor CompactionJob");
     assert(compact_ == nullptr);
     ThreadStatusUtil::ResetThreadStatus();
 }
