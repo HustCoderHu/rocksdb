@@ -219,9 +219,9 @@ Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
     // update version
     // transaction
     if (nonVolatileTab_->extra_buf != nullptr) {
-        nonVolatileTab_->extra_buf->seq_num_ = nonVolatileTab_->seq_num_ + 1;
-        nonVolatileTab_->extra_buf->chunk_num_ = nonVolatileTab_->chunk_num_ + 1;
-        nonVolatileTab_->extra_buf->dataLen = nonVolatileTab_->dataLen + chunk_blk_len;
+        nonVolatileTab_->extra_buf->seq_num_ = nonVolatileTab_->extra_buf->seq_num_ + 1;
+        nonVolatileTab_->extra_buf->chunk_num_ = nonVolatileTab_->extra_buf->chunk_num_ + 1;
+        nonVolatileTab_->extra_buf->dataLen = nonVolatileTab_->extra_buf->dataLen + chunk_blk_len;
     } else {
         nonVolatileTab_->seq_num_ = nonVolatileTab_->seq_num_ + 1;
         nonVolatileTab_->chunk_num_ = nonVolatileTab_->chunk_num_ + 1;

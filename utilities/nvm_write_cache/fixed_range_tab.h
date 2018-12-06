@@ -162,6 +162,10 @@ public:
         //DBG_PRINT("tab unlock[%d]", lock_count);
     }
 
+    string prefix(){
+        return string(nonVolatileTab_->prefix_.get(), nonVolatileTab_->prefixLen);
+    }
+
 //#ifdef TAB_DEBUG
     // 输出range信息
     void GetProperties();
