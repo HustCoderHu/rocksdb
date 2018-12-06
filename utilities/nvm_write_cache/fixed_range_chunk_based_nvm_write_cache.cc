@@ -122,26 +122,32 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
     std::vector<CompactionItem> pendding_compact;
     for (auto range : vinfo_->prefix2range) {
 
-        /*{
+        {
             Usage range_usage = range.second->RangeUsage();
-            DBG_PRINT("range size[%f]MB threshold [%f]MB", range_usage.range_size / 1048576.0, (range.second->max_range_size() / 1048576.0) * 0.8);
-        }*/
+            DBG_PRINT("range[%s] size[%f]MB threshold [%f]MB",range.first.c_str(), range_usage.range_size / 1048576.0, (range.second->max_range_size() / 1048576.0) * 0.8);
+        }
         Usage range_usage = range.second->RangeUsage();
         if (range.second->IsCompactPendding() || range.second->IsCompactWorking()) {
             // this range has already in compaction queue
-
-            DBG_PRINT("pendding or compaction range[%s] size[%f]MB threshold [%f]MB",range.first.c_str(), range_usage.range_size / 1048576.0, (range.second->max_range_size() / 1048576.0) * 0.8);
+            if(range.second->IsCompactPendding()){
+                DBG_PRINT("Already in queue");
+            }else{
+                DBG_PRINT("Compaction Working");
+            }
+            //DBG_PRINT("pendding or compaction range[%s] size[%f]MB threshold [%f]MB",range.first.c_str(), range_usage.range_size / 1048576.0, (range.second->max_range_size() / 1048576.0) * 0.8);
             continue;
         }
-        if(range.second->IsExtraBufExists()){
+        if(range.second->IsExtraBufExists() && !range.second->IsCompactWorking()){
             // 对于已有extra buffer的range直接加入
-            DBG_PRINT("has extra buf range size[%f]MB threshold [%f]MB", range_usage.range_size / 1048576.0, (range.second->max_range_size() / 1048576.0) * 0.8);
+            //DBG_PRINT("has extra buf range size[%f]MB threshold [%f]MB", range_usage.range_size / 1048576.0, (range.second->max_range_size() / 1048576.0) * 0.8);
+            DBG_PRINT("Has Extra Buffer");
             pendding_compact.emplace_back(range.second);
             continue;
         }
 
         if (range_usage.range_size >= range.second->max_range_size() * 0.8) {
-            DBG_PRINT("general range[%s] size[%f]MB threshold [%f]MB add to queue",range.first.c_str(), range_usage.range_size / 1048576.0, (range.second->max_range_size() / 1048576.0) * 0.8);
+            DBG_PRINT("Oversize and not in queue");
+            //DBG_PRINT("general range[%s] size[%f]MB threshold [%f]MB add to queue",range.first.c_str(), range_usage.range_size / 1048576.0, (range.second->max_range_size() / 1048576.0) * 0.8);
             pendding_compact.emplace_back(range.second);
         }
     }
