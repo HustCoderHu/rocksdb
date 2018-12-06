@@ -323,13 +323,13 @@ void FixedRangeTab::CleanUp() {
 
     NvRangeTab *raw_tab = nonVolatileTab_.get();
     if (raw_tab->extra_buf != nullptr) {
+        DBG_PRINT("clean up and extra buf not null");
         persistent_ptr<NvRangeTab> obsolete_tab = nonVolatileTab_;
         NvRangeTab *vtab = obsolete_tab.get();
         nonVolatileTab_ = nonVolatileTab_->extra_buf;
 		nonVolatileTab_->extra_buf = nullptr;		// Clear it!
         transaction::run(pop_, [&] {
             delete_persistent<char[]>(vtab->prefix_, vtab->prefixLen);
-            //delete_persistent<char[]>(vtab->key_range_, vtab->rangebufLen);
             delete_persistent<char[]>(vtab->buf, vtab->bufSize);
             delete_persistent<NvRangeTab>(obsolete_tab);
         });
