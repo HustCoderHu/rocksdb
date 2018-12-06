@@ -1282,6 +1282,7 @@ void LevelCompactionBuilder::SetupInitialFiles() {
         ioptions_.nvm_cache_options->nvm_write_cache_->NeedCompaction()) {
         // TODO：权衡一下最优先compact NVMcache还是其他的level
         start_level_ = 0;
+        start_level_inputs_.level = 0;
         output_level_ = vstorage_->base_level();
         compaction_reason_ = CompactionReason::kNVMCacheRangeFull;
         DBG_PRINT("Need Compaction");
@@ -1502,6 +1503,7 @@ Compaction *LevelCompactionBuilder::PickCompaction() {
 }
 
 Compaction *LevelCompactionBuilder::GetCompaction() {
+    DBG_PRINT("input size[%lu]", compaction_inputs_.size());
     auto c = new Compaction(
             vstorage_, ioptions_, mutable_cf_options_, std::move(compaction_inputs_),
             output_level_,
