@@ -99,7 +99,7 @@ public:
     // 返回当前RangeMemtable中所有chunk的有序序列
     // 基于MergeIterator
     // 参考 DBImpl::NewInternalIterator
-    InternalIterator *NewInternalIterator(const InternalKeyComparator *icmp, Arena *arena);
+    InternalIterator *NewInternalIterator(const InternalKeyComparator *icmp, Arena *arena, bool for_compaction = false);
 
     Status Get(const InternalKeyComparator &internal_comparator, const LookupKey &lkey,
                std::string *value);
