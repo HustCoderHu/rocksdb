@@ -357,7 +357,7 @@ CompactionJob::CompactionJob(
 }
 
 CompactionJob::~CompactionJob() {
-    DBG_PRINT("[%d] In Deconstructor CompactionJob", getpid());
+    DBG_PRINT("In Deconstructor CompactionJob");
     assert(compact_ == nullptr);
     ThreadStatusUtil::ResetThreadStatus();
 }
@@ -813,7 +813,7 @@ Status CompactionJob::Install(const MutableCFOptions &mutable_cf_options) {
 }
 
 void CompactionJob::ProcessKeyValueCompaction(SubcompactionState *sub_compact) {
-    DBG_PRINT("In Process [%d]", getpid());
+    DBG_PRINT("In Process");
     assert(sub_compact != nullptr);
     ColumnFamilyData *cfd = sub_compact->compaction->column_family_data();
     std::unique_ptr<RangeDelAggregator> range_del_agg(
