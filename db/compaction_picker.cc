@@ -1506,6 +1506,7 @@ Compaction *LevelCompactionBuilder::PickCompaction() {
 
 Compaction *LevelCompactionBuilder::GetCompaction() {
     DBG_PRINT("input size[%lu]", compaction_inputs_.size());
+    DBG_PRINT("output level input num[%lu]", output_level_inputs_.size());
     auto c = new Compaction(
             vstorage_, ioptions_, mutable_cf_options_, std::move(compaction_inputs_),
             output_level_,
