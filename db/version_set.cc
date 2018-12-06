@@ -4319,6 +4319,7 @@ InternalIterator* VersionSet::MakeInputIterator(
         read_options.total_order_seek = true;
         // TODO
         const size_t space = c->num_input_levels();		// 若level-1没重叠的sst文件，则为1；否则为2
+        DBG_PRINT("before new range iter, space[%lu]", space);
         InternalIterator** list = new InternalIterator* [space];
         size_t num = 0;
         FixedRangeTab* pendding_range = c->compaction_range();
