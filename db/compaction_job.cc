@@ -915,6 +915,7 @@ void CompactionJob::ProcessKeyValueCompaction(SubcompactionState *sub_compact) {
             range_del_agg.get(), sub_compact->compaction, compaction_filter,
             shutting_down_, preserve_deletes_seqnum_));
     auto c_iter = sub_compact->c_iter.get();
+    DBG_PRINT("get compaction iter");
     c_iter->SeekToFirst();
     if (c_iter->Valid() && sub_compact->compaction->output_level() != 0) {
         // ShouldStopBefore() maintains state based on keys processed so far. The
@@ -1069,6 +1070,7 @@ void CompactionJob::ProcessKeyValueCompaction(SubcompactionState *sub_compact) {
             }
         }
     }
+    DBG_PRINT("after iter");
 
     sub_compact->num_input_records = c_iter_stats.num_input_records;
     sub_compact->compaction_job_stats.num_input_deletion_records =
