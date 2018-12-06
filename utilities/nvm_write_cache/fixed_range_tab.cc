@@ -87,6 +87,7 @@ InternalIterator *FixedRangeTab::NewInternalIterator(
     PersistentChunk pchk;
     InternalIterator ** list;
     DBG_PRINT("In middle NewIterator");
+    DBG_PRINT("for compaction [%d]", for_comapction);
     if(for_comapction){
         printf("get iter for compaction");
         list = new InternalIterator*[pendding_clean_];
