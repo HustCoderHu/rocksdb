@@ -61,6 +61,7 @@
 #include "util/stop_watch.h"
 #include "util/string_util.h"
 #include "util/sync_point.h"
+#include "utilities/nvm_write_cache/fixed_range_tab.h"
 
 namespace rocksdb {
 
@@ -407,9 +408,13 @@ void CompactionJob::Prepare() {
   // Generate file_levels_ for compaction berfore making Iterator
   auto* c = compact_->compaction;
   assert(c->column_family_data() != nullptr);
-  assert(c->column_family_data()->current()->storage_info()->NumLevelFiles(
-             compact_->compaction->level()) > 0);
-
+  if(c->start_level() == 0){
+      // Add by Glitter
+    assert(c->compaction_range()->RangeUsage().range_size > 0);
+  }else{
+    assert(c->column_family_data()->current()->storage_info()->NumLevelFiles(
+            compact_->compaction->level()) > 0);
+  }
   write_hint_ =
       c->column_family_data()->CalculateSSTWriteHint(c->output_level());
   // Is this compaction producing files at the bottommost level?
