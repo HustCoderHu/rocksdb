@@ -13,7 +13,7 @@ namespace rocksdb{
 
 #define DBG_PRINT(format, a...) \
     std::cout<<std::this_thread::get_id() \
-    printf("DEBUG:%4d %-40s : " format "\n", __LINE__, __FUNCTION__,  ##a)
+    printf(" DEBUG:%4d %-40s : " format "\n", __LINE__, __FUNCTION__,  ##a)
 
 #define DBG_TRACE() \
     printf("TRACE: %-40s %4d: \n" format, __FUNCTION__, __LINE__)
