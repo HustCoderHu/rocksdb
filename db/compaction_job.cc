@@ -799,6 +799,7 @@ Status CompactionJob::Install(const MutableCFOptions &mutable_cf_options) {
     }
     stream.EndArray();
 
+    DBG_PRINT("in install and cleanup");
     CleanupCompaction();
     return status;
 }
@@ -1564,6 +1565,7 @@ void CompactionJob::CleanupCompaction() {
     }
     delete compact_;
     compact_ = nullptr;
+    DBG_PRINT("clean up compaction and delete compact");
 }
 
 #ifndef ROCKSDB_LITE
