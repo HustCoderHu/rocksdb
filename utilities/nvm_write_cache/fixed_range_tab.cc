@@ -79,23 +79,31 @@ FixedRangeTab::FixedRangeTab(pool_base &pop, const rocksdb::FixedRangeBasedOptio
 
 InternalIterator *FixedRangeTab::NewInternalIterator(
         const InternalKeyComparator *icmp, Arena *arena) {
-    InternalIterator *internal_iter;
-    MergeIteratorBuilder merge_iter_builder(icmp,
-                                            arena);
-
+    //InternalIterator *internal_iter;
+    //MergeIteratorBuilder merge_iter_builder(icmp, arena);
     char* pbuf = nonVolatileTab_->buf.get() + 2 * sizeof(uint64_t);
+    InternalIterator* list[blklist.size()];
+    int num = 0;
+    PersistentChunk pchk;
+    for (ChunkBlk &blk : blklist) {
+        pchk.reset(blk.bloom_bytes_, blk.chunkLen_, pbuf + blk.getDatOffset());
+        //merge_iter_builder.AddIterator(pchk.NewIterator(arena));
+        list[num++] = pchk.NewIterator(arena);
+    }
+    return NewMergingIterator(icmp, list, num, arena, false);
+
     // TODO
     // 预设 range 持久化
     //  char *chunkBlkOffset = data_ + sizeof(stat.used_bits_) + sizeof(stat.start_)
     //      + sizeof(stat.end_);
-    PersistentChunk pchk;
+    /*PersistentChunk pchk;
     for (ChunkBlk &blk : blklist) {
         pchk.reset(blk.bloom_bytes_, blk.chunkLen_, pbuf + blk.getDatOffset());
         merge_iter_builder.AddIterator(pchk.NewIterator(arena));
     }
 
     internal_iter = merge_iter_builder.Finish();
-    return internal_iter;
+    return internal_iter;*/
 }
 
 Status FixedRangeTab::Get(const InternalKeyComparator &internal_comparator,

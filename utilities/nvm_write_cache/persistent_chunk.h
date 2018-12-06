@@ -26,9 +26,14 @@ public:
     PersistentChunk() = default;
 
     InternalIterator *NewIterator(Arena *arena) {
-        assert(arena != nullptr);
-        auto mem = arena->AllocateAligned(sizeof(PersistentChunkIterator));
-        return new(mem) PersistentChunkIterator(chunkData_, chunkSize_, arena);
+        //assert(arena != nullptr);
+        if(arena != nullptr){
+            auto mem = arena->AllocateAligned(sizeof(PersistentChunkIterator));
+            return new(mem) PersistentChunkIterator(chunkData_, chunkSize_, arena);
+        }else{
+            return new PersistentChunkIterator(chunkData_, chunkSize_, nullptr);
+        }
+
     }
 
     void reset(size_t bloomFilterSize, size_t chunkSize,

@@ -809,7 +809,6 @@ void CompactionJob::ProcessKeyValueCompaction(SubcompactionState *sub_compact) {
     std::unique_ptr<RangeDelAggregator> range_del_agg(
             new RangeDelAggregator(cfd->internal_comparator(), existing_snapshots_));
     std::unique_ptr<InternalIterator> input = nullptr;
-    // TODO:此处的判断？是subcompact还是compact
     if (compact_->compaction->start_level() == 0) {
         input.reset(versions_->MakeKeyRangeBasedInputIterator(
                 sub_compact->compaction, range_del_agg.get(), env_optiosn_for_read_));
