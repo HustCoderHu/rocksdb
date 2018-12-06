@@ -84,22 +84,28 @@ InternalIterator *FixedRangeTab::NewInternalIterator(
     char* pbuf = nonVolatileTab_->buf.get() + 2 * sizeof(uint64_t);
     int num = 0;
     PersistentChunk pchk;
+    InternalIterator ** list;
     if(for_comapction){
-        InternalIterator* list[pendding_clean_];
+        printf("get iter for compaction");
+        list = new InternalIterator*[pendding_clean_];
         for (size_t i = 0; i < pendding_clean_; i++) {
             pchk.reset(blklist.at(i).bloom_bytes_, blklist.at(i).chunkLen_, pbuf + blklist.at(i).getDatOffset());
             //merge_iter_builder.AddIterator(pchk.NewIterator(arena));
             list[num++] = pchk.NewIterator(arena);
         }
-        return NewMergingIterator(icmp, list, num, arena, false);
+        printf("get all iter");
+        //return NewMergingIterator(icmp, list, num, arena, false);
     }else{
-        InternalIterator* list[blklist.size()];
+        list = new InternalIterator*[blklist.size()];
         for (ChunkBlk &blk : blklist) {
             pchk.reset(blk.bloom_bytes_, blk.chunkLen_, pbuf + blk.getDatOffset());
             list[num++] = pchk.NewIterator(arena);
         }
-        return NewMergingIterator(icmp, list, num, arena, false);
+        //return NewMergingIterator(icmp, list, num, arena, false);
     }
+    InternalIterator* result = NewMergingIterator(icmp, list, num, arena, false);
+    delete[] list;
+    return result;
     // TODO
     // 预设 range 持久化
     //  char *chunkBlkOffset = data_ + sizeof(stat.used_bits_) + sizeof(stat.start_)
