@@ -595,6 +595,7 @@ Status CompactionJob::Run() {
 
     // Always schedule the first subcompaction (whether or not there are also
     // others) in the current thread to be efficient with resources
+    DBG_PRINT("Before Process KV Compaction");
     ProcessKeyValueCompaction(&compact_->sub_compact_states[0]);
     DBG_PRINT("After Process KV Compaction");
 
@@ -808,6 +809,7 @@ Status CompactionJob::Install(const MutableCFOptions &mutable_cf_options) {
 }
 
 void CompactionJob::ProcessKeyValueCompaction(SubcompactionState *sub_compact) {
+    DBG_PRINT("In Process");
     assert(sub_compact != nullptr);
     ColumnFamilyData *cfd = sub_compact->compaction->column_family_data();
     std::unique_ptr<RangeDelAggregator> range_del_agg(
@@ -816,6 +818,7 @@ void CompactionJob::ProcessKeyValueCompaction(SubcompactionState *sub_compact) {
     if (compact_->compaction->start_level() == 0) {
         input.reset(versions_->MakeKeyRangeBasedInputIterator(
                 sub_compact->compaction, range_del_agg.get(), env_optiosn_for_read_));
+        DBG_PRINT("get range iter");
     } else {
         input.reset(versions_->MakeInputIterator(
                 sub_compact->compaction, range_del_agg.get(), env_optiosn_for_read_));
