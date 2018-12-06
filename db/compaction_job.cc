@@ -591,6 +591,7 @@ Status CompactionJob::Run() {
     std::vector<port::Thread> thread_pool;
     thread_pool.reserve(num_threads - 1);
     for (size_t i = 1; i < compact_->sub_compact_states.size(); i++) {
+        DBG_PRINT("for");
         thread_pool.emplace_back(&CompactionJob::ProcessKeyValueCompaction, this,
                                  &compact_->sub_compact_states[i]);
     }
