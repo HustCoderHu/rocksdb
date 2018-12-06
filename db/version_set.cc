@@ -1671,8 +1671,8 @@ void VersionStorageInfo::ComputeCompactionScore(
 
   // sort all the levels based on their score. Higher scores get listed
   // first. Use bubble sort because the number of entries are small.
-  DBG_PRINT("level [0] score [%f]", compaction_score_[0]);
-  assert(0 == compaction_score_[0]);
+  //DBG_PRINT("level [0] score [%f]", compaction_score_[0]);
+  //assert(0 == compaction_score_[0]);
   for (int i = 0; i < num_levels() - 2; i++) {
     for (int j = i + 1; j < num_levels() - 1; j++) {
       if (compaction_score_[i] < compaction_score_[j]) {
