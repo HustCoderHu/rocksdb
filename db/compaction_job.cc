@@ -23,6 +23,7 @@
 #include <thread>
 #include <utility>
 #include <vector>
+#include "unistd.h"
 
 #include "db/builder.h"
 #include "db/db_impl.h"
@@ -356,7 +357,7 @@ CompactionJob::CompactionJob(
 }
 
 CompactionJob::~CompactionJob() {
-    DBG_PRINT("In Deconstructor CompactionJob");
+    DBG_PRINT("[%d] In Deconstructor CompactionJob", getpid());
     assert(compact_ == nullptr);
     ThreadStatusUtil::ResetThreadStatus();
 }
