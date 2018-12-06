@@ -2418,7 +2418,11 @@ namespace rocksdb {
                 TEST_SYNC_POINT("DBImpl::BackgroundCompaction():BeforePickCompaction");
                 // PickCompaction
                 c.reset(cfd->PickCompaction(*mutable_cf_options, log_buffer));
-                DBG_PRINT("[%s]", c->compaction_range() != nullptr ? "get a range" : "didn't get a range");
+                if(c != nullptr){
+                    DBG_PRINT("[%s]", c->compaction_range() != nullptr ? "get a range" : "didn't get a range");
+                }else{
+                    DBG_PRINT("empty compaction");
+                }
                 TEST_SYNC_POINT("DBImpl::BackgroundCompaction():AfterPickCompaction");
 
                 if (c != nullptr) {
