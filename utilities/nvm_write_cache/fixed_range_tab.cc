@@ -329,7 +329,7 @@ void FixedRangeTab::CleanUp() {
 		nonVolatileTab_->extra_buf = nullptr;		// Clear it!
         transaction::run(pop_, [&] {
             delete_persistent<char[]>(vtab->prefix_, vtab->prefixLen);
-            delete_persistent<char[]>(vtab->key_range_, vtab->rangebufLen);
+            //delete_persistent<char[]>(vtab->key_range_, vtab->rangebufLen);
             delete_persistent<char[]>(vtab->buf, vtab->bufSize);
             delete_persistent<NvRangeTab>(obsolete_tab);
         });
@@ -337,10 +337,13 @@ void FixedRangeTab::CleanUp() {
         transaction::run(pop_, [&] {
             raw_tab->chunk_num_ = 0;
             raw_tab->dataLen = 0;
-            Slice start, end;
-            GetRealRange(start, end);
-            delete_persistent<char[]>(raw_tab->key_range_, start.size() + end.size() + 2 * sizeof(uint64_t));
-            raw_tab->key_range_ = nullptr;
+            //Slice start, end;
+            //GetRealRange(start, end);
+            char* raw_range = raw_tab->key_range_.get();
+            EncodeFixed64(raw_range, 0);
+            EncodeFixed64(raw_range + 8, 0);
+            //delete_persistent<char[]>(raw_tab->key_range_, start.size() + end.size() + 2 * sizeof(uint64_t));
+            //raw_tab->key_range_ = nullptr;
         });
     }
 
