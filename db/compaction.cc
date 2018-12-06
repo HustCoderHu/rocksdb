@@ -244,10 +244,9 @@ Compaction::Compaction(VersionStorageInfo *vstorage,
           is_full_compaction_(IsFullCompaction(vstorage, inputs_)),
           is_manual_compaction_(_manual_compaction),
           is_trivial_move_(false),
-          compaction_reason_(_compaction_reason)/*,
-      pendding_range_(pendding_range)*/{
+          compaction_reason_(_compaction_reason),
+      pendding_range_(pendding_range){
     DBG_PRINT("In  Compaction Constructor");
-    pendding_range_ = pendding_range;
     MarkFilesBeingCompacted(true);
     if (is_manual_compaction_) {
         compaction_reason_ = CompactionReason::kManualCompaction;
@@ -270,8 +269,12 @@ Compaction::Compaction(VersionStorageInfo *vstorage,
                                       &arena_);
         }
     }
-
-    GetBoundaryKeys(vstorage, inputs_, &smallest_user_key_, &largest_user_key_);
+    if(start_level_ == 0){
+        smallest_user_key_ = pendding_range_->RangeUsage().start()->user_key();
+        largest_user_key_ = pendding_range_->RangeUsage().end()->user_key();
+    }else{
+        GetBoundaryKeys(vstorage, inputs_, &smallest_user_key_, &largest_user_key_);
+    }
 }
 
 Compaction::~Compaction() {

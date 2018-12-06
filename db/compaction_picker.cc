@@ -1435,6 +1435,7 @@ bool LevelCompactionBuilder::SetupOtherInputsIfNeeded() {
                                                   &output_level_inputs_, &parent_index_, base_index_)) {
             return false;
         }
+        compaction_inputs_.push_back(start_level_inputs_);
         DBG_PRINT("End set range compaction file");
     }
     if (!output_level_inputs_.empty()) {
