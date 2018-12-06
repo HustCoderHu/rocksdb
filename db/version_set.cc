@@ -4323,6 +4323,7 @@ InternalIterator* VersionSet::MakeInputIterator(
         InternalIterator** list = new InternalIterator* [space];
         size_t num = 0;
         FixedRangeTab* pendding_range = c->compaction_range();
+        DBG_PRINT("get range[%s]", pendding_range->prefix().c_str());
         list[num++] = pendding_range->NewInternalIterator(&cfd->ioptions()->internal_comparator, nullptr, true);
         DBG_PRINT("after new range iter, space[%lu]", space);
         for (size_t which = 1; which < space; which++) {
