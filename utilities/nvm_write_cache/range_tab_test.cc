@@ -193,8 +193,9 @@ TEST_F(RangeTabTest, Append){
         for(auto key : inserted_key_){
             LookupKey lkey(Slice(key), 100);
             string* get_value = new string();
-            Status s = tab->Get(icmp_, lkey, get_value);
-            ASSERT_OK(s);
+            Status s;
+            bool found = tab->Get(icmp_, &s, lkey, get_value);
+            ASSERT_TRUE(found);
         }
 
         tab->GetProperties();
@@ -212,8 +213,9 @@ TEST_F(RangeTabTest, Get){
         key[16] = 0;
         LookupKey lkey(Slice(key, 17), 100);
         get_value = new string();
-        Status s = tab->Get(icmp_, lkey, get_value);
-        ASSERT_OK(s);
+        Status s;
+        bool found = tab->Get(icmp_, &s, lkey, get_value);
+        ASSERT_TRUE(found);
     }
     delete get_value;
     tab->GetProperties();
