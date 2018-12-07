@@ -328,7 +328,8 @@ void FixedRangeTab::Release() {
 
 void FixedRangeTab::CleanUp() {
     // 清除这个range的数据
-    EncodeFixed64(raw_ - 2 * sizeof(uint64_t), 0);//set cur to 0
+    // error
+    // EncodeFixed64(raw_ - 2 * sizeof(uint64_t), 0);//set cur to 0
     // 清除被compact的chunk
     blklist.erase(blklist.begin(), blklist.begin() + pendding_clean_);
     pendding_clean_ = 0;
