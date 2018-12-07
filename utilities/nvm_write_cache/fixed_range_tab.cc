@@ -119,7 +119,8 @@ InternalIterator *FixedRangeTab::NewInternalIterator(
     //      + sizeof(stat.end_);
 }
 
-Status FixedRangeTab::Get(const InternalKeyComparator &internal_comparator,
+bool FixedRangeTab::Get(const InternalKeyComparator &internal_comparator,
+                          Status *s,
                           const LookupKey &lkey, std::string *value) {
     // 1.从下往上遍历所有的chunk
     PersistentChunkIterator *iter = new PersistentChunkIterator();
@@ -140,11 +141,12 @@ Status FixedRangeTab::Get(const InternalKeyComparator &internal_comparator,
             // 3.如果有则读取元数据进行chunk内的查找
             //DBG_PRINT("Key in chunk and search");
             new(iter) PersistentChunkIterator(buf + blk.getDatOffset(), blk.chunkLen_, nullptr);
-            Status s = searchInChunk(iter, internal_comparator, lkey.user_key(), value);
-            if (s.ok()) {
+            Status result = searchInChunk(iter, internal_comparator, lkey.user_key(), value);
+            if (result.ok()) {
                 delete iter;
+                *s = Status::OK();
                 DBG_PRINT("found it!");
-                return s;
+                return true;
             }
         } else {
             continue;
@@ -152,7 +154,7 @@ Status FixedRangeTab::Get(const InternalKeyComparator &internal_comparator,
     } // 4.循环直到查找完所有的chunk
     delete iter;
     DBG_PRINT("Not found");
-    return Status::NotFound("not found");
+    return false;
 }
 
 /* range data format:

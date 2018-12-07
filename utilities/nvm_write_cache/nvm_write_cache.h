@@ -23,7 +23,7 @@ public:
     virtual ~NVMWriteCache() = default;
 
 
-    virtual Status Get(const InternalKeyComparator &internal_comparator, const LookupKey &lkey, std::string *value) = 0;
+    virtual bool Get(const InternalKeyComparator &internal_comparator, Status*s, const LookupKey &lkey, std::string *value) = 0;
 
     virtual InternalIterator *NewIterator(const InternalKeyComparator *icmp, Arena *arena) = 0;
 

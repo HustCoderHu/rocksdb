@@ -98,7 +98,7 @@ public:
 //  Status Insert(const Slice& cached_data, void* insert_mark) override;
 
     // get data from cache
-    Status Get(const InternalKeyComparator &internal_comparator, const LookupKey &lkey, std::string *value) override;
+    bool Get(const InternalKeyComparator &internal_comparator, Status *s, const LookupKey &lkey, std::string *value) override;
 
     void AppendToRange(const InternalKeyComparator &icmp, const string& bloom_data, const Slice &chunk_data,
                        const ChunkMeta &meta);

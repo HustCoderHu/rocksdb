@@ -101,7 +101,7 @@ public:
     // 参考 DBImpl::NewInternalIterator
     InternalIterator *NewInternalIterator(const InternalKeyComparator *icmp, Arena *arena, bool for_compaction = false);
 
-    Status Get(const InternalKeyComparator &internal_comparator, const LookupKey &lkey,
+    bool Get(const InternalKeyComparator &internal_comparator, Status *s, const LookupKey &lkey,
                std::string *value);
 
     persistent_ptr<NvRangeTab> getPersistentData() { return nonVolatileTab_; }
