@@ -79,17 +79,17 @@ FixedRangeTab::FixedRangeTab(pool_base &pop, const rocksdb::FixedRangeBasedOptio
 
 InternalIterator *FixedRangeTab::NewInternalIterator(
         const InternalKeyComparator *icmp, Arena *arena, bool for_comapction) {
-    DBG_PRINT("In NewIterator");
+    //DBG_PRINT("In NewIterator");
     //InternalIterator *internal_iter;
     //MergeIteratorBuilder merge_iter_builder(icmp, arena);
     char* pbuf = nonVolatileTab_->buf.get() + 2 * sizeof(uint64_t);
     int num = 0;
     PersistentChunk pchk;
     InternalIterator ** list;
-    DBG_PRINT("In middle NewIterator, pendding compaction at[%lu] blklist[%lu]", pendding_clean_, blklist.size());
-    DBG_PRINT("for compaction [%d] ", for_comapction);
+    //DBG_PRINT("In middle NewIterator, pendding compaction at[%lu] blklist[%lu]", pendding_clean_, blklist.size());
+    //DBG_PRINT("for compaction [%d] ", for_comapction);
     if(for_comapction){
-        printf("get iter for compaction");
+        //printf("get iter for compaction");
         list = new InternalIterator*[pendding_clean_];
         for (size_t i = 0; i < pendding_clean_; i++) {
             pchk.reset(blklist.at(i).bloom_bytes_, blklist.at(i).chunkLen_, pbuf + blklist.at(i).getDatOffset());
@@ -97,10 +97,10 @@ InternalIterator *FixedRangeTab::NewInternalIterator(
             list[num++] = pchk.NewIterator(arena);
             //printf("get chunk iter");
         }
-        printf("get all iter");
+        //printf("get all iter");
         //return NewMergingIterator(icmp, list, num, arena, false);
     }else{
-        DBG_PRINT("get iter for all blk");
+        //DBG_PRINT("get iter for all blk");
         list = new InternalIterator*[blklist.size()];
         for (ChunkBlk &blk : blklist) {
             pchk.reset(blk.bloom_bytes_, blk.chunkLen_, pbuf + blk.getDatOffset());
@@ -108,10 +108,10 @@ InternalIterator *FixedRangeTab::NewInternalIterator(
         }
         //return NewMergingIterator(icmp, list, num, arena, false);
     }
-    DBG_PRINT("before new merging");
+    //DBG_PRINT("before new merging");
     InternalIterator* result = NewMergingIterator(icmp, list, num, arena, false);
     delete[] list;
-    DBG_PRINT("End Newiterator");
+    //DBG_PRINT("End Newiterator");
     return result;
     // TODO
     // 预设 range 持久化

@@ -83,7 +83,7 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
     assert(tab_found != vinfo_->prefix2range.end());
     now_range = tab_found->second;
 
-    DBG_PRINT("Append to Range[%s]", meta.prefix.c_str());
+    //DBG_PRINT("Append to Range[%s]", meta.prefix.c_str());
     now_range->lock();
     //DBG_PRINT("start append");
     if (now_range->IsCompactWorking() && !now_range->IsExtraBufExists()) {
@@ -124,7 +124,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
 
         {
             Usage range_usage = range.second->RangeUsage();
-            DBG_PRINT("range[%s] size[%f]MB threshold [%f]MB",range.first.c_str(), range_usage.range_size / 1048576.0, (range.second->max_range_size() / 1048576.0) * 0.8);
+            //DBG_PRINT("range[%s] size[%f]MB threshold [%f]MB",range.first.c_str(), range_usage.range_size / 1048576.0, (range.second->max_range_size() / 1048576.0) * 0.8);
         }
         Usage range_usage = range.second->RangeUsage();
         if (range.second->IsCompactPendding() || range.second->IsCompactWorking()) {
