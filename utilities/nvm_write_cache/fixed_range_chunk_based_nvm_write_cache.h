@@ -50,7 +50,7 @@ struct ChunkMeta {
 };
 
 // TODO:是否需要自定义Allocator
-/*class PersistentAllocator {
+class PersistentAllocator {
 public:
     explicit PersistentAllocator(persistent_ptr<char[]> raw_space, uint64_t total_size) {
         raw_ = raw_space;
@@ -60,9 +60,10 @@ public:
 
     ~PersistentAllocator() = default;
 
-    char *Allocate(size_t alloca_size) {
-        char *alloc = &raw_[0] + cur_;
-        cur_ = cur_ + alloca_size;
+    char *Allocate(size_t alloc_size) {
+        assert(Remain() > alloc_size);
+        char *alloc = raw_.get() + cur_;
+        cur_ = cur_ + alloc_size;
         return alloc;
     }
 
@@ -74,13 +75,19 @@ public:
         return total_size_;
     }
 
+    void Reset(){
+        cur_ = 0;
+    }
+
+    persistent_ptr<char[]> raw(){return raw_;}
+
 
 private:
     persistent_ptr<char[]> raw_;
     p<uint64_t> total_size_;
     p<uint64_t> cur_;
 
-};*/
+};
 
 using p_buf = persistent_ptr<char[]>;
 
@@ -134,7 +141,7 @@ private:
         p<uint64_t> allocated_bits_;
         persistent_ptr<pmem_hash_map<NvRangeTab> > range_map_;
         // TODO: allocator分配的空间没法收回
-        //persistent_ptr<PersistentAllocator> allocator_;
+        persistent_ptr<PersistentAllocator> allocator_;
     };
 
     pool<PersistentInfo> pop_;

@@ -13,31 +13,32 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
     vinfo_ = new VolatileInfo(ioptions);
     vinfo_->lock_count = 0;
     if (file_exists(file.c_str()) != 0) {
+        // creat pool
         pop_ = pmem::obj::pool<PersistentInfo>::create(file.c_str(), "FixedRangeChunkBasedNVMWriteCache", pmem_size,
                                                        CREATE_MODE_RW);
-        //justCreated = true;
-
     } else {
+        // open pool
         pop_ = pmem::obj::pool<PersistentInfo>::open(file.c_str(), "FixedRangeChunkBasedNVMWriteCache");
     }
 
     pinfo_ = pop_.root();
-    if (!pinfo_->inited_ || reset) {
+    if (!pinfo_->inited_) {
+        // init cache
         transaction::run(pop_, [&] {
-            // TODO 配置
             pinfo_->range_map_ = make_persistent<pmem_hash_map<NvRangeTab>>(pop_, 0.75, 256);
-            /*pinfo_->range_map_->tabLen = 0;
-             pinfo_->range_map_->tab = make_persistent<p_node_t<NvRangeTab>[]>(pinfo_->range_map_->tabLen);
-             pinfo_->range_map_->loadFactor = 0.75f;
-             pinfo_->range_map_->threshold = pinfo_->range_map_->tabLen * pinfo_->range_map_->loadFactor;
-             pinfo_->range_map_->size = 0;
-
-             persistent_ptr<char[]> data_space = make_persistent<char[]>(pmem_size);
-             pinfo_->allocator_ = make_persistent<PersistentAllocator>(data_space, pmem_size);*/
-
+            persistent_ptr<char[]> buf = make_persistent<char[]>(pmem_size);
+            pinfo_->allocator_ = make_persistent<PersistentAllocator>(buf, pmem_size);
             pinfo_->inited_ = true;
         });
-    } else {
+    }else if(reset){
+        // reset cache
+        transaction::run(pop_, [&] {
+            delete_persistent<pmem_hash_map>(pinfo_->range_map_);
+            pinfo_->range_map_ = make_persistent<pmem_hash_map<NvRangeTab>>(pop_, 0.75, 256);
+        });
+        pinfo_->allocator_->Reset();
+    }else {
+        // rebuild cache
         RebuildFromPersistentNode();
     }
 
@@ -98,8 +99,10 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
 
 persistent_ptr<NvRangeTab> FixedRangeChunkBasedNVMWriteCache::NewContent(const string &prefix, size_t bufSize) {
     persistent_ptr<NvRangeTab> p_content;
+    uint64_t mem_size = vinfo_->internal_options_->range_size_;
+    char* pmem = pinfo_->allocator_->Allocate(mem_size);
     transaction::run(pop_, [&] {
-        p_content = make_persistent<NvRangeTab>(pop_, prefix, bufSize);
+        p_content = make_persistent<NvRangeTab>(pop_, pmem, mem_size, bufSize);
     });
     return p_content;
 }
@@ -198,7 +201,10 @@ void FixedRangeChunkBasedNVMWriteCache::RebuildFromPersistentNode() {
     pmem_hash_map<NvRangeTab> *vhash_map = vpinfo->range_map_.get();
     vector<persistent_ptr<NvRangeTab> > tab_vec;
     vhash_map->getAll(tab_vec);
+    char* raw_space = vpinfo->allocator_->raw().get();
     for (auto content : tab_vec) {
+        NvRangeTab* ptab = content.get();
+        ptab->SetRaw(raw_space + ptab->offset_);
         FixedRangeTab *recovered_tab = new FixedRangeTab(pop_, vinfo_->internal_options_, content);
         string recoverd_prefix(content->prefix_.get(), content->prefixLen);
         vinfo_->prefix2range[recoverd_prefix] = recovered_tab;

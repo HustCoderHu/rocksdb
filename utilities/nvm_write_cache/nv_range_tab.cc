@@ -6,15 +6,17 @@
 
 
 namespace rocksdb{
-NvRangeTab::NvRangeTab(pool_base &pop, const string &prefix, uint64_t range_size) {
+NvRangeTab::NvRangeTab(pool_base &pop, char* raw, uint64_t off, const string &prefix, uint64_t range_size)
+: raw_(raw){
     transaction::run(pop, [&] {
+        offset_ = off;
         prefix_ = make_persistent<char[]>(prefix.size());
         memcpy(prefix_.get(), prefix.c_str(), prefix.size());
 
         rangebufLen = 200;
         key_range_ = make_persistent<char[]>(200);
         extra_buf = nullptr;
-        buf = make_persistent<char[]>(range_size);
+        //buf = make_persistent<char[]>(range_size);
 
         prefixLen = prefix.size();
         chunk_num_ = 0;
