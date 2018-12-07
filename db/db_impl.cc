@@ -1314,7 +1314,7 @@ Status DBImpl::GetImpl(const ReadOptions &read_options,
     }
     if (!done && cfd->ioptions()->nvm_cache_options->nvm_write_cache_ != nullptr &&
         cfd->ioptions()->nvm_cache_options->nvm_write_cache_->Get(
-                cfd->ioptions()->internal_comparator, &s, lkey, pinnable_val->GetSelf()) {
+                cfd->ioptions()->internal_comparator, &s, lkey, pinnable_val->GetSelf())){
         done = true;
         pinnable_val->PinSelf();
     }
