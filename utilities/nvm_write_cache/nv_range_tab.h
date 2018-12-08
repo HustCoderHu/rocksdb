@@ -42,7 +42,7 @@ public:
 
     bool equals(NvRangeTab &b);
     char* raw_;
-    p<uint64_t> offset_;
+    p<int> offset_;
 
     p<uint64_t> hash_;
 

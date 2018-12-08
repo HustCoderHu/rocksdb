@@ -77,7 +77,7 @@ public:
 
 };
 
-
+class PersistentAllocator;
 class FixedRangeTab {
 
 
@@ -142,7 +142,7 @@ public:
     void Release();
 
     // 重置Stat数据以及bloom filter
-    void CleanUp();
+    void CleanUp(PersistentAllocator* allocator);
 
     uint64_t max_range_size() {
         return nonVolatileTab_->bufSize;
@@ -198,7 +198,6 @@ private:
     //p_node pmap_node_;
     pool_base &pop_;
     persistent_ptr<NvRangeTab> nonVolatileTab_;
-
 
     // volatile info
     const FixedRangeBasedOptions *interal_options_;

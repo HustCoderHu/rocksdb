@@ -17,7 +17,9 @@
 #include "libpmemobj++/make_persistent_array.hpp"
 
 #include "fixed_range_tab.h"
+#include "persistent_allocator.h"
 #include "pmem_hash_map.h"
+#include "persistent_bitmap.h"
 #include "common.h"
 
 #include "debug.h"
@@ -31,16 +33,24 @@ using p_range::pmem_hash_map;
 
 namespace rocksdb {
 
+using std::function;
+
+
+
 struct CompactionItem {
     FixedRangeTab *pending_compated_range_;
+    PersistentAllocator* allocator_;
 
     CompactionItem() =default;
 
-    explicit CompactionItem(FixedRangeTab *range)
-            : pending_compated_range_(range) {}
+    explicit CompactionItem(FixedRangeTab *range, PersistentAllocator* allocator)
+            :   pending_compated_range_(range),
+                allocator_(allocator){
+    }
 
     CompactionItem(const CompactionItem &item)
-            : pending_compated_range_(item.pending_compated_range_) {}
+            :   pending_compated_range_(item.pending_compated_range_),
+                allocator_(item.allocator_){}
 };
 
 struct ChunkMeta {
@@ -49,45 +59,7 @@ struct ChunkMeta {
     Slice cur_end;
 };
 
-// TODO:是否需要自定义Allocator
-class PersistentAllocator {
-public:
-    explicit PersistentAllocator(persistent_ptr<char[]> raw_space, uint64_t total_size) {
-        raw_ = raw_space;
-        total_size_ = total_size;
-        cur_ = 0;
-    }
 
-    ~PersistentAllocator() = default;
-
-    char *Allocate(size_t alloc_size) {
-        assert(Remain() > alloc_size);
-        char *alloc = raw_.get() + cur_;
-        cur_ = cur_ + alloc_size;
-        return alloc;
-    }
-
-    uint64_t Remain() {
-        return total_size_ - cur_;
-    }
-
-    uint64_t Capacity() {
-        return total_size_;
-    }
-
-    void Reset(){
-        cur_ = 0;
-    }
-
-    persistent_ptr<char[]> raw(){return raw_;}
-
-
-private:
-    persistent_ptr<char[]> raw_;
-    p<uint64_t> total_size_;
-    p<uint64_t> cur_;
-
-};
 
 using p_buf = persistent_ptr<char[]>;
 
@@ -129,12 +101,18 @@ public:
 
 	FixedRangeTab* GetRangeTab(const std::string &prefix);
 
+	//TODO: DeleteCache;
+
 private:
 
     persistent_ptr<NvRangeTab> NewContent(const string& prefix, size_t bufSize);
     FixedRangeTab *NewRange(const std::string &prefix);
 
     void RebuildFromPersistentNode();
+
+    void Deallocate(int offset){
+        pinfo_->allocator_->Free(offset);
+    }
 
     struct PersistentInfo {
         p<bool> inited_;

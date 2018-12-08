@@ -7,6 +7,7 @@
 #include "persistent_chunk.h"
 #include "persistent_chunk_iterator.h"
 #include "debug.h"
+#include "persistent_allocator.h"
 
 namespace rocksdb {
 
@@ -51,7 +52,7 @@ FixedRangeTab::FixedRangeTab(pool_base &pop, const rocksdb::FixedRangeBasedOptio
     DBG_PRINT("seq_num is %lu", raw_tab->seq_num_.get_ro());
     if (0 == raw_tab->seq_num_.get_ro()) {
         // new node
-        raw_ = raw_tab->buf.get();
+        raw_ = raw_tab->raw_;
         // set cur_
         EncodeFixed64(raw_, 0);
         // set seq_
@@ -59,10 +60,9 @@ FixedRangeTab::FixedRangeTab(pool_base &pop, const rocksdb::FixedRangeBasedOptio
         raw_ += 2 * sizeof(uint64_t);
         //GetProperties();
     } else {
-        DBG_PRINT("seq != 0");
         // rebuild
+        DBG_PRINT("seq != 0");
         RebuildBlkList();
-        DBG_PRINT("after rebuild");
         GetProperties();
         DBG_PRINT("end rebuild");
     }
@@ -82,7 +82,7 @@ InternalIterator *FixedRangeTab::NewInternalIterator(
     //DBG_PRINT("In NewIterator");
     //InternalIterator *internal_iter;
     //MergeIteratorBuilder merge_iter_builder(icmp, arena);
-    char* pbuf = nonVolatileTab_->buf.get() + 2 * sizeof(uint64_t);
+    char* pbuf = nonVolatileTab_->raw_ + 2 * sizeof(uint64_t);
     int num = 0;
     PersistentChunk pchk;
     InternalIterator ** list;
@@ -328,7 +328,7 @@ void FixedRangeTab::Release() {
     // 删除这个range
 }
 
-void FixedRangeTab::CleanUp() {
+void FixedRangeTab::CleanUp(PersistentAllocator* allocator) {
     // 清除这个range的数据
     // error
     // EncodeFixed64(raw_ - 2 * sizeof(uint64_t), 0);//set cur to 0
@@ -340,13 +340,16 @@ void FixedRangeTab::CleanUp() {
     NvRangeTab *raw_tab = nonVolatileTab_.get();
     if (raw_tab->extra_buf != nullptr) {
         DBG_PRINT("clean up [%s] and extra buf not null", string(raw_tab->prefix_.get(), raw_tab->prefixLen).c_str());
+        assert(allocator != nullptr);
         persistent_ptr<NvRangeTab> obsolete_tab = nonVolatileTab_;
         NvRangeTab *vtab = obsolete_tab.get();
         nonVolatileTab_ = nonVolatileTab_->extra_buf;
 		nonVolatileTab_->extra_buf = nullptr;		// Clear it!
+		//dealloc
+		allocator->Free(vtab->offset_);
         transaction::run(pop_, [&] {
             delete_persistent<char[]>(vtab->prefix_, vtab->prefixLen);
-            delete_persistent<char[]>(vtab->buf, vtab->bufSize);
+            //delete_persistent<char[]>(vtab->buf, vtab->bufSize);
             delete_persistent<NvRangeTab>(obsolete_tab);
         });
     } else {
@@ -422,7 +425,7 @@ void FixedRangeTab::RebuildBlkList() {
     size_t dataLen;
     dataLen = nonVolatileTab_->dataLen;
     DBG_PRINT("dataLen = %lu", dataLen);
-    char* raw_buf = nonVolatileTab_->buf.get();
+    char* raw_buf = nonVolatileTab_->raw_;
     // TODO
     // range 从一开始就存 chunk ?
     uint64_t offset = 0;
@@ -478,10 +481,10 @@ void FixedRangeTab::SetExtraBuf(persistent_ptr<rocksdb::NvRangeTab> extra_buf) {
     DBG_PRINT("set extra buf for[%s]", string(vtab->prefix_.get(), vtab->prefixLen).c_str());
     vtab->extra_buf = extra_buf;
     extra_buf->seq_num_ = vtab->seq_num_;
-    raw_ = extra_buf->buf.get();
+    raw_ = extra_buf->raw_;
 	EncodeFixed64(raw_, 0);
     // set seq_
-    uint64_t seq_ = DecodeFixed64(vtab->buf.get() + sizeof(uint64_t));
+    uint64_t seq_ = DecodeFixed64(vtab->raw_ + sizeof(uint64_t));
     EncodeFixed64(raw_ + sizeof(uint64_t), seq_);
     raw_ += 2 * sizeof(uint64_t);
 }

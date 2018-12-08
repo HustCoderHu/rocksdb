@@ -8,6 +8,8 @@
 // found in the LICENSE file. See the AUTHORS file for names of contributors.
 
 #pragma once
+
+#include <utilities/nvm_write_cache/fixed_range_chunk_based_nvm_write_cache.h>
 #include "db/version_set.h"
 #include "options/cf_options.h"
 #include "util/arena.h"
@@ -64,6 +66,7 @@ class Version;
 class ColumnFamilyData;
 class VersionStorageInfo;
 class CompactionFilter;
+class CompactionItem
 
 // A Compaction encapsulates information about a compaction.
 class Compaction {
@@ -79,7 +82,7 @@ class Compaction {
              bool manual_compaction = false, double score = -1,
              bool deletion_compaction = false,
              CompactionReason compaction_reason = CompactionReason::kUnknown,
-             FixedRangeTab* pendding_range = nullptr);
+             CompactionItem pendding_range);
 
   // No copying allowed
   Compaction(const Compaction&) = delete;
@@ -294,7 +297,9 @@ class Compaction {
 
   uint64_t MaxInputFileCreationTime() const;
 
-  FixedRangeTab* compaction_range() const {return pendding_range_;}
+  FixedRangeTab* compaction_range() const {return pendding_range_.pending_compated_range_;}
+
+  PersistentAllocator* range_allocator() const {return pendding_range_.allocator_;}
 
  private:
   // mark (or clear) all files that are being compacted
@@ -381,7 +386,7 @@ class Compaction {
   CompactionReason compaction_reason_;
 
   // Range pendding for compaction
-  FixedRangeTab* pendding_range_;
+  CompactionItem pendding_range_;
 };
 
 // Utility function

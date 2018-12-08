@@ -15,6 +15,7 @@
 
 #include <inttypes.h>
 #include <vector>
+#include <utilities/nvm_write_cache/fixed_range_chunk_based_nvm_write_cache.h>
 
 #include "db/column_family.h"
 #include "rocksdb/compaction_filter.h"
@@ -221,7 +222,7 @@ Compaction::Compaction(VersionStorageInfo *vstorage,
                        bool _manual_compaction, double _score,
                        bool _deletion_compaction,
                        CompactionReason _compaction_reason,
-                       FixedRangeTab *pendding_range)
+                       CompactionItem pendding_range)
         : input_vstorage_(vstorage),
           start_level_(_inputs[0].level),
           output_level_(_output_level),
@@ -271,8 +272,8 @@ Compaction::Compaction(VersionStorageInfo *vstorage,
     }
     if(start_level_ == 0){
         //TODO ÅÐ¶ÏÊÇ·ñÎª¿Õ
-        smallest_user_key_ = pendding_range_->RangeUsage().start()->user_key();
-        largest_user_key_ = pendding_range_->RangeUsage().end()->user_key();
+        smallest_user_key_ = pendding_range_.pending_compated_range_->RangeUsage().start()->user_key();
+        largest_user_key_ = pendding_range_.pending_compated_range_->RangeUsage().end()->user_key();
     }else{
         GetBoundaryKeys(vstorage, inputs_, &smallest_user_key_, &largest_user_key_);
     }
@@ -440,8 +441,8 @@ uint64_t Compaction::CalculateTotalInputSize() const {
     uint64_t size = 0;
     // Add by Glitter
     size_t from_nvm_cache = 0;
-    if(pendding_range_ != nullptr){
-        from_nvm_cache = pendding_range_->RangeUsage().range_size;
+    if(pendding_range_.pending_compated_range_ != nullptr){
+        from_nvm_cache = pendding_range_.pending_compated_range_->RangeUsage().range_size;
         size += from_nvm_cache;
         DBG_PRINT("Input from range[%f]MB", from_nvm_cache / 1048576.0);
     }

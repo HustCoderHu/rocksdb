@@ -27,7 +27,9 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
         transaction::run(pop_, [&] {
             pinfo_->range_map_ = make_persistent<pmem_hash_map<NvRangeTab>>(pop_, 0.75, 256);
             persistent_ptr<char[]> buf = make_persistent<char[]>(pmem_size);
-            pinfo_->allocator_ = make_persistent<PersistentAllocator>(buf, pmem_size);
+            persistent_ptr<PersistentBitMap> bitmap = make_persistent<PersistentBitMap>(pop_,
+                    pmem_size / ioptions->range_size_);
+            pinfo_->allocator_ = make_persistent<PersistentAllocator>(buf, pmem_size, ioptions->range_size_, bitmap);
             pinfo_->inited_ = true;
         });
     }else if(reset){
@@ -99,10 +101,11 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
 
 persistent_ptr<NvRangeTab> FixedRangeChunkBasedNVMWriteCache::NewContent(const string &prefix, size_t bufSize) {
     persistent_ptr<NvRangeTab> p_content;
-    uint64_t mem_size = vinfo_->internal_options_->range_size_;
-    char* pmem = pinfo_->allocator_->Allocate(mem_size);
+    int offset = 0;
+    char* pmem = pinfo_->allocator_->Allocate(offset);
     transaction::run(pop_, [&] {
-        p_content = make_persistent<NvRangeTab>(pop_, pmem, mem_size, bufSize);
+        p_content = make_persistent<NvRangeTab>(pop_, pmem, offset, bufSize);
+        // NvRangeTab怎么释放空间
     });
     return p_content;
 }
@@ -144,14 +147,14 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
             // 对于已有extra buffer的range直接加入
             //DBG_PRINT("has extra buf range size[%f]MB threshold [%f]MB", range_usage.range_size / 1048576.0, (range.second->max_range_size() / 1048576.0) * 0.8);
             DBG_PRINT("Has Extra Buffer");
-            pendding_compact.emplace_back(range.second);
+            pendding_compact.emplace_back(range.second, pinfo_->allocator_);
             continue;
         }
 
         if (range_usage.range_size >= range.second->max_range_size() * 0.8) {
             DBG_PRINT("Oversize and not in queue");
             //DBG_PRINT("general range[%s] size[%f]MB threshold [%f]MB add to queue",range.first.c_str(), range_usage.range_size / 1048576.0, (range.second->max_range_size() / 1048576.0) * 0.8);
-            pendding_compact.emplace_back(range.second);
+            pendding_compact.emplace_back(range.second, pinfo_->allocator_);
         }
     }
     DBG_PRINT("[%lu]range need compaction", pendding_compact.size());
