@@ -7,10 +7,11 @@ using std::string;
 
 FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
         const FixedRangeBasedOptions *ioptions,
+        const InternalKeyComparator* icmp,
         const string &file, uint64_t pmem_size,
         bool reset) {
     //bool justCreated = false;
-    vinfo_ = new VolatileInfo(ioptions);
+    vinfo_ = new VolatileInfo(ioptions, icmp);
     vinfo_->lock_count = 0;
     if (file_exists(file.c_str()) != 0) {
         // creat pool
@@ -70,7 +71,7 @@ bool FixedRangeChunkBasedNVMWriteCache::Get(const InternalKeyComparator &interna
         // found
         DBG_PRINT("Found prefix");
         FixedRangeTab *tab = found_tab->second;
-        return tab->Get(internal_comparator, s, lkey, value);
+        return tab->Get(s, lkey, value);
     }
 }
 
@@ -87,27 +88,40 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
     now_range = tab_found->second;
 
     //DBG_PRINT("Append to Range[%s]", meta.prefix.c_str());
-    now_range->lock();
     //DBG_PRINT("start append");
-    if (now_range->IsCompactWorking() && !now_range->IsExtraBufExists()) {
-        persistent_ptr<NvRangeTab> p_content = NewContent(meta.prefix, vinfo_->internal_options_->range_size_);
-        now_range->SetExtraBuf(p_content);
+    if(!now_range->EnoughFroWriting(bloom_data.size() + chunk_data.size())){
+        // not enough
+        if(now_range->HasCompactionBuf()){
+            // has no space need wait
+            while (now_range->EnoughFroWriting(bloom_data.size() + chunk_data.size())){
+                sleep(1);
+            }
+        }else{
+            // switch buffer
+            now_range->lock();
+            now_range->SwitchBuffer(kToCBuffer);
+            now_range->unlock();
+        }
     }
-    now_range->Append(icmp, bloom_data, chunk_data, meta.cur_start, meta.cur_end);
+    now_range->lock();
+    now_range->Append(bloom_data, chunk_data, meta.cur_start, meta.cur_end);
     now_range->unlock();
     //DBG_PRINT("end append");
 
 }
 
 persistent_ptr<NvRangeTab> FixedRangeChunkBasedNVMWriteCache::NewContent(const string &prefix, size_t bufSize) {
-    persistent_ptr<NvRangeTab> p_content;
-    int offset = 0;
-    char* pmem = pinfo_->allocator_->Allocate(offset);
+    persistent_ptr<NvRangeTab> p_content_1, p_content_2;
+    int offset1 = 0, offset2 = 0;
+    char* pmem1 = pinfo_->allocator_->Allocate(offset1);
+    char* pmem2 = pinfo_->allocator_->Allocate(offset2);
     transaction::run(pop_, [&] {
-        p_content = make_persistent<NvRangeTab>(pop_, pmem, offset, bufSize);
+        p_content_1 = make_persistent<NvRangeTab>(pop_, pmem1, offset1, bufSize);
+        p_content_2 = make_persistent<NvRangeTab>(pop_, pmem2, offset2, bufSize);
         // NvRangeTab怎么释放空间
     });
-    return p_content;
+    p_content_1->pair_buf_ = p_content_2;
+    return p_content_1;
 }
 
 
@@ -117,7 +131,7 @@ FixedRangeTab *FixedRangeChunkBasedNVMWriteCache::NewRange(const std::string &pr
 
 
     //p_range::p_node new_node = pinfo_->range_map_->get_node(_hash, prefix);
-    FixedRangeTab *range = new FixedRangeTab(pop_, vinfo_->internal_options_, p_content);
+    FixedRangeTab *range = new FixedRangeTab(pop_, vinfo_->internal_options_, vinfo_->icmp_, p_content);
     vinfo_->prefix2range.insert({prefix, range});
     return range;
 }
@@ -220,7 +234,7 @@ InternalIterator *FixedRangeChunkBasedNVMWriteCache::NewIterator(const InternalK
     InternalIterator *internal_iter;
     MergeIteratorBuilder merge_iter_builder(icmp, arena);
     for (auto range : vinfo_->prefix2range) {
-        merge_iter_builder.AddIterator(range.second->NewInternalIterator(icmp, arena));
+        merge_iter_builder.AddIterator(range.second->NewInternalIterator(arena));
     }
 
     internal_iter = merge_iter_builder.Finish();

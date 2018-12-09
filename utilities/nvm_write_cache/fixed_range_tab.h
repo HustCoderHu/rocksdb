@@ -146,6 +146,14 @@ public:
 
     void SwitchBuffer(SwitchDirection direction);
 
+    bool EnoughFroWriting(uint64_t wsize){
+        return wsize < (w_buffer_->buf_size_ - w_buffer_->data_len_);
+    }
+
+    bool HasCompactionBuf(){
+        return c_buffer_ != nullptr;
+    }
+
     uint64_t max_range_size() {
         return w_buffer_->buf_size_;
     }
