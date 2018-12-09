@@ -37,12 +37,14 @@ using pmem::obj::persistent_ptr;
 }*/
 
 
-FixedRangeTab::FixedRangeTab(pool_base &pop, const rocksdb::FixedRangeBasedOptions *options,
+FixedRangeTab::FixedRangeTab(pool_base &pop, const FixedRangeBasedOptions *options,
+                             const InternalKeyComparator* icmp,
                              persistent_ptr<NvRangeTab> &wbuffer)
         : pop_(pop),
           w_buffer_(wbuffer),
           interal_options_(options),
-          tab_lock_(false){
+          icmp_(icmp),
+          tab_lock_(false) {
     DBG_PRINT("constructor of FixedRangeTab");
     assert(wbuffer->pair_buf_ != nullptr);
     NvRangeTab *raw_tab = wbuffer.get();
@@ -86,8 +88,7 @@ FixedRangeTab::FixedRangeTab(pool_base &pop, const rocksdb::FixedRangeBasedOptio
  *
  * */
 
-Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
-                             const string& bloom_data, const Slice &chunk_data,
+Status FixedRangeTab::Append(const string &bloom_data, const Slice &chunk_data,
                              const Slice &start, const Slice &end) {
     //DBG_PRINT("start Append");
     assert(w_buffer_->data_len_ + chunk_data.size_ <= max_range_size());
@@ -120,16 +121,17 @@ Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
     // update cur and seq
     // transaction
     {
-    	if (raw_cur + chunk_blk_len >= max_range_size()) {
-			DBG_PRINT("assert: raw_cur[%lu] chunk_blk_len[%lu] max_range_size()[%lu]", raw_cur, chunk_blk_len, max_range_size());
-		}
-    	// TODO : transaction1
+        if (raw_cur + chunk_blk_len >= max_range_size()) {
+            DBG_PRINT("assert: raw_cur[%lu] chunk_blk_len[%lu] max_range_size()[%lu]", raw_cur, chunk_blk_len,
+                      max_range_size());
+        }
+        // TODO : transaction1
         EncodeFixed64(raw_ - 2 * sizeof(uint64_t), raw_cur + chunk_blk_len);
         EncodeFixed64(raw_ - sizeof(uint64_t), last_seq + 1);
     }
     // update meta info
 
-    CheckAndUpdateKeyRange(icmp, start, end);
+    CheckAndUpdateKeyRange(start, end);
     // update version
     // transaction
     // TODO : transaction2
@@ -145,15 +147,14 @@ Status FixedRangeTab::Append(const InternalKeyComparator &icmp,
     return Status::OK();
 }
 
-bool FixedRangeTab::Get(const InternalKeyComparator &internal_comparator,
-                        Status *s,
+bool FixedRangeTab::Get(Status *s,
                         const LookupKey &lkey, std::string *value) {
     // 1.从下往上遍历所有的chunk
     auto *iter = new PersistentChunkIterator();
     // shared_ptr能够保证资源回收
-    char* buf = raw_;
+    char *buf = raw_;
     //DBG_PRINT("blklist: size[%lu], pendding_clean[%lu]", blklist.size(), pendding_clean_);
-    auto SearchBlkList = [&](vector<ChunkBlk>& blklist) -> bool{
+    auto SearchBlkList = [&](vector<ChunkBlk> &blklist) -> bool {
         for (int i = blklist.size() - 1; i >= 0; i--) {
             assert(i >= 0);
             ChunkBlk &blk = blklist.at(i);
@@ -161,13 +162,13 @@ bool FixedRangeTab::Get(const InternalKeyComparator &internal_comparator,
             // ^
             // |
             // bloom data
-            char* chunk_head = buf + blk.offset_;
+            char *chunk_head = buf + blk.offset_;
             uint64_t bloom_bytes = blk.bloom_bytes_;
             if (interal_options_->filter_policy_->KeyMayMatch(lkey.user_key(), Slice(chunk_head + 8, bloom_bytes))) {
                 // 3.如果有则读取元数据进行chunk内的查找
                 //DBG_PRINT("Key in chunk and search");
                 new(iter) PersistentChunkIterator(buf + blk.getDatOffset(), blk.chunkLen_, nullptr);
-                Status result = searchInChunk(iter, internal_comparator, lkey.user_key(), value);
+                Status result = searchInChunk(iter, lkey.user_key(), value);
                 if (result.ok()) {
                     delete iter;
                     *s = Status::OK();
@@ -183,7 +184,7 @@ bool FixedRangeTab::Get(const InternalKeyComparator &internal_comparator,
 
     bool result = false;
     result = SearchBlkList(wblklist_);
-    if(!result && c_buffer_ != nullptr){
+    if (!result && c_buffer_ != nullptr) {
         result = SearchBlkList(cblklist_);
     }
     delete iter;
@@ -198,19 +199,18 @@ bool FixedRangeTab::Get(const InternalKeyComparator &internal_comparator,
  * | chunk blmFilter | chunk len | chunk data .| 不定长
  * */
 
-InternalIterator *FixedRangeTab::NewInternalIterator(
-        const InternalKeyComparator *icmp, Arena *arena, bool for_comapction) {
+InternalIterator *FixedRangeTab::NewInternalIterator(Arena *arena, bool for_comapction) {
     //DBG_PRINT("In NewIterator");
     int num = 0;
     PersistentChunk pchk;
-    InternalIterator ** list;
-    if(for_comapction){
+    InternalIterator **list;
+    if (for_comapction) {
         // Iterator for compaction
-        list = new InternalIterator*[cblklist_.size();];
-    }else{
+        list = new InternalIterator *[cblklist_.size()];
+    } else {
         // Iterator for total iterate
-        list = new InternalIterator*[wblklist_.size() + cblklist_.size()];
-        char* rbuf = w_buffer_->raw_ + 2 * sizeof(uint64_t);
+        list = new InternalIterator *[wblklist_.size() + cblklist_.size()];
+        char *rbuf = w_buffer_->raw_ + 2 * sizeof(uint64_t);
         // add chunk in wbuffer to iterator
         for (auto chunk : wblklist_) {
             pchk.reset(chunk.bloom_bytes_, chunk.chunkLen_, rbuf + chunk.getDatOffset());
@@ -218,40 +218,39 @@ InternalIterator *FixedRangeTab::NewInternalIterator(
         }
     }
     // add chunk in cbuffer to iterator
-    char* rbuf = c_buffer_->raw_ + 2 * sizeof(uint64_t);
+    char *rbuf = c_buffer_->raw_ + 2 * sizeof(uint64_t);
     for (auto chunk : cblklist_) {
         pchk.reset(chunk.bloom_bytes_, chunk.chunkLen_, rbuf + chunk.getDatOffset());
         list[num++] = pchk.NewIterator(arena);
     }
-    InternalIterator* result = NewMergingIterator(icmp, list, num, arena, false);
+    InternalIterator *result = NewMergingIterator(icmp_, list, num, arena, false);
     delete[] list;
     //DBG_PRINT("End Newiterator");
     return result;
 }
 
 
-void FixedRangeTab::CheckAndUpdateKeyRange(const InternalKeyComparator &icmp, const Slice &new_start,
-                                           const Slice &new_end) {
+void FixedRangeTab::CheckAndUpdateKeyRange(const Slice &new_start, const Slice &new_end) {
     //DBG_PRINT("start update range");
     Slice cur_start, cur_end;
     bool update_start = false, update_end = false;
-    GetRealRange(cur_start, cur_end);
+    GetRealRange(w_buffer_.get(), cur_start, cur_end);
     //DBG_PRINT("compare start");
-    if (cur_start.size() == 0 || icmp.Compare(cur_start, new_start) >= 0) {
+    if (cur_start.size() == 0 || icmp_->Compare(cur_start, new_start) >= 0) {
         cur_start = new_start;
         update_start = true;
     }
     //DBG_PRINT("compare end");
-    if (cur_end.size() == 0 || icmp.Compare(cur_end, new_end) <= 0) {
+    if (cur_end.size() == 0 || icmp_->Compare(cur_end, new_end) <= 0) {
         cur_end = new_end;
         update_end = true;
     }
 
     if (update_start || update_end) {
         size_t range_data_size = cur_start.size() + cur_end.size() + 2 * sizeof(uint64_t);
-        auto UpdateRangeBuf = [&](persistent_ptr<NvRangeTab> p_content){
+        auto UpdateRangeBuf = [&](persistent_ptr<NvRangeTab> p_content) {
 
-            auto AllocBufAndUpdate = [&](size_t range_size){
+            auto AllocBufAndUpdate = [&](size_t range_size) {
                 persistent_ptr<char[]> new_range = nullptr;
                 transaction::run(pop_, [&] {
                     new_range = make_persistent<char[]>(range_size);
@@ -272,13 +271,13 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const InternalKeyComparator &icmp, co
                 });
             };
 
-            if(range_data_size > w_buffer_->range_buf_len_){
+            if (range_data_size > w_buffer_->range_buf_len_) {
                 // 新的range data size大于已有的range buf空间
                 AllocBufAndUpdate(range_data_size);
-            }else if(range_data_size < (w_buffer_->range_buf_len_ / 2) && w_buffer_->range_buf_len_ > 200){
+            } else if (range_data_size < (w_buffer_->range_buf_len_ / 2) && w_buffer_->range_buf_len_ > 200) {
                 // 此时rangebuf大小缩减一半
                 AllocBufAndUpdate(w_buffer_->range_buf_len_ / 2);
-            }else{
+            } else {
                 // 直接写进去
                 char *range_buf = w_buffer_->key_range_.get();
                 // put start
@@ -301,52 +300,18 @@ void FixedRangeTab::Release() {
     // 删除这个range
 }
 
-void FixedRangeTab::CleanUp(PersistentAllocator* allocator) {
+void FixedRangeTab::CleanUp(NvRangeTab* tab) {
     // 清除这个range的数据
-    // error
-    // EncodeFixed64(raw_ - 2 * sizeof(uint64_t), 0);//set cur to 0
     // 清除被compact的chunk
-    blklist.erase(blklist.begin(), blklist.begin() + pendding_clean_);
-    pendding_clean_ = 0;
-    //in_compaction_ = false;
-
-    NvRangeTab *raw_tab = nonVolatileTab_.get();
-    if (raw_tab->extra_buf != nullptr) {
-        DBG_PRINT("clean up [%s] and extra buf not null", string(raw_tab->prefix_.get(), raw_tab->prefixLen).c_str());
-        assert(allocator != nullptr);
-        persistent_ptr<NvRangeTab> obsolete_tab = nonVolatileTab_;
-        NvRangeTab *vtab = obsolete_tab.get();
-        nonVolatileTab_ = nonVolatileTab_->extra_buf;
-		nonVolatileTab_->extra_buf = nullptr;		// Clear it!
-		//dealloc
-		allocator->Free(vtab->offset_);
-        transaction::run(pop_, [&] {
-            delete_persistent<char[]>(vtab->prefix_, vtab->prefixLen);
-            //delete_persistent<char[]>(vtab->buf, vtab->bufSize);
-            delete_persistent<NvRangeTab>(obsolete_tab);
-        });
-    } else {
-        DBG_PRINT("clean up [%s]", string(raw_tab->prefix_.get(), raw_tab->prefixLen).c_str());
-        transaction::run(pop_, [&] {
-            raw_tab->chunk_num_ = 0;
-            raw_tab->dataLen = 0;
-            //Slice start, end;
-            //GetRealRange(start, end);
-            char* raw_range = raw_tab->key_range_.get();
-            EncodeFixed64(raw_range, 0);
-            EncodeFixed64(raw_range + 8, 0);
-            //delete_persistent<char[]>(raw_tab->key_range_, start.size() + end.size() + 2 * sizeof(uint64_t));
-            //raw_tab->key_range_ = nullptr;
-        });
-    }
-
-
+    tab->data_len_ = 0;
+    tab->chunk_num_ = 0;
+    EncodeFixed64(tab->raw_, 0);
 }
 
-Status FixedRangeTab::searchInChunk(PersistentChunkIterator *iter, const InternalKeyComparator &icmp,
+Status FixedRangeTab::searchInChunk(PersistentChunkIterator *iter,
                                     const Slice &key, std::string *value) {
     int left = 0, right = iter->count() - 1;
-    const Comparator* cmp = icmp.user_comparator();
+    const Comparator *cmp = icmp_->user_comparator();
     //DBG_PRINT("left[%d]   right[%d]", left, right);
     while (left <= right) {
         int middle = left + ((right - left) >> 1);
@@ -379,7 +344,7 @@ Slice FixedRangeTab::GetKVData(char *raw, uint64_t item_off) {
     return Slice(target + sizeof(uint64_t), static_cast<size_t>(target_size));
 }
 
-void FixedRangeTab::GetRealRange(NvRangeTab* tab, Slice &real_start, Slice &real_end) {
+void FixedRangeTab::GetRealRange(NvRangeTab *tab, Slice &real_start, Slice &real_end) {
     if (tab->key_range_ != nullptr) {
         char *raw = tab->key_range_.get();
         real_start = GetKVData(raw, 0);
@@ -395,16 +360,14 @@ void FixedRangeTab::GetRealRange(NvRangeTab* tab, Slice &real_start, Slice &real
 void FixedRangeTab::RebuildBlkList() {
     // TODO :check consistency
     //ConsistencyCheck();
-    size_t dataLen;
-    dataLen = nonVolatileTab_->dataLen;
-    DBG_PRINT("dataLen = %lu", dataLen);
-    char* raw_buf = nonVolatileTab_->raw_;
-    // TODO
-    // range 从一开始就存 chunk ?
-    uint64_t offset = 0;
-    auto build_blklist = [&](){
-        char* chunk_head = raw_buf + 2 * sizeof(uint64_t);
-        while (offset < dataLen) {
+    // TODO : 确保传进来的是wbuffer
+
+    auto build_blklist = [](NvRangeTab* tab, vector<ChunkBlk>& blklist) {
+        char *chunk_head = tab->raw_ + 2 * sizeof(uint64_t);
+        size_t data_len = tab->data_len_;
+        uint64_t offset = 0;
+        DBG_PRINT("dataLen = %lu", data_len);
+        while (offset < data_len) {
             uint64_t bloom_size = DecodeFixed64(chunk_head);
             uint64_t chunk_size = DecodeFixed64(chunk_head + bloom_size + sizeof(uint64_t));
             blklist.emplace_back(bloom_size, offset, chunk_size);
@@ -412,29 +375,52 @@ void FixedRangeTab::RebuildBlkList() {
             offset += bloom_size + chunk_size + sizeof(uint64_t) * 2;
             //DBG_PRINT("off = %lu, bloom_size = %lu, chunk_size = %lu", offset, bloom_size, chunk_size);
         }
+
     };
 
-    build_blklist();
-    raw_ = raw_buf + 2 * sizeof(uint64_t);
-
-    if(nonVolatileTab_->extra_buf != nullptr){
-        pendding_clean_ = blklist.size();
-        dataLen = nonVolatileTab_->extra_buf->dataLen;
-        offset = 0;
-        raw_buf = nonVolatileTab_->extra_buf->buf.get();
-        build_blklist();
-        raw_ = raw_buf + 2 * sizeof(uint64_t);
+    build_blklist(w_buffer_.get(), wblklist_);
+    if(w_buffer_->pair_buf_->chunk_num_ != 0){
+        build_blklist(w_buffer_->pair_buf_.get(), cblklist_);
+        c_buffer_ = w_buffer_->pair_buf_;
     }
+
+    raw_ = w_buffer_->raw_ + 2 * sizeof(uint64_t);
 }
 
-Usage FixedRangeTab::RangeUsage() {
+Usage FixedRangeTab::RangeUsage(bool for_compaction) {
     Usage usage;
     Slice start, end;
-    GetRealRange(start, end);
-    usage.range_size = nonVolatileTab_->dataLen;
-    usage.chunk_num = nonVolatileTab_->chunk_num_;
-    usage.start_ = start;
-    usage.end_ = end;
+    if (c_buffer_ != nullptr) {
+        // 获取c_buffer的range
+        GetRealRange(c_buffer_.get(), start, end);
+        usage.range_size = c_buffer_->data_len_;
+        usage.chunk_num = c_buffer_->chunk_num_;
+        usage.start_ = start;
+        usage.end_ = end;
+    } else if (!for_compaction) {
+        // 如果不是compaction调用，则获取w_buffer的range
+        Slice wstart, wend;
+        GetRealRange(w_buffer_.get(), start, end);
+        if (usage.chunk_num != 0) {
+            // 有c_buffer的chunk不为0
+            if (icmp_->Compare(wstart, usage.start_) < 0) {
+                usage.start_ = wstart;
+            }
+            if (icmp_->Compare(wend, usage.end_) > 0) {
+                usage.end_ = wend;
+            }
+        } else {
+            usage.start_ = wstart;
+            usage.end_ = wend;
+        }
+        usage.range_size += w_buffer_->data_len_;
+        usage.chunk_num += w_buffer_->chunk_num_;
+    }
+
+    if(for_compaction){
+        assert(usage.chunk_num != 0);
+    }
+
     return usage;
 }
 
@@ -466,23 +452,47 @@ void FixedRangeTab::GetProperties() {
     NvRangeTab *vtab = w_buffer_.get();
     uint64_t raw_cur = DecodeFixed64(raw_ - 2 * sizeof(uint64_t));
     uint64_t raw_seq = DecodeFixed64(raw_ - sizeof(uint64_t));
-    cout<<"raw_cur [" << raw_cur << "]"<<endl;
-    cout<<"raw_seq = [" << raw_seq << "]"<<endl;
+    cout << "raw_cur [" << raw_cur << "]" << endl;
+    cout << "raw_seq = [" << raw_seq << "]" << endl;
     string prefix(vtab->prefix_.get(), vtab->prefix_len_.get_ro());
-    cout<<"prefix = [" << prefix << "]"<<endl;
-    cout<<"capacity = [" << vtab->buf_size_ / 1048576.0 << "]MB"<<endl;
+    cout << "prefix = [" << prefix << "]" << endl;
+    cout << "capacity = [" << vtab->buf_size_ / 1048576.0 << "]MB" << endl;
+    // 传入comparator
     Usage usage = RangeUsage();
-    cout<<"datalen in vtab = [" << vtab->data_len_ << "]"<<endl;
-    cout<<"range size = [" << usage.range_size / 1048576.0 << "]MB, chunk_num = ["<< usage.chunk_num <<"]"<<endl;
-    if(vtab->key_range_ != nullptr){
-        if(usage.start() != nullptr){
-            cout << "start_key = [" << usage.start()->user_key().data()<<"]"<<endl;
+    cout << "datalen in vtab = [" << vtab->data_len_ << "]" << endl;
+    cout << "range size = [" << usage.range_size / 1048576.0 << "]MB, chunk_num = [" << usage.chunk_num << "]" << endl;
+    if (vtab->key_range_ != nullptr) {
+        if (usage.start() != nullptr) {
+            cout << "start_key = [" << usage.start()->user_key().data() << "]" << endl;
         }
-        if(usage.end() != nullptr){
-            cout << "end_key = [" << usage.end()->user_key().data()<<"]"<<endl;
+        if (usage.end() != nullptr) {
+            cout << "end_key = [" << usage.end()->user_key().data() << "]" << endl;
         }
     }
-    cout<<endl;
+    cout << endl;
+}
+
+void FixedRangeTab::SwitchBuffer(SwitchDirection direction) {
+    switch(direction){
+        case kToWBuffer:
+            CleanUp(c_buffer_.get());
+            cblklist_.clear();
+            c_buffer_ = nullptr;
+            break;
+
+        case kToCBuffer:
+            assert(c_buffer_ == nullptr);
+            c_buffer_ = w_buffer_;
+            w_buffer_ = w_buffer_->pair_buf_;
+            raw_ = w_buffer_->raw_;
+            cblklist_.swap(wblklist_);
+            wblklist_.clear();
+            break;
+
+        default:
+            break;
+    }
+    return;
 }
 
 } // namespace rocksdb

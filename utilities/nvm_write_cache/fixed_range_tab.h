@@ -37,7 +37,7 @@ public:
     uint64_t range_size;
     Slice start_, end_;
 
-    Usage() {}
+    Usage():chunk_num(0), range_size(0) {}
 
     Usage(const Usage& u) {
         *this = u;
@@ -90,8 +90,10 @@ class FixedRangeTab {
 public:
     //FixedRangeTab(pool_base &pop, FixedRangeBasedOptions *options);
 
-    FixedRangeTab(pool_base &pop, const FixedRangeBasedOptions *options,
-                  persistent_ptr<NvRangeTab> &wbuffer);
+    FixedRangeTab(pool_base &pop,
+            const FixedRangeBasedOptions *options,
+            const InternalKeyComparator* icmp,
+            persistent_ptr<NvRangeTab> &wbuffer);
 
     //FixedRangeTab(pool_base &pop, p_node pmap_node_, FixedRangeBasedOptions *options);
 
@@ -101,18 +103,15 @@ public:
 
 public:
     // 将新的chunk数据添加到RangeMemtable
-    Status Append(const InternalKeyComparator &icmp,
-                  const string& bloom_data, const Slice &chunk_data,
+    Status Append(const string& bloom_data, const Slice &chunk_data,
                   const Slice &start, const Slice &end);
 
-    bool Get(const InternalKeyComparator &internal_comparator, Status *s, const LookupKey &lkey,
-             std::string *value);
+    bool Get(Status *s, const LookupKey &lkey, std::string *value);
 
     // 返回当前RangeMemtable中所有chunk的有序序列
     // 基于MergeIterator
     // 参考 DBImpl::NewInternalIterator
-    InternalIterator *NewInternalIterator(const InternalKeyComparator *icmp,
-            Arena *arena, bool for_compaction = false);
+    InternalIterator *NewInternalIterator(Arena *arena, bool for_compaction = false);
 
     //persistent_ptr<NvRangeTab> getPersistentData() { return w_buffer_; }
 
@@ -143,7 +142,7 @@ public:
     void Release();
 
     // 重置Stat数据以及bloom filter
-    void CleanUp(PersistentAllocator* allocator);
+    //void CleanUp();
 
     void SwitchBuffer(SwitchDirection direction);
 
@@ -183,14 +182,15 @@ private:
     void GetRealRange(NvRangeTab* tab, Slice &real_start, Slice &real_end);
 
     Status searchInChunk(PersistentChunkIterator *iter,
-                         const InternalKeyComparator &icmp,
                          const Slice &key, std::string *value);
 
     Slice GetKVData(char *raw, uint64_t item_off);
 
-    void CheckAndUpdateKeyRange(const InternalKeyComparator &icmp, const Slice &new_start, const Slice &new_end);
+    void CheckAndUpdateKeyRange(const Slice &new_start, const Slice &new_end);
 
     void ConsistencyCheck();
+
+    void CleanUp(NvRangeTab* tab);
 
     pool_base &pop_;
     persistent_ptr<NvRangeTab> w_buffer_;
@@ -201,6 +201,7 @@ private:
 
     // volatile info
     const FixedRangeBasedOptions *interal_options_;
+    const InternalKeyComparator* icmp_;
     port::Mutex tab_lock_;
 
     bool compaction_working_;

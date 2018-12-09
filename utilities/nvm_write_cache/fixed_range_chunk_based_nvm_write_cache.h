@@ -67,6 +67,7 @@ class FixedRangeChunkBasedNVMWriteCache : public NVMWriteCache {
 public:
     explicit FixedRangeChunkBasedNVMWriteCache(
             const FixedRangeBasedOptions *ioptions,
+            const InternalKeyComparator* icmp,
             const string &file, uint64_t pmem_size,
             bool reset = false);
 
@@ -127,14 +128,16 @@ private:
 
     struct VolatileInfo {
         const FixedRangeBasedOptions *internal_options_;
+        const InternalKeyComparator* icmp_;
         unordered_map<string, FixedRangeTab*> prefix2range;
         std::queue<CompactionItem> range_queue_;
         InstrumentedMutex queue_lock_;
         int lock_count;
 
 
-        explicit VolatileInfo(const FixedRangeBasedOptions *ioptions)
-                : internal_options_(ioptions) {}
+        explicit VolatileInfo(const FixedRangeBasedOptions *ioptions, const InternalKeyComparator* icmp)
+                :   internal_options_(ioptions),
+                    icmp_(icmp){}
     };
 
     VolatileInfo *vinfo_;
