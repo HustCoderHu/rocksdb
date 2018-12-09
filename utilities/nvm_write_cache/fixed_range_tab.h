@@ -1,6 +1,7 @@
 #pragma once
 #include <list>
 #include <memory>
+#include <wsman.h>
 
 
 #include "monitoring/instrumented_mutex.h"
@@ -77,6 +78,11 @@ public:
 
 };
 
+enum SwitchDirection{
+    kToWBuffer,
+    kToCBuffer,
+};
+
 class PersistentAllocator;
 class FixedRangeTab {
 
@@ -85,7 +91,7 @@ public:
     //FixedRangeTab(pool_base &pop, FixedRangeBasedOptions *options);
 
     FixedRangeTab(pool_base &pop, const FixedRangeBasedOptions *options,
-                  persistent_ptr<NvRangeTab> &nonVolatileTab);
+                  persistent_ptr<NvRangeTab> &wbuffer);
 
     //FixedRangeTab(pool_base &pop, p_node pmap_node_, FixedRangeBasedOptions *options);
 
@@ -94,49 +100,44 @@ public:
     ~FixedRangeTab() = default;
 
 public:
-    //void reservePersistent();
-
-    // 返回当前RangeMemtable中所有chunk的有序序列
-    // 基于MergeIterator
-    // 参考 DBImpl::NewInternalIterator
-    InternalIterator *NewInternalIterator(const InternalKeyComparator *icmp, Arena *arena, bool for_compaction = false);
-
-    bool Get(const InternalKeyComparator &internal_comparator, Status *s, const LookupKey &lkey,
-               std::string *value);
-
-    persistent_ptr<NvRangeTab> getPersistentData() { return nonVolatileTab_; }
-
     // 将新的chunk数据添加到RangeMemtable
     Status Append(const InternalKeyComparator &icmp,
                   const string& bloom_data, const Slice &chunk_data,
                   const Slice &start, const Slice &end);
 
+    bool Get(const InternalKeyComparator &internal_comparator, Status *s, const LookupKey &lkey,
+             std::string *value);
+
+    // 返回当前RangeMemtable中所有chunk的有序序列
+    // 基于MergeIterator
+    // 参考 DBImpl::NewInternalIterator
+    InternalIterator *NewInternalIterator(const InternalKeyComparator *icmp,
+            Arena *arena, bool for_compaction = false);
+
+    //persistent_ptr<NvRangeTab> getPersistentData() { return w_buffer_; }
+
     // 返回当前range tab是否正在被compact
-    bool IsCompactWorking() { return in_compaction_; }
+    bool IsCompactWorking() { return compaction_working_; }
 
     // 设置compaction状态
     void SetCompactionWorking(bool working) {
-        if(working && pendding_clean_ == 0){
-			// set为true的时候一定是pendding_clean为0的情况
-            pendding_clean_ = blklist.size();
-        }
-        in_compaction_ = working;
+        compaction_working_ = working;
     }
 
     // 返回当前range tab是否在compaction队列里面
-    bool IsCompactPendding() { return pendding_compaction_; }
+    bool IsCompactPendding() { return compaction_pendding_; }
 
     // 设置compaction queue状态
     void SetCompactionPendding(bool pendding) {
-        pendding_compaction_ = pendding;
+        compaction_pendding_ = pendding;
     }
 
-    bool IsExtraBufExists(){return nonVolatileTab_->extra_buf != nullptr;}
+    //bool IsExtraBufExists(){return nonVolatileTab_->pair_buf_ != nullptr;}
 
     // 设置extra buf，同时更新raw
-    void SetExtraBuf(persistent_ptr<NvRangeTab> extra_buf);
+    //void SetExtraBuf(persistent_ptr<NvRangeTab> extra_buf);
 
-    Usage RangeUsage();
+    Usage RangeUsage(bool for_compaction = false);
 
     // 释放当前RangeMemtable的所有chunk以及占用的空间
     void Release();
@@ -144,32 +145,30 @@ public:
     // 重置Stat数据以及bloom filter
     void CleanUp(PersistentAllocator* allocator);
 
+    void SwitchBuffer(SwitchDirection direction);
+
     uint64_t max_range_size() {
-        return nonVolatileTab_->bufSize;
+        return w_buffer_->buf_size_;
     }
 
     void lock(){
         //DBG_PRINT("tab lock[%d]", lock_count);
         tab_lock_.Lock();
-        lock_count++;
         //DBG_PRINT("in tab lock[%d]", lock_count);
     }
 
     void unlock(){
         //DBG_PRINT("before tab unlock[%d]", lock_count);
         tab_lock_.Unlock();
-        lock_count--;
         //DBG_PRINT("tab unlock[%d]", lock_count);
     }
 
     string prefix(){
-        return string(nonVolatileTab_->prefix_.get(), nonVolatileTab_->prefixLen);
+        return string(w_buffer_->prefix_.get(), w_buffer_->prefix_len_);
     }
 
-//#ifdef TAB_DEBUG
     // 输出range信息
     void GetProperties();
-//#endif
 
 private:
 
@@ -181,7 +180,7 @@ private:
     }
 
     // 返回当前RangeMem的真实key range（stat里面记录）
-    void GetRealRange(Slice &real_start, Slice &real_end);
+    void GetRealRange(NvRangeTab* tab, Slice &real_start, Slice &real_end);
 
     Status searchInChunk(PersistentChunkIterator *iter,
                          const InternalKeyComparator &icmp,
@@ -193,21 +192,20 @@ private:
 
     void ConsistencyCheck();
 
-
-    // persistent info
-    //p_node pmap_node_;
     pool_base &pop_;
-    persistent_ptr<NvRangeTab> nonVolatileTab_;
+    persistent_ptr<NvRangeTab> w_buffer_;
+    persistent_ptr<NvRangeTab> c_buffer_;
+    vector<ChunkBlk> wblklist_;
+    vector<ChunkBlk> cblklist_;
+    char *raw_;
 
     // volatile info
     const FixedRangeBasedOptions *interal_options_;
     port::Mutex tab_lock_;
-    int lock_count;
-    vector<ChunkBlk> blklist;
-    char *raw_;
-    bool in_compaction_;
-    bool pendding_compaction_;
-    size_t pendding_clean_;
+
+    bool compaction_working_;
+    bool compaction_pendding_;
+    //size_t pendding_clean_;
 
 
 };

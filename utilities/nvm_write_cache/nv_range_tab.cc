@@ -13,23 +13,22 @@ NvRangeTab::NvRangeTab(pool_base &pop, char* raw, uint64_t off, const string &pr
         prefix_ = make_persistent<char[]>(prefix.size());
         memcpy(prefix_.get(), prefix.c_str(), prefix.size());
 
-        rangebufLen = 200;
+        range_buf_len_ = 200;
         key_range_ = make_persistent<char[]>(200);
-        extra_buf = nullptr;
-        //buf = make_persistent<char[]>(range_size);
+        pair_buf_ = nullptr;
 
-        prefixLen = prefix.size();
+        prefix_len_ = prefix.size();
         chunk_num_ = 0;
         seq_num_ = 0;
-        bufSize = range_size;
-        dataLen = 0;
-        hash_ = CityHash64WithSeed(prefix_.get(), prefixLen, 16);
+        buf_size_ = range_size;
+        data_len_ = 0;
+        hash_ = CityHash64WithSeed(prefix_.get(), prefix_len_, 16);
     });
 }
 
 
 bool NvRangeTab::equals(const string &prefix) {
-    string cur_prefix(prefix_.get(), prefixLen);
+    string cur_prefix(prefix_.get(), prefix_len_);
     return cur_prefix == prefix;
 }
 
@@ -38,6 +37,6 @@ bool NvRangeTab::equals(rocksdb::p_buf &prefix, size_t len) {
 }
 
 bool NvRangeTab::equals(rocksdb::NvRangeTab &b) {
-    return equals(b.prefix_, b.prefixLen);
+    return equals(b.prefix_, b.prefix_len_);
 }
 }

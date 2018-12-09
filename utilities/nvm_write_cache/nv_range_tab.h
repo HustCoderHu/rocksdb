@@ -41,25 +41,24 @@ public:
     bool equals(p_buf &prefix, size_t len);
 
     bool equals(NvRangeTab &b);
+
     char* raw_;
     p<int> offset_;
-
     p<uint64_t> hash_;
 
-    p<size_t> prefixLen; // string prefix_ tail 0 not included
+    p<size_t> prefix_len_; // string prefix_ tail 0 not included
     p_buf prefix_; // prefix
 
-    p<size_t> rangebufLen;
+    p<size_t> range_buf_len_;
     p_buf key_range_; //key range
 
     p<size_t> chunk_num_;
     p<uint64_t> seq_num_;
 
-    p<size_t> bufSize; // capacity
-    p<size_t> dataLen; // exact data len
+    p<size_t> buf_size_; // capacity
+    p<size_t> data_len_; // exact data len
 
-    persistent_ptr<NvRangeTab> extra_buf;
-    //p_buf buf; // buf data
+    persistent_ptr<NvRangeTab> pair_buf_;
 
 };
 }
