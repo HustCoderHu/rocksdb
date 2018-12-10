@@ -140,7 +140,7 @@ public:
             });
             rootp_->inited = true;
         }
-        tab = new FixedRangeTab(pop_, foptions_, rootp_->p_content);
+        tab = new FixedRangeTab(pop_, &icmp_, foptions_, rootp_->p_content);
 
         value_size_ = 4 * 1024;
     }

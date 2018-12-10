@@ -1023,7 +1023,7 @@ if (WITH_TESTS)
             utilities/ttl/ttl_test.cc
             utilities/write_batch_with_index/write_batch_with_index_test.cc
             #utilities/nvm_write_cache/fixed_range_chunk_based_flush_job_test.cc
-            utilities/nvm_write_cache/range_tab_test.cc
+            #utilities/nvm_write_cache/range_tab_test.cc
             )
     if (WITH_LIBRADOS)
         list(APPEND TESTS utilities/env_librados_test.cc)
@@ -1086,11 +1086,11 @@ if (WITH_TESTS)
                 OUTPUT_NAME ${exename}${ARTIFACT_SUFFIX}
                 )
         target_link_libraries(${CMAKE_PROJECT_NAME}_${exename}${ARTIFACT_SUFFIX} testutillib${ARTIFACT_SUFFIX} gtest ${LIBS} )
-        if("${exename}" MATCHES "range_tab_test")
-            link_directories(/usr/local/lib)
-            target_link_libraries(${CMAKE_PROJECT_NAME}_${exename}${ARTIFACT_SUFFIX} cityhash)
-            include_directories(/usr/local/include ${LIBPMEMOBJ++_INCLUDE_DIRS})
-        endif()
+        #if("${exename}" MATCHES "range_tab_test")
+         #   link_directories(/usr/local/lib)
+         #   target_link_libraries(${CMAKE_PROJECT_NAME}_${exename}${ARTIFACT_SUFFIX} cityhash)
+         #   include_directories(/usr/local/include ${LIBPMEMOBJ++_INCLUDE_DIRS})
+        #endif()
         if (NOT "${exename}" MATCHES "db_sanity_test")
             add_test(NAME ${exename} COMMAND ${exename}${ARTIFACT_SUFFIX})
             add_dependencies(check ${CMAKE_PROJECT_NAME}_${exename}${ARTIFACT_SUFFIX})
