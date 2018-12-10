@@ -20,7 +20,7 @@ NVMCacheOptions::NVMCacheOptions(const shared_ptr<NVMCacheSetup> setup)
             nvm_write_cache_(nullptr)
 {
     pmem_info_.pmem_path_ = setup->pmem_path;
-    pmem_info_.pmem_size_ = 200ul * 1024 * 1024 * 1024;
+    pmem_info_.pmem_size_ = 100ul * 1024 * 1024 * 1024;
 }
 
 FixedRangeChunkBasedNVMWriteCache *NVMCacheOptions::NewFixedRangeChunkBasedCache(const NVMCacheOptions *nvm_cache_options,
