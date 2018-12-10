@@ -1,8 +1,6 @@
 #pragma once
 #include <list>
 #include <memory>
-#include <wsman.h>
-
 
 #include "monitoring/instrumented_mutex.h"
 
