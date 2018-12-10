@@ -3,12 +3,6 @@
 //
 
 #pragma once
-#include "libpmemobj++/p.hpp"
-#include "libpmemobj++/persistent_ptr.hpp"
-#include "libpmemobj++/pool.hpp"
-#include "libpmemobj++/transaction.hpp"
-#include "libpmemobj++/make_persistent.hpp"
-#include "libpmemobj++/make_persistent_array.hpp"
 
 #include "persistent_bitmap.h"
 namespace rocksdb{
@@ -55,7 +49,7 @@ public:
     }
 
     void Release(){
-        transaction::run(pop_, (){
+        transaction::run(pop_, [&]{
             delete_persistent<char[]>(raw_, total_size_);
         });
     }
