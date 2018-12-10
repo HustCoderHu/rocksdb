@@ -130,7 +130,7 @@ private:
         const FixedRangeBasedOptions *internal_options_;
         const InternalKeyComparator* icmp_;
         unordered_map<string, FixedRangeTab*> prefix2range;
-        std::queue<CompactionItem> range_queue_;
+        std::vector<CompactionItem> range_queue_;
         InstrumentedMutex queue_lock_;
         int lock_count;
 

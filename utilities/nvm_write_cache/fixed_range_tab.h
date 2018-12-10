@@ -31,56 +31,81 @@ using pmem::obj::persistent_ptr;
 
 using p_buf = persistent_ptr<char[]>;
 
+enum SwitchDirection{
+    kToWBuffer,
+    kToCBuffer,
+};
+
+enum UsageType{
+    kForCompaction,
+    kForWritting,
+    kForTotal,
+    kEmptyUsage,
+};
+
 class Usage {
 public:
+    UsageType type;
     uint64_t chunk_num;
     uint64_t range_size;
     Slice start_, end_;
 
-    Usage():chunk_num(0), range_size(0) {}
+
+    Usage():type(kEmptyUsage),
+        chunk_num(0),
+        range_size(0),
+        istart(nullptr),
+        iend(nullptr){}
 
     Usage(const Usage& u) {
         *this = u;
     }
 
+    ~Usage(){
+        delete istart;
+        delete iend;
+    }
+
     Usage& operator=(const Usage& u) {
         if (this != &u) {
+            type = u.type;
             chunk_num = u.chunk_num;
             range_size = u.range_size;
-            //start.DecodeFrom(Slice(*u.start.rep()));
             start_ = u.start_;
             end_ = u.end_;
+            istart = u.istart;
+            iend = u.iend;
         }
         return *this;
     }
 
-    unique_ptr<InternalKey> start() {
-        if(!start_.empty()){
-            unique_ptr<InternalKey> ptr(new InternalKey());
-            ptr->DecodeFrom(start_);
-            return ptr;
-        }else{
+    InternalKey* start() {
+        if(!start_.empty() && istart != nullptr){
+            return istart;
+        }else if(!start_.empty() && istart == nullptr){
+            istart = new InternalKey();
+            istart->DecodeFrom(start_);
+            return  istart;
+        } else {
             return nullptr;
         }
     }
 
-    unique_ptr<InternalKey> end() const{
-        if(!end_.empty()){
-            unique_ptr<InternalKey> ptr(new InternalKey());
-            ptr->DecodeFrom(end_);
-            return ptr;
-        }else{
+    InternalKey* end() {
+        if(!end_.empty() && iend != nullptr){
+            return istart;
+        }else if(!end_.empty() && iend == nullptr){
+            iend = new InternalKey();
+            iend->DecodeFrom(end_);
+            return  iend;
+        } else {
             return nullptr;
         }
     }
+private:
+    InternalKey *istart, *iend;
 
 
-
-};
-
-enum SwitchDirection{
-    kToWBuffer,
-    kToCBuffer,
 };
 
 class PersistentAllocator;
@@ -136,7 +161,7 @@ public:
     // 设置extra buf，同时更新raw
     //void SetExtraBuf(persistent_ptr<NvRangeTab> extra_buf);
 
-    Usage RangeUsage(bool for_compaction = false);
+    Usage RangeUsage(UsageType type);
 
     // 释放当前RangeMemtable的所有chunk以及占用的空间
     void Release();

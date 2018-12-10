@@ -45,6 +45,7 @@ public:
     char* raw_;
     p<int> offset_;
     p<uint64_t> hash_;
+    p<bool> writting_;
 
     p<size_t> prefix_len_; // string prefix_ tail 0 not included
     p_buf prefix_; // prefix

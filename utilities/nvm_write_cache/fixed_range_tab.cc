@@ -387,41 +387,58 @@ void FixedRangeTab::RebuildBlkList() {
     raw_ = w_buffer_->raw_ + 2 * sizeof(uint64_t);
 }
 
-Usage FixedRangeTab::RangeUsage(bool for_compaction) {
+Usage FixedRangeTab::RangeUsage(UsageType type) {
     Usage usage;
     Slice start, end;
-    if (c_buffer_ != nullptr) {
-        // 获取c_buffer的range
-        GetRealRange(c_buffer_.get(), start, end);
-        usage.range_size = c_buffer_->data_len_;
-        usage.chunk_num = c_buffer_->chunk_num_;
-        usage.start_ = start;
-        usage.end_ = end;
-    } else if (!for_compaction) {
-        // 如果不是compaction调用，则获取w_buffer的range
-        Slice wstart, wend;
-        GetRealRange(w_buffer_.get(), start, end);
-        if (usage.chunk_num != 0) {
-            // 有c_buffer的chunk不为0
-            if (icmp_->Compare(wstart, usage.start_) < 0) {
-                usage.start_ = wstart;
-            }
-            if (icmp_->Compare(wend, usage.end_) > 0) {
-                usage.end_ = wend;
-            }
-        } else {
-            usage.start_ = wstart;
-            usage.end_ = wend;
+    auto get_usage = [&](NvRangeTab* tab){
+        if(tab != nullptr){
+            assert(usage.chunk_num = 0);
+            GetRealRange(tab, start, end);
+            usage.range_size = tab->data_len_;
+            usage.chunk_num = tab->chunk_num_;
+            usage.start_ = start;
+            usage.end_ = end;
+            if(usage.chunk_num == 0) usage.type = kEmptyUsage;
+        }else{
+            usage.type = kEmptyUsage;
         }
-        usage.range_size += w_buffer_->data_len_;
-        usage.chunk_num += w_buffer_->chunk_num_;
-    }
+    };
+    switch (type){
+        case kForTotal:{
+            get_usage(w_buffer_.get());
+            Usage wusage = usage;
+            get_usage(c_buffer_.get());
+            Usage cusage = usage;
+            if(wusage.type == kEmptyUsage){
+                return cusage;
+            }else if(cusage.type == kEmptyUsage){
+                return wusage;
+            }else{
+                wusage.chunk_num += cusage.chunk_num;
+                wusage.range_size += cusage.range_size;
+                if (icmp_->Compare(wusage.start_, cusage.start_) > 0) {
+                    wusage.start_ = cusage.start_;
+                }
+                if (icmp_->Compare(wusage.end_, cusage.end_) < 0) {
+                    wusage.end_ = cusage.end_;
+                }
+                return wusage;
+            }
+        }
 
-    if(for_compaction){
-        assert(usage.chunk_num != 0);
-    }
+        case kForCompaction:{
+            get_usage(c_buffer_.get());
+            return usage;
+        }
+        case kForWritting:{
+            get_usage(w_buffer_.get());
+            return usage;
+        }
 
-    return usage;
+        default:
+            assert(usage.type == kEmptyUsage);
+            return usage;
+    }
 }
 
 void FixedRangeTab::ConsistencyCheck() {
@@ -475,6 +492,7 @@ void FixedRangeTab::GetProperties() {
 void FixedRangeTab::SwitchBuffer(SwitchDirection direction) {
     switch(direction){
         case kToWBuffer:
+            assert(c_buffer_->writting_ = false);
             CleanUp(c_buffer_.get());
             cblklist_.clear();
             c_buffer_ = nullptr;
@@ -483,7 +501,9 @@ void FixedRangeTab::SwitchBuffer(SwitchDirection direction) {
         case kToCBuffer:
             assert(c_buffer_ == nullptr);
             c_buffer_ = w_buffer_;
+            c_buffer_->writting_=false;
             w_buffer_ = w_buffer_->pair_buf_;
+            w_buffer_->writting_ = true;
             raw_ = w_buffer_->raw_;
             cblklist_.swap(wblklist_);
             wblklist_.clear();

@@ -7,7 +7,7 @@ using std::string;
 
 FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
         const FixedRangeBasedOptions *ioptions,
-        const InternalKeyComparator* icmp,
+        const InternalKeyComparator *icmp,
         const string &file, uint64_t pmem_size,
         bool reset) {
     //bool justCreated = false;
@@ -29,18 +29,19 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
             pinfo_->range_map_ = make_persistent<pmem_hash_map<NvRangeTab>>(pop_, 0.75, 256);
             persistent_ptr<char[]> buf = make_persistent<char[]>(pmem_size);
             persistent_ptr<PersistentBitMap> bitmap = make_persistent<PersistentBitMap>(pop_,
-                    pmem_size / ioptions->range_size_);
+                                                                                        pmem_size /
+                                                                                        ioptions->range_size_);
             pinfo_->allocator_ = make_persistent<PersistentAllocator>(buf, pmem_size, ioptions->range_size_, bitmap);
             pinfo_->inited_ = true;
         });
-    }else if(reset){
+    } else if (reset) {
         // reset cache
         transaction::run(pop_, [&] {
             delete_persistent<pmem_hash_map>(pinfo_->range_map_);
             pinfo_->range_map_ = make_persistent<pmem_hash_map<NvRangeTab>>(pop_, 0.75, 256);
         });
         pinfo_->allocator_->Reset();
-    }else {
+    } else {
         // rebuild cache
         RebuildFromPersistentNode();
     }
@@ -48,7 +49,7 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
 }
 
 FixedRangeChunkBasedNVMWriteCache::~FixedRangeChunkBasedNVMWriteCache() {
-    for(auto range: vinfo_->prefix2range){
+    for (auto range: vinfo_->prefix2range) {
         // 释放FixedRangeTab的空间
         delete range.second;
     }
@@ -58,9 +59,11 @@ FixedRangeChunkBasedNVMWriteCache::~FixedRangeChunkBasedNVMWriteCache() {
     pop_.close();
 }
 
-bool FixedRangeChunkBasedNVMWriteCache::Get(const InternalKeyComparator &internal_comparator, Status *s, const LookupKey &lkey,
-                                              std::string *value) {
-    std::string prefix = (*vinfo_->internal_options_->prefix_extractor_)(lkey.user_key().data(), lkey.user_key().size());
+bool FixedRangeChunkBasedNVMWriteCache::Get(const InternalKeyComparator &internal_comparator, Status *s,
+                                            const LookupKey &lkey,
+                                            std::string *value) {
+    std::string prefix = (*vinfo_->internal_options_->prefix_extractor_)(lkey.user_key().data(),
+                                                                         lkey.user_key().size());
     DBG_PRINT("prefix: [%s], size[%lu]", prefix.c_str(), prefix.size());
     auto found_tab = vinfo_->prefix2range.find(prefix);
     if (found_tab == vinfo_->prefix2range.end()) {
@@ -89,14 +92,14 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
 
     //DBG_PRINT("Append to Range[%s]", meta.prefix.c_str());
     //DBG_PRINT("start append");
-    if(!now_range->EnoughFroWriting(bloom_data.size() + chunk_data.size())){
+    if (!now_range->EnoughFroWriting(bloom_data.size() + chunk_data.size())) {
         // not enough
-        if(now_range->HasCompactionBuf()){
+        if (now_range->HasCompactionBuf()) {
             // has no space need wait
-            while (now_range->EnoughFroWriting(bloom_data.size() + chunk_data.size())){
+            while (now_range->EnoughFroWriting(bloom_data.size() + chunk_data.size())) {
                 sleep(1);
             }
-        }else{
+        } else {
             // switch buffer
             now_range->lock();
             now_range->SwitchBuffer(kToCBuffer);
@@ -113,8 +116,8 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
 persistent_ptr<NvRangeTab> FixedRangeChunkBasedNVMWriteCache::NewContent(const string &prefix, size_t bufSize) {
     persistent_ptr<NvRangeTab> p_content_1, p_content_2;
     int offset1 = 0, offset2 = 0;
-    char* pmem1 = pinfo_->allocator_->Allocate(offset1);
-    char* pmem2 = pinfo_->allocator_->Allocate(offset2);
+    char *pmem1 = pinfo_->allocator_->Allocate(offset1);
+    char *pmem2 = pinfo_->allocator_->Allocate(offset2);
     transaction::run(pop_, [&] {
         p_content_1 = make_persistent<NvRangeTab>(pop_, pmem1, offset1, bufSize);
         p_content_2 = make_persistent<NvRangeTab>(pop_, pmem2, offset2, bufSize);
@@ -128,9 +131,7 @@ persistent_ptr<NvRangeTab> FixedRangeChunkBasedNVMWriteCache::NewContent(const s
 FixedRangeTab *FixedRangeChunkBasedNVMWriteCache::NewRange(const std::string &prefix) {
     persistent_ptr<NvRangeTab> p_content = NewContent(prefix, vinfo_->internal_options_->range_size_);
     pinfo_->range_map_->put(pop_, p_content);
-
-
-    //p_range::p_node new_node = pinfo_->range_map_->get_node(_hash, prefix);
+    p_content->writting_ = true;
     FixedRangeTab *range = new FixedRangeTab(pop_, vinfo_->internal_options_, vinfo_->icmp_, p_content);
     vinfo_->prefix2range.insert({prefix, range});
     return range;
@@ -141,74 +142,42 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
     // 选择所有range中数据大小占总容量80%的range并按照总容量的大小顺序插入compaction queue
     std::vector<CompactionItem> pendding_compact;
     for (auto range : vinfo_->prefix2range) {
-
-        /*{
-            Usage range_usage = range.second->RangeUsage();
-            DBG_PRINT("range[%s] size[%f]MB threshold [%f]MB",range.first.c_str(), range_usage.range_size / 1048576.0, (range.second->max_range_size() / 1048576.0) * 0.8);
-        }*/
-        Usage range_usage = range.second->RangeUsage();
-        if (range.second->IsCompactPendding() || range.second->IsCompactWorking()) {
-            // this range has already in compaction queue
-            if(range.second->IsCompactPendding()){
-                DBG_PRINT("Already in queue");
-            }else{
-                DBG_PRINT("Compaction Working");
-            }
-            //DBG_PRINT("pendding or compaction range[%s] size[%f]MB threshold [%f]MB",range.first.c_str(), range_usage.range_size / 1048576.0, (range.second->max_range_size() / 1048576.0) * 0.8);
+        FixedRangeTab *tab = range.second;
+        if (tab->IsCompactWorking()) {
             continue;
         }
-        if(range.second->IsExtraBufExists() && !range.second->IsCompactWorking()){
-            // 对于已有extra buffer的range直接加入
-            //DBG_PRINT("has extra buf range size[%f]MB threshold [%f]MB", range_usage.range_size / 1048576.0, (range.second->max_range_size() / 1048576.0) * 0.8);
-            DBG_PRINT("Has Extra Buffer");
-            pendding_compact.emplace_back(range.second, pinfo_->allocator_);
+        if (tab->IsCompactPendding()) {
             continue;
         }
-
-        if (range_usage.range_size >= range.second->max_range_size() * 0.8) {
-            DBG_PRINT("Oversize and not in queue");
-            //DBG_PRINT("general range[%s] size[%f]MB threshold [%f]MB add to queue",range.first.c_str(), range_usage.range_size / 1048576.0, (range.second->max_range_size() / 1048576.0) * 0.8);
-            pendding_compact.emplace_back(range.second, pinfo_->allocator_);
+        Usage range_usage = range.second->RangeUsage(kForWritting);
+        if (range_usage.range_size >= tab->max_range_size() * 0.9 || (tab->HasCompactionBuf()&&
+                                                                        !tab->IsCompactPendding() &&
+                                                                        !tab->IsCompactWorking())) {
+            vinfo_->queue_lock_.Lock();
+            tab->SetCompactionPendding(true);
+            vinfo_->range_queue_.emplace_back(tab);
+            vinfo_->queue_lock_.Unlock();
         }
     }
     DBG_PRINT("[%lu]range need compaction", pendding_compact.size());
-    std::sort(pendding_compact.begin(), pendding_compact.end(),
-              [](const CompactionItem &litem, const CompactionItem &ritem) {
-                  return litem.pending_compated_range_->RangeUsage().range_size >
-                         ritem.pending_compated_range_->RangeUsage().range_size;
-              });
-
-    // TODO 是否需要重新添加queue
-    //DBG_PRINT("Cache lock[%d]", vinfo_->lock_count);
-    vinfo_->queue_lock_.Lock();
-    vinfo_->lock_count++;
-    //DBG_PRINT("In cache lock[%d]", vinfo_->lock_count);
-    for (auto pendding_range : pendding_compact) {
-        DBG_PRINT("pendding range size[%lu]", pendding_range.pending_compated_range_->RangeUsage().range_size);
-        if (!pendding_range.pending_compated_range_->IsCompactPendding()) {
-            pendding_range.pending_compated_range_->SetCompactionPendding(true);
-            vinfo_->range_queue_.push(std::move(pendding_range));
-        }
-    }
-    vinfo_->lock_count--;
-    vinfo_->queue_lock_.Unlock();
-
-    //DBG_PRINT("end compaction check and unlock[%d]", vinfo_->lock_count);
 }
 
+// call by compaction thread
 void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionItem *compaction) {
-
     assert(!vinfo_->range_queue_.empty());
-    //DBG_PRINT("Cache lock[%d]", vinfo_->lock_count);
     vinfo_->queue_lock_.Lock();
-    vinfo_->lock_count++;
-    //DBG_PRINT("In cache lock[%d]", vinfo_->lock_count);
-    *compaction = vinfo_->range_queue_.front();
-    vinfo_->range_queue_.pop();
+    std::sort(vinfo_->range_queue_.begin(), vinfo_->range_queue_.end(),
+              [](const CompactionItem &litem, const CompactionItem &ritem) {
+                  return litem.pending_compated_range_->RangeUsage(kForWritting).range_size <
+                         ritem.pending_compated_range_->RangeUsage(kForWritting).range_size;
+              });
+    //DBG_PRINT("In cache lock");
+    *compaction = vinfo_->range_queue_.back();
+    vinfo_->range_queue_.pop_back();
+    compaction->pending_compated_range_->SetCompactionPendding(false);
+    compaction->pending_compated_range_->SetCompactionWorking(true);
     vinfo_->queue_lock_.Unlock();
-    vinfo_->lock_count--;
-    //DBG_PRINT("end get compaction and unlock[%d]", vinfo_->lock_count);
-
+    //DBG_PRINT("end get compaction and unlock");
 }
 
 void FixedRangeChunkBasedNVMWriteCache::RebuildFromPersistentNode() {
@@ -218,12 +187,19 @@ void FixedRangeChunkBasedNVMWriteCache::RebuildFromPersistentNode() {
     pmem_hash_map<NvRangeTab> *vhash_map = vpinfo->range_map_.get();
     vector<persistent_ptr<NvRangeTab> > tab_vec;
     vhash_map->getAll(tab_vec);
-    char* raw_space = vpinfo->allocator_->raw().get();
+    char *raw_space = vpinfo->allocator_->raw().get();
     for (auto content : tab_vec) {
-        NvRangeTab* ptab = content.get();
-        ptab->SetRaw(raw_space + ptab->offset_);
+        // 一对buf的状态一定是不一样的
+        assert(content->writting_ != content->pair_buf_->writting_);
+        NvRangeTab *ptab = content.get();
+        if(!ptab->writting_){
+            content = content->pair_buf_;
+        }
+        // 恢复tab的char*指针，这是一个易失量
+        // offset记录的是第几个分配单位，分配单位是range size
+        ptab->SetRaw(raw_space + ptab->offset_ * vinfo_->internal_options_->range_size_);
         FixedRangeTab *recovered_tab = new FixedRangeTab(pop_, vinfo_->internal_options_, content);
-        string recoverd_prefix(content->prefix_.get(), content->prefixLen);
+        string recoverd_prefix(content->prefix_.get(), content->prefix_len_);
         vinfo_->prefix2range[recoverd_prefix] = recovered_tab;
     }
     MaybeNeedCompaction();
@@ -252,9 +228,9 @@ void FixedRangeChunkBasedNVMWriteCache::RangeExistsOrCreat(const std::string &pr
 
 // IMPORTANT!!!
 // ONLY FOR TEST
-FixedRangeTab* FixedRangeChunkBasedNVMWriteCache::GetRangeTab(const std::string &prefix) {
-	auto res_ = vinfo_->prefix2range.find(prefix);
-	return res_->second;
+FixedRangeTab *FixedRangeChunkBasedNVMWriteCache::GetRangeTab(const std::string &prefix) {
+    auto res_ = vinfo_->prefix2range.find(prefix);
+    return res_->second;
 }
 
 } // namespace rocksdb
