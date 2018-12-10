@@ -160,7 +160,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
                                                                         !tab->IsCompactWorking())) {
             DBG_PRINT("Range [%s] Need Compaction [%f]MB > [%f]MB", tab->prefix().c_str(),
                     range_usage.range_size/10418576.0,
-                    vinfo_->internal_options_->range_size_ / 1048576.0);
+                    tab->max_range_size() * 0.9);
             vinfo_->queue_lock_.Lock();
             tab->SetCompactionPendding(true);
             vinfo_->range_queue_.push_back(tab);
