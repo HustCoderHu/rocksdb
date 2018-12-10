@@ -30,6 +30,7 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
             pinfo_->range_map_ = make_persistent<pmem_hash_map<NvRangeTab>>(pop_, 0.75, 256);
             DBG_PRINT("alloc raw buf[%f]GB", range_pool_size/(1073741824.0));
             persistent_ptr<char[]> buf = make_persistent<char[]>(range_pool_size);
+            DBG_PRINT("alloc bitmap[%lu]bits",range_pool_size / ioptions->range_size_);
             persistent_ptr<PersistentBitMap> bitmap = make_persistent<PersistentBitMap>(pop_,
                                                                                         range_pool_size /
                                                                                         ioptions->range_size_);
