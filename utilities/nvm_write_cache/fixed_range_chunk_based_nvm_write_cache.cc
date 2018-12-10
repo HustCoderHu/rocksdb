@@ -24,13 +24,14 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
     pinfo_ = pop_.root();
     if (!pinfo_->inited_) {
         // init cache
+        uint64_t range_pool_size = pmem_size / 4;
         transaction::run(pop_, [&] {
             pinfo_->range_map_ = make_persistent<pmem_hash_map<NvRangeTab>>(pop_, 0.75, 256);
-            persistent_ptr<char[]> buf = make_persistent<char[]>(pmem_size / 4);
+            persistent_ptr<char[]> buf = make_persistent<char[]>(range_pool_size);
             persistent_ptr<PersistentBitMap> bitmap = make_persistent<PersistentBitMap>(pop_,
-                                                                                        pmem_size /
+                                                                                        range_pool_size /
                                                                                         ioptions->range_size_);
-            pinfo_->allocator_ = make_persistent<PersistentAllocator>(pop_, buf, pmem_size, ioptions->range_size_, bitmap);
+            pinfo_->allocator_ = make_persistent<PersistentAllocator>(pop_, buf, range_pool_size, ioptions->range_size_, bitmap);
             pinfo_->inited_ = true;
         });
     } else if (reset) {
