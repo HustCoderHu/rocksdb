@@ -14,6 +14,7 @@ public:
         bitmap_ = bitmap;
         raw_ = raw_space;
         total_size_ = total_size;
+        range_size_ = range_size;
         cur_ = 0;
     }
 
