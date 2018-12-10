@@ -26,7 +26,7 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
         // init cache
         transaction::run(pop_, [&] {
             pinfo_->range_map_ = make_persistent<pmem_hash_map<NvRangeTab>>(pop_, 0.75, 256);
-            persistent_ptr<char[]> buf = make_persistent<char[]>(pmem_size);
+            persistent_ptr<char[]> buf = make_persistent<char[]>(pmem_size / 4);
             persistent_ptr<PersistentBitMap> bitmap = make_persistent<PersistentBitMap>(pop_,
                                                                                         pmem_size /
                                                                                         ioptions->range_size_);
