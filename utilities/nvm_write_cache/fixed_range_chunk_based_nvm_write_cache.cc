@@ -117,9 +117,9 @@ persistent_ptr<NvRangeTab> FixedRangeChunkBasedNVMWriteCache::NewContent(const s
     int offset1 = 0, offset2 = 0;
     char *pmem1 = pinfo_->allocator_->Allocate(offset1);
     char *pmem2 = pinfo_->allocator_->Allocate(offset2);
-    transaction::run(pop_, [&] {
-        p_content_1 = make_persistent<NvRangeTab>(pop_, pmem1, offset1, bufSize);
-        p_content_2 = make_persistent<NvRangeTab>(pop_, pmem2, offset2, bufSize);
+    transaction::run(pop_, [&]{
+        p_content_1 = make_persistent<NvRangeTab>(pop_, pmem1, offset1, prefix, bufSize);
+        p_content_2 = make_persistent<NvRangeTab>(pop_, pmem2, offset2, prefix, bufSize);
         // NvRangeTab怎么释放空间
     });
     p_content_1->pair_buf_ = p_content_2;

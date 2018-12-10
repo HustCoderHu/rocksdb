@@ -21,7 +21,7 @@ PersistentBitMap::PersistentBitMap(pool_base& pop, size_t maplen) : pop_(pop), l
 
 PersistentBitMap::~PersistentBitMap() {
     transaction::run(pop_, [&]{
-        delete_persistent(bitmap_, bytes_);
+        delete_persistent<char[]>(bitmap_, bytes_);
     });
 }
 
