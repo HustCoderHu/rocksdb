@@ -299,6 +299,8 @@ class Compaction {
 
   FixedRangeTab* compaction_range() const {return pendding_range_->pending_compated_range_;}
 
+  const Usage& compaction_usage() const{return pendding_range_->range_usage;}
+
   PersistentAllocator* range_allocator() const {return pendding_range_->allocator_;}
 
  private:

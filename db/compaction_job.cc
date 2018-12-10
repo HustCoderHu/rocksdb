@@ -415,7 +415,7 @@ void CompactionJob::Prepare() {
     assert(c->column_family_data() != nullptr);
     if (c->start_level() == 0) {
         // Add by Glitter
-        assert(c->compaction_range()->RangeUsage().range_size > 0);
+        assert(c->compaction_usage().range_size > 0);
     } else {
         assert(c->column_family_data()->current()->storage_info()->NumLevelFiles(
                 compact_->compaction->level()) > 0);
