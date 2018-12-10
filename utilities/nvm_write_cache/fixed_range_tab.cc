@@ -392,7 +392,6 @@ Usage FixedRangeTab::RangeUsage(UsageType type) const{
     Slice start, end;
     auto get_usage = [&](NvRangeTab* tab){
         if(tab != nullptr){
-            assert(usage.chunk_num = 0);
             GetRealRange(tab, start, end);
             usage.range_size = tab->data_len_;
             usage.chunk_num = tab->chunk_num_;
