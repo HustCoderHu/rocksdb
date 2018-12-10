@@ -37,7 +37,7 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
     } else if (reset) {
         // reset cache
         transaction::run(pop_, [&] {
-            delete_persistent<pmem_hash_map>(pinfo_->range_map_);
+            delete_persistent<pmem_hash_map<NvRangeTab>>(pinfo_->range_map_);
             pinfo_->range_map_ = make_persistent<pmem_hash_map<NvRangeTab>>(pop_, 0.75, 256);
         });
         pinfo_->allocator_->Reset();

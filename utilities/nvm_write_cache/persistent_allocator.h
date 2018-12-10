@@ -24,9 +24,9 @@ public:
     }
 
     ~PersistentAllocator(){
-        transaction::run(pop_, [&]{
-            delete_persistent(raw_, total_size_);
-        });
+        /*transaction::run(pop_, [&]{
+            delete_persistent<char[]>(raw_, total_size_);
+        });*/
     };
 
     char *Allocate(int &offset) {
@@ -36,6 +36,7 @@ public:
         if(offset != -1){
             alloc = raw_.get() + offset * range_size_;
             cur_ = cur_ + 1;
+            bitmap_->SetBit(offset, true);
         }
         return alloc;
     }
@@ -53,8 +54,14 @@ public:
         cur_ = 0;
     }
 
+    void Release(){
+        transaction::run(pop_, (){
+            delete_persistent<char[]>(raw_, total_size_);
+        });
+    }
+
     void Free(int offset){
-        bitmap_->DelBit(offset);
+        bitmap_->SetBit(offset, false);
         cur_ = cur_ - 1;
     }
 
