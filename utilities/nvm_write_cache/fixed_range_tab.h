@@ -129,7 +129,7 @@ public:
     Status Append(const string& bloom_data, const Slice &chunk_data,
                   const Slice &start, const Slice &end);
 
-    bool Get(Status *s, const LookupKey &lkey, std::string *value);
+    bool Get(Status *s, const LookupKey &lkey, std::string *value) const;
 
     // 返回当前RangeMemtable中所有chunk的有序序列
     // 基于MergeIterator
@@ -139,7 +139,7 @@ public:
     //persistent_ptr<NvRangeTab> getPersistentData() { return w_buffer_; }
 
     // 返回当前range tab是否正在被compact
-    bool IsCompactWorking() { return compaction_working_; }
+    bool IsCompactWorking() const { return compaction_working_; }
 
     // 设置compaction状态
     void SetCompactionWorking(bool working) {
@@ -147,7 +147,7 @@ public:
     }
 
     // 返回当前range tab是否在compaction队列里面
-    bool IsCompactPendding() { return compaction_pendding_; }
+    bool IsCompactPendding() const { return compaction_pendding_; }
 
     // 设置compaction queue状态
     void SetCompactionPendding(bool pendding) {
@@ -159,7 +159,7 @@ public:
     // 设置extra buf，同时更新raw
     //void SetExtraBuf(persistent_ptr<NvRangeTab> extra_buf);
 
-    Usage RangeUsage(UsageType type);
+    Usage RangeUsage(UsageType type) const;
 
     // 释放当前RangeMemtable的所有chunk以及占用的空间
     void Release();
@@ -169,15 +169,15 @@ public:
 
     void SwitchBuffer(SwitchDirection direction);
 
-    bool EnoughFroWriting(uint64_t wsize){
+    bool EnoughFroWriting(uint64_t wsize) const{
         return wsize < (w_buffer_->buf_size_ - w_buffer_->data_len_);
     }
 
-    bool HasCompactionBuf(){
+    bool HasCompactionBuf() const{
         return c_buffer_ != nullptr;
     }
 
-    uint64_t max_range_size() {
+    uint64_t max_range_size() const{
         return w_buffer_->buf_size_;
     }
 
@@ -193,12 +193,12 @@ public:
         //DBG_PRINT("tab unlock[%d]", lock_count);
     }
 
-    string prefix(){
+    string prefix() const{
         return string(w_buffer_->prefix_.get(), w_buffer_->prefix_len_);
     }
 
     // 输出range信息
-    void GetProperties();
+    void GetProperties() const;
 
 private:
 
@@ -210,12 +210,12 @@ private:
     }
 
     // 返回当前RangeMem的真实key range（stat里面记录）
-    void GetRealRange(NvRangeTab* tab, Slice &real_start, Slice &real_end);
+    void GetRealRange(NvRangeTab* tab, Slice &real_start, Slice &real_end) const;
 
     Status searchInChunk(PersistentChunkIterator *iter,
-                         const Slice &key, std::string *value);
+                         const Slice &key, std::string *value) const;
 
-    Slice GetKVData(char *raw, uint64_t item_off);
+    Slice GetKVData(char *raw, uint64_t item_off) const;
 
     void CheckAndUpdateKeyRange(const Slice &new_start, const Slice &new_end);
 

@@ -167,9 +167,9 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
     assert(!vinfo_->range_queue_.empty());
     vinfo_->queue_lock_.Lock();
     std::sort(vinfo_->range_queue_.begin(), vinfo_->range_queue_.end(),
-              [](const CompactionItem &litem, const CompactionItem &ritem) {
-                  return litem.pending_compated_range_->RangeUsage(kForWritting).range_size <
-                         ritem.pending_compated_range_->RangeUsage(kForWritting).range_size;
+              [](const FixedRangeTab *ltab, const FixedRangeTab *rtab) {
+                  return ltab->RangeUsage(kForWritting).range_size <
+                         rtab->RangeUsage(kForWritting).range_size;
               });
     //DBG_PRINT("In cache lock");
     compaction->pending_compated_range_ = vinfo_->range_queue_.back();

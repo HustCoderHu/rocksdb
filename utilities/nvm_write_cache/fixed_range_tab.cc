@@ -148,7 +148,7 @@ Status FixedRangeTab::Append(const string &bloom_data, const Slice &chunk_data,
 }
 
 bool FixedRangeTab::Get(Status *s,
-                        const LookupKey &lkey, std::string *value) {
+                        const LookupKey &lkey, std::string *value) const{
     // 1.从下往上遍历所有的chunk
     auto *iter = new PersistentChunkIterator();
     // shared_ptr能够保证资源回收
@@ -309,7 +309,7 @@ void FixedRangeTab::CleanUp(NvRangeTab* tab) {
 }
 
 Status FixedRangeTab::searchInChunk(PersistentChunkIterator *iter,
-                                    const Slice &key, std::string *value) {
+                                    const Slice &key, std::string *value) const{
     int left = 0, right = iter->count() - 1;
     const Comparator *cmp = icmp_->user_comparator();
     //DBG_PRINT("left[%d]   right[%d]", left, right);
@@ -338,13 +338,13 @@ Status FixedRangeTab::searchInChunk(PersistentChunkIterator *iter,
     return Status::NotFound("not found");
 }
 
-Slice FixedRangeTab::GetKVData(char *raw, uint64_t item_off) {
+Slice FixedRangeTab::GetKVData(char *raw, uint64_t item_off) const{
     char *target = raw + item_off;
     uint64_t target_size = DecodeFixed64(target);
     return Slice(target + sizeof(uint64_t), static_cast<size_t>(target_size));
 }
 
-void FixedRangeTab::GetRealRange(NvRangeTab *tab, Slice &real_start, Slice &real_end) {
+void FixedRangeTab::GetRealRange(NvRangeTab *tab, Slice &real_start, Slice &real_end) const{
     if (tab->key_range_ != nullptr) {
         char *raw = tab->key_range_.get();
         real_start = GetKVData(raw, 0);
@@ -387,7 +387,7 @@ void FixedRangeTab::RebuildBlkList() {
     raw_ = w_buffer_->raw_ + 2 * sizeof(uint64_t);
 }
 
-Usage FixedRangeTab::RangeUsage(UsageType type) {
+Usage FixedRangeTab::RangeUsage(UsageType type) const{
     Usage usage;
     Slice start, end;
     auto get_usage = [&](NvRangeTab* tab){
@@ -465,7 +465,7 @@ void FixedRangeTab::ConsistencyCheck() {
     raw_ += 2 * sizeof(uint64_t);
 }*/
 
-void FixedRangeTab::GetProperties() {
+void FixedRangeTab::GetProperties() const{
     NvRangeTab *vtab = w_buffer_.get();
     uint64_t raw_cur = DecodeFixed64(raw_ - 2 * sizeof(uint64_t));
     uint64_t raw_seq = DecodeFixed64(raw_ - sizeof(uint64_t));
