@@ -14,6 +14,7 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
     vinfo_ = new VolatileInfo(ioptions, icmp);
     if (file_exists(file.c_str()) != 0) {
         // creat pool
+        DBG_PRINT("pmem size[%f]GB", pmem_size/(1073741824.0));
         pop_ = pmem::obj::pool<PersistentInfo>::create(file.c_str(), "FixedRangeChunkBasedNVMWriteCache", pmem_size,
                                                        CREATE_MODE_RW);
     } else {
@@ -24,7 +25,7 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
     pinfo_ = pop_.root();
     if (!pinfo_->inited_) {
         // init cache
-        uint64_t range_pool_size = pmem_size / 20;
+        uint64_t range_pool_size = pmem_size / 25;
         transaction::run(pop_, [&] {
             DBG_PRINT("alloc range map");
             pinfo_->range_map_ = make_persistent<pmem_hash_map<NvRangeTab>>(pop_, 0.75, 256);
