@@ -148,13 +148,13 @@ Status FixedRangeTab::Append(const string &bloom_data, const Slice &chunk_data,
 }
 
 bool FixedRangeTab::Get(Status *s,
-                        const LookupKey &lkey, std::string *value) const{
+                        const LookupKey &lkey, std::string *value){
     // 1.从下往上遍历所有的chunk
     auto *iter = new PersistentChunkIterator();
     // shared_ptr能够保证资源回收
     char *buf = raw_;
     //DBG_PRINT("blklist: size[%lu], pendding_clean[%lu]", blklist.size(), pendding_clean_);
-    auto SearchBlkList = [&](vector<ChunkBlk> &blklist) -> bool {
+    auto SearchBlkList = [&](vector<ChunkBlk> &blklist) -> bool{
         for (int i = blklist.size() - 1; i >= 0; i--) {
             assert(i >= 0);
             ChunkBlk &blk = blklist.at(i);

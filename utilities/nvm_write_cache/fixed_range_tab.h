@@ -129,7 +129,7 @@ public:
     Status Append(const string& bloom_data, const Slice &chunk_data,
                   const Slice &start, const Slice &end);
 
-    bool Get(Status *s, const LookupKey &lkey, std::string *value) const;
+    bool Get(Status *s, const LookupKey &lkey, std::string *value);
 
     // 返回当前RangeMemtable中所有chunk的有序序列
     // 基于MergeIterator
