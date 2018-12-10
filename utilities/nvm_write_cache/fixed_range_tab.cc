@@ -475,7 +475,7 @@ void FixedRangeTab::GetProperties() {
     cout << "prefix = [" << prefix << "]" << endl;
     cout << "capacity = [" << vtab->buf_size_ / 1048576.0 << "]MB" << endl;
     // 传入comparator
-    Usage usage = RangeUsage();
+    Usage usage = RangeUsage(kForTotal);
     cout << "datalen in vtab = [" << vtab->data_len_ << "]" << endl;
     cout << "range size = [" << usage.range_size / 1048576.0 << "]MB, chunk_num = [" << usage.chunk_num << "]" << endl;
     if (vtab->key_range_ != nullptr) {
