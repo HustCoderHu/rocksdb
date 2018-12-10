@@ -24,8 +24,10 @@ NVMCacheOptions::NVMCacheOptions(const shared_ptr<NVMCacheSetup> setup)
 }
 
 FixedRangeChunkBasedNVMWriteCache *NVMCacheOptions::NewFixedRangeChunkBasedCache(const NVMCacheOptions *nvm_cache_options,
-                                                                                 FixedRangeBasedOptions *foptions) {
+                                                                                 FixedRangeBasedOptions *foptions,
+                                                                                 const InternalKeyComparator* icmp) {
     return new FixedRangeChunkBasedNVMWriteCache(foptions,
+                                                 icmp,
                                                  nvm_cache_options->pmem_info_.pmem_path_,
                                                  nvm_cache_options->pmem_info_.pmem_size_,
                                                  nvm_cache_options->reset_nvm_write_cache);

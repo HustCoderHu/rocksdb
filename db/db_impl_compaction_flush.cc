@@ -2659,11 +2659,9 @@ namespace rocksdb {
                 // Add by Glittter
                 // 完成compaction之后的清理工作
                 c->compaction_range()->lock();
-                c->compaction_range()->CleanUp();
-                c->compaction_range()->SetCompactionWorking(false);
-                c->compaction_range()->SetCompactionPendding(false);
+                c->compaction_range()->SwitchBuffer(kToWBuffer);
                 c->compaction_range()->unlock();
-                DBG_PRINT("clean up range");
+                DBG_PRINT("switch buffer to w_buffer");
             }
             c->ReleaseCompactionFiles(status);
             *made_progress = true;

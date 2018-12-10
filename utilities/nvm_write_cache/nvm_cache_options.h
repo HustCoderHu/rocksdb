@@ -106,7 +106,8 @@ struct NVMCacheOptions {
     NVMWriteCache* nvm_write_cache_;
 
     static FixedRangeChunkBasedNVMWriteCache *NewFixedRangeChunkBasedCache(const NVMCacheOptions *nvm_cache_options,
-                                                                           FixedRangeBasedOptions *foptions);
+                                                                           FixedRangeBasedOptions *foptions,
+                                                                           const InternalKeyComparator* icmp);
 };
 
 

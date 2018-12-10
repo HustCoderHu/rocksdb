@@ -487,7 +487,7 @@ namespace rocksdb {
                                                        1 << 27);
             ioptions_.nvm_cache_options->nvm_write_cache_ =
                     reinterpret_cast<NVMWriteCache*>(NVMCacheOptions::NewFixedRangeChunkBasedCache(
-                            ioptions_.nvm_cache_options.get(), foptions));
+                            ioptions_.nvm_cache_options.get(), foptions, &ioptions_.internal_comparator));
         }
 
         RecalculateWriteStallConditions(mutable_cf_options_);

@@ -1229,7 +1229,7 @@ public:
     const MutableCFOptions &mutable_cf_options_;
     const ImmutableCFOptions &ioptions_;
     //FixedRangeTab *pendding_compaction_ = nullptr;
-    CompactionItem pendding_compaction_;
+    CompactionItem *pendding_compaction_;
 
     // Pick a path ID to place a newly generated file, with its level
     static uint32_t GetPathId(const ImmutableCFOptions &ioptions,
@@ -1408,21 +1408,16 @@ bool LevelCompactionBuilder::SetupOtherInputsIfNeeded() {
             return false;
         }
         compaction_inputs_.push_back(start_level_inputs_);
-        assert(pendding_compaction_.pending_compated_range_ == nullptr);
+        assert(pendding_compaction_ == nullptr);
     } else {
         DBG_PRINT("Set range compaction file");
         auto nvm_write_cache = dynamic_cast<FixedRangeChunkBasedNVMWriteCache *>(
                 ioptions_.nvm_cache_options->nvm_write_cache_
         );
-        CompactionItem citem;
-        nvm_write_cache->GetCompactionData(&citem);
-        pendding_compaction_ = citem;
-        assert(pendding_compaction_.pending_compated_range_ != nullptr);
-        FixedRangeTab* range_tab = pendding_compaction_.pending_compated_range_;
-        range_tab->lock();
-        range_tab->SetCompactionWorking(true);
-        range_tab->unlock();
-        Usage range_usage = range_tab->RangeUsage();
+        pendding_compaction_ = new CompactionItem();
+        nvm_write_cache->GetCompactionData(pendding_compaction_);
+        assert(pendding_compaction_->pending_compated_range_ != nullptr);
+        Usage range_usage = pendding_compaction_->range_usage;
         // 通过compaction_picker的SetupOtherInput获取output_level的file
         output_level_inputs_.level = output_level_;
         assert(output_level_inputs_.level == 1);
@@ -1458,9 +1453,10 @@ bool LevelCompactionBuilder::SetupOtherInputsIfNeeded() {
         return false;
     }
     if (start_level_ == 0) {
+        //Usage range_usage = pendding_compaction_->pending_compated_range_->RangeUsage(kForCompaction);//重复
         compaction_picker_->GetGrandparents(vstorage_,
-                                            *pendding_compaction_.pending_compated_range_->RangeUsage().start(),
-                                            *pendding_compaction_.pending_compated_range_->RangeUsage().end(),
+                                            *pendding_compaction_->range_usage.start(),
+                                            *pendding_compaction_->range_usage.end(),
                                             output_level_inputs_, &grandparents_);
     } else {
         compaction_picker_->GetGrandparents(vstorage_, start_level_inputs_,

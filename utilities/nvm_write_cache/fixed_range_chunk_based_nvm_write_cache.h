@@ -39,18 +39,18 @@ using std::function;
 
 struct CompactionItem {
     FixedRangeTab *pending_compated_range_;
+    Usage range_usage;
     PersistentAllocator* allocator_;
 
     CompactionItem() =default;
 
     explicit CompactionItem(FixedRangeTab *range, PersistentAllocator* allocator)
             :   pending_compated_range_(range),
+                range_usage(range->RangeUsage(kForCompaction)),
                 allocator_(allocator){
     }
 
-    CompactionItem(const CompactionItem &item)
-            :   pending_compated_range_(item.pending_compated_range_),
-                allocator_(item.allocator_){}
+    CompactionItem(const CompactionItem &item) =default;
 };
 
 struct ChunkMeta {
@@ -130,9 +130,8 @@ private:
         const FixedRangeBasedOptions *internal_options_;
         const InternalKeyComparator* icmp_;
         unordered_map<string, FixedRangeTab*> prefix2range;
-        std::vector<CompactionItem> range_queue_;
+        std::vector<FixedRangeTab*> range_queue_;
         InstrumentedMutex queue_lock_;
-        int lock_count;
 
 
         explicit VolatileInfo(const FixedRangeBasedOptions *ioptions, const InternalKeyComparator* icmp)

@@ -155,7 +155,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
                                                                         !tab->IsCompactWorking())) {
             vinfo_->queue_lock_.Lock();
             tab->SetCompactionPendding(true);
-            vinfo_->range_queue_.emplace_back(tab);
+            vinfo_->range_queue_.push_back(tab);
             vinfo_->queue_lock_.Unlock();
         }
     }
@@ -172,7 +172,10 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
                          ritem.pending_compated_range_->RangeUsage(kForWritting).range_size;
               });
     //DBG_PRINT("In cache lock");
-    *compaction = vinfo_->range_queue_.back();
+    compaction->pending_compated_range_ = vinfo_->range_queue_.back();
+    compaction->range_usage = compaction->pending_compated_range_->RangeUsage(kForCompaction);
+    compaction->allocator_ = nullptr;
+
     vinfo_->range_queue_.pop_back();
     compaction->pending_compated_range_->SetCompactionPendding(false);
     compaction->pending_compated_range_->SetCompactionWorking(true);

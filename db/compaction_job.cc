@@ -599,7 +599,6 @@ Status CompactionJob::Run() {
 
     // Always schedule the first subcompaction (whether or not there are also
     // others) in the current thread to be efficient with resources
-    DBG_PRINT("Before Process KV Compaction");
     ProcessKeyValueCompaction(&compact_->sub_compact_states[0]);
     DBG_PRINT("After Process KV Compaction");
 

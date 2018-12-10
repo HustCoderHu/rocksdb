@@ -82,7 +82,7 @@ class Compaction {
              bool manual_compaction = false, double score = -1,
              bool deletion_compaction = false,
              CompactionReason compaction_reason = CompactionReason::kUnknown,
-             CompactionItem pendding_range);
+             CompactionItem* pendding_range = nullptr);
 
   // No copying allowed
   Compaction(const Compaction&) = delete;
@@ -386,7 +386,7 @@ class Compaction {
   CompactionReason compaction_reason_;
 
   // Range pendding for compaction
-  CompactionItem pendding_range_;
+  CompactionItem* pendding_range_;
 };
 
 // Utility function
