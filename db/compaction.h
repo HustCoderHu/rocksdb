@@ -66,7 +66,7 @@ class Version;
 class ColumnFamilyData;
 class VersionStorageInfo;
 class CompactionFilter;
-class CompactionItem
+struct CompactionItem;
 
 // A Compaction encapsulates information about a compaction.
 class Compaction {
