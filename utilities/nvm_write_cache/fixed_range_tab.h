@@ -51,17 +51,21 @@ public:
 
     Usage():type(kEmptyUsage),
         chunk_num(0),
-        range_size(0),
-        istart(nullptr),
-        iend(nullptr){}
+        range_size(0){
+        if(!start_.empty()){
+            istart.DecodeFrom(start_);
+        }
+        if(!end_.empty()){
+            iend.DecodeFrom(end_);
+        }
+    }
 
     Usage(const Usage& u) {
         *this = u;
     }
 
     ~Usage(){
-        delete istart;
-        delete iend;
+
     }
 
     Usage& operator=(const Usage& u) {
@@ -77,31 +81,16 @@ public:
         return *this;
     }
 
-    InternalKey* start() {
-        if(!start_.empty() && istart != nullptr){
-            return istart;
-        }else if(!start_.empty() && istart == nullptr){
-            istart = new InternalKey();
-            istart->DecodeFrom(start_);
-            return  istart;
-        } else {
-            return nullptr;
-        }
+    InternalKey& start() {
+        // TODO：start end 可能为空
+        return istart;
     }
 
-    InternalKey* end() {
-        if(!end_.empty() && iend != nullptr){
-            return istart;
-        }else if(!end_.empty() && iend == nullptr){
-            iend = new InternalKey();
-            iend->DecodeFrom(end_);
-            return  iend;
-        } else {
-            return nullptr;
-        }
+    InternalKey& end() {
+        return iend;
     }
 private:
-    InternalKey *istart, *iend;
+    InternalKey istart, iend;
 
 
 };

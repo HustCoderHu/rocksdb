@@ -273,8 +273,8 @@ Compaction::Compaction(VersionStorageInfo *vstorage,
     if(start_level_ == 0){
         //TODO ÅĞ¶ÏÊÇ·ñÎª¿Õ
         Usage usage = pendding_range_->range_usage;
-        smallest_user_key_ = usage.start()->user_key();
-        largest_user_key_ = usage.end()->user_key();
+        smallest_user_key_ = usage.start().user_key();
+        largest_user_key_ = usage.end().user_key();
     }else{
         GetBoundaryKeys(vstorage, inputs_, &smallest_user_key_, &largest_user_key_);
     }

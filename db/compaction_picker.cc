@@ -1424,11 +1424,11 @@ bool LevelCompactionBuilder::SetupOtherInputsIfNeeded() {
         output_level_inputs_.level = output_level_;
         assert(output_level_inputs_.level == 1);
         InternalKey start, end;
-        if (range_usage.start()) {
-            start = *range_usage.start();
+        if (!range_usage.start_.empty()) {
+            start = range_usage.start();
         }
-        if (range_usage.end()) {
-            end = *range_usage.end();
+        if (!range_usage.end_.empty()) {
+            end = range_usage.end();
         }
         if (!compaction_picker_->SetupOtherInputs(cf_name_, mutable_cf_options_,
                                                   vstorage_, start, end,
@@ -1457,8 +1457,8 @@ bool LevelCompactionBuilder::SetupOtherInputsIfNeeded() {
     if (start_level_ == 0) {
         //Usage range_usage = pendding_compaction_->pending_compated_range_->RangeUsage(kForCompaction);//重复
         compaction_picker_->GetGrandparents(vstorage_,
-                                            *pendding_compaction_->range_usage.start(),
-                                            *pendding_compaction_->range_usage.end(),
+                                            pendding_compaction_->range_usage.start(),
+                                            pendding_compaction_->range_usage.end(),
                                             output_level_inputs_, &grandparents_);
     } else {
         compaction_picker_->GetGrandparents(vstorage_, start_level_inputs_,
