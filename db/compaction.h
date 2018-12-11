@@ -297,7 +297,7 @@ class Compaction {
 
   uint64_t MaxInputFileCreationTime() const;
 
-  FixedRangeTab* compaction_range() const {return pendding_range_->pending_compated_range_;}
+  FixedRangeTab* compaction_range() const {return pendding_range_ == nullptr ? nullptr : pendding_range_->pending_compated_range_;}
 
   const Usage& compaction_usage() const{return pendding_range_->range_usage;}
 

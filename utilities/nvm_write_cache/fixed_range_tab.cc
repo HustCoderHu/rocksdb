@@ -36,6 +36,7 @@ using pmem::obj::persistent_ptr;
 
 }*/
 
+char* FixedRangeTab::base_raw_ = nullptr;
 
 FixedRangeTab::FixedRangeTab(pool_base &pop, const FixedRangeBasedOptions *options,
                              const InternalKeyComparator* icmp,
@@ -53,7 +54,8 @@ FixedRangeTab::FixedRangeTab(pool_base &pop, const FixedRangeBasedOptions *optio
     DBG_PRINT("seq_num is %lu", raw_tab->seq_num_.get_ro());
     if (0 == raw_tab->seq_num_.get_ro()) {
         // new node
-        raw_ = raw_tab->raw_;
+        //raw_ = raw_tab->raw_;
+        raw_ = base_raw_ + raw_tab->offset_ * raw_tab->buf_size_;
         // set cur_
         EncodeFixed64(raw_, 0);
         // set seq_
@@ -210,7 +212,7 @@ InternalIterator *FixedRangeTab::NewInternalIterator(Arena *arena, bool for_coma
     } else {
         // Iterator for total iterate
         list = new InternalIterator *[wblklist_.size() + cblklist_.size()];
-        char *rbuf = w_buffer_->raw_ + 2 * sizeof(uint64_t);
+        char *rbuf = base_raw_ + w_buffer_->buf_size_ * w_buffer_->offset_ + 2 * sizeof(uint64_t);
         // add chunk in wbuffer to iterator
         for (auto chunk : wblklist_) {
             pchk.reset(chunk.bloom_bytes_, chunk.chunkLen_, rbuf + chunk.getDatOffset());
@@ -218,7 +220,7 @@ InternalIterator *FixedRangeTab::NewInternalIterator(Arena *arena, bool for_coma
         }
     }
     // add chunk in cbuffer to iterator
-    char *rbuf = c_buffer_->raw_ + 2 * sizeof(uint64_t);
+    char *rbuf = base_raw_ + c_buffer_->buf_size_ * c_buffer_->offset_ + 2 * sizeof(uint64_t);
     for (auto chunk : cblklist_) {
         pchk.reset(chunk.bloom_bytes_, chunk.chunkLen_, rbuf + chunk.getDatOffset());
         list[num++] = pchk.NewIterator(arena);
@@ -305,7 +307,7 @@ void FixedRangeTab::CleanUp(NvRangeTab* tab) {
     // 清除被compact的chunk
     tab->data_len_ = 0;
     tab->chunk_num_ = 0;
-    EncodeFixed64(tab->raw_, 0);
+    EncodeFixed64(base_raw_ + tab->buf_size_ * tab->offset_, 0);
 }
 
 Status FixedRangeTab::searchInChunk(PersistentChunkIterator *iter,
@@ -363,7 +365,7 @@ void FixedRangeTab::RebuildBlkList() {
     // TODO : 确保传进来的是wbuffer
 
     auto build_blklist = [](NvRangeTab* tab, vector<ChunkBlk>& blklist) {
-        char *chunk_head = tab->raw_ + 2 * sizeof(uint64_t);
+        char *chunk_head = base_raw_ + tab->offset_ * tab->buf_size_ + 2 * sizeof(uint64_t);
         size_t data_len = tab->data_len_;
         uint64_t offset = 0;
         DBG_PRINT("dataLen = %lu", data_len);
@@ -384,7 +386,8 @@ void FixedRangeTab::RebuildBlkList() {
         c_buffer_ = w_buffer_->pair_buf_;
     }
 
-    raw_ = w_buffer_->raw_ + 2 * sizeof(uint64_t);
+    //raw_ = w_buffer_->raw_ + 2 * sizeof(uint64_t);
+    raw_ = base_raw_ + w_buffer_->offset_ * w_buffer_->buf_size_ + 2 * sizeof(uint64_t);
 }
 
 Usage FixedRangeTab::RangeUsage(UsageType type) const{
@@ -505,7 +508,7 @@ void FixedRangeTab::SwitchBuffer(SwitchDirection direction) {
             c_buffer_->writting_=false;
             w_buffer_ = w_buffer_->pair_buf_;
             w_buffer_->writting_ = true;
-            raw_ = w_buffer_->raw_;
+            raw_ = base_raw_ + w_buffer_->buf_size_ * w_buffer_->offset_;
             cblklist_.swap(wblklist_);
             wblklist_.clear();
             break;

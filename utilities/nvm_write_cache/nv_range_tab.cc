@@ -6,8 +6,7 @@
 
 
 namespace rocksdb{
-NvRangeTab::NvRangeTab(pool_base &pop, char* raw, uint64_t off, const string &prefix, uint64_t range_size)
-: raw_(raw){
+NvRangeTab::NvRangeTab(pool_base &pop, uint64_t off, const string &prefix, uint64_t range_size){
     transaction::run(pop, [&] {
         offset_ = off;
         writting_ = true;

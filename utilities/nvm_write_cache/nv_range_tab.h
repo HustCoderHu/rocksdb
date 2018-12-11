@@ -23,17 +23,17 @@ using p_buf = persistent_ptr<char[]>;
 
 struct NvRangeTab {
 public:
-    NvRangeTab(pool_base &pop, char* raw, uint64_t off, const string &prefix, uint64_t range_size);
+    NvRangeTab(pool_base &pop, uint64_t off, const string &prefix, uint64_t range_size);
 
     uint64_t hashCode() {
         return hash_;
     }
 
-    char *GetRawBuf() { return raw_; }
+    //char *GetRawBuf() { return raw_; }
 
-    void SetRaw(char* raw){
+    /*void SetRaw(char* raw){
         raw_ = raw;
-    }
+    }*/
 
     // 通过比价前缀，比较两个NvRangeTab是否相等
     bool equals(const string &prefix);
@@ -42,7 +42,7 @@ public:
 
     bool equals(NvRangeTab &b);
 
-    char* raw_;
+    //char* raw_;
     p<int> offset_;
     p<uint64_t> hash_;
     p<bool> writting_;

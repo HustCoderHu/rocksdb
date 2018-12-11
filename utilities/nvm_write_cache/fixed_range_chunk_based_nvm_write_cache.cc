@@ -37,9 +37,11 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
                                                                                         ioptions->range_size_);
             pinfo_->allocator_ = make_persistent<PersistentAllocator>(pop_, buf, range_pool_size, ioptions->range_size_, bitmap);
             pinfo_->inited_ = true;
+            FixedRangeTab::base_raw_ = buf.get();
         });
     } else if (reset) {
         // reset cache
+        FixedRangeTab::base_raw_ = pinfo_->allocator_->raw().get();
         transaction::run(pop_, [&] {
             delete_persistent<pmem_hash_map<NvRangeTab>>(pinfo_->range_map_);
             pinfo_->range_map_ = make_persistent<pmem_hash_map<NvRangeTab>>(pop_, 0.75, 256);
@@ -47,6 +49,7 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
         pinfo_->allocator_->Reset();
     } else {
         // rebuild cache
+        FixedRangeTab::base_raw_ = pinfo_->allocator_->raw().get();
         RebuildFromPersistentNode();
     }
 
@@ -214,7 +217,7 @@ void FixedRangeChunkBasedNVMWriteCache::RebuildFromPersistentNode() {
         }
         // 恢复tab的char*指针，这是一个易失量
         // offset记录的是第几个分配单位，分配单位是range size
-        ptab->SetRaw(raw_space + ptab->offset_ * vinfo_->internal_options_->range_size_);
+        //ptab->SetRaw(raw_space + ptab->offset_ * vinfo_->internal_options_->range_size_);
         FixedRangeTab *recovered_tab = new FixedRangeTab(pop_, vinfo_->internal_options_, vinfo_->icmp_, content);
         string recoverd_prefix(content->prefix_.get(), content->prefix_len_);
         vinfo_->prefix2range[recoverd_prefix] = recovered_tab;
