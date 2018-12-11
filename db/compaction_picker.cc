@@ -1229,7 +1229,7 @@ public:
     const MutableCFOptions &mutable_cf_options_;
     const ImmutableCFOptions &ioptions_;
     //FixedRangeTab *pendding_compaction_ = nullptr;
-    CompactionItem *pendding_compaction_;
+    CompactionItem *pendding_compaction_ = nullptr;
 
     // Pick a path ID to place a newly generated file, with its level
     static uint32_t GetPathId(const ImmutableCFOptions &ioptions,
