@@ -299,9 +299,15 @@ class Compaction {
 
   FixedRangeTab* compaction_range() const {return pendding_range_ == nullptr ? nullptr : pendding_range_->pending_compated_range_;}
 
-  const Usage& compaction_usage() const{return pendding_range_->range_usage;}
+  const Usage& compaction_usage() const{
+      assert(pendding_range_ != nullptr);
+      return pendding_range_->range_usage;
+  }
 
-  PersistentAllocator* range_allocator() const {return pendding_range_->allocator_;}
+  PersistentAllocator* range_allocator() const {
+      assert(pendding_range_ != nullptr);
+      return pendding_range_->allocator_;
+  }
 
  private:
   // mark (or clear) all files that are being compacted
