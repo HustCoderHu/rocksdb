@@ -182,6 +182,8 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
     //DBG_PRINT("In cache lock");
     compaction->pending_compated_range_ = vinfo_->range_queue_.back();
     compaction->range_usage = compaction->pending_compated_range_->RangeUsage(kForCompaction);
+    DBG_PRINT("Get range[%s], size[%f]",compaction->pending_compated_range_->prefix().c_str(),
+            compaction->range_usage.range_size / 1048576.0);
     compaction->allocator_ = nullptr;
 
     vinfo_->range_queue_.pop_back();

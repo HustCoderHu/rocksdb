@@ -1416,6 +1416,8 @@ bool LevelCompactionBuilder::SetupOtherInputsIfNeeded() {
         );
         pendding_compaction_ = new CompactionItem();
         nvm_write_cache->GetCompactionData(pendding_compaction_);
+        DBG_PRINT("Get range[%s], size[%f]",pendding_compaction->pending_compated_range_->prefix().c_str(),
+                  pendding_compaction->range_usage.range_size / 1048576.0);
         assert(pendding_compaction_->pending_compated_range_ != nullptr);
         Usage range_usage = pendding_compaction_->range_usage;
         // 通过compaction_picker的SetupOtherInput获取output_level的file
