@@ -154,43 +154,44 @@ bool FixedRangeTab::Get(Status *s,
     // 1.从下往上遍历所有的chunk
     auto *iter = new PersistentChunkIterator();
     // shared_ptr能够保证资源回收
-    char *buf = raw_;
     //DBG_PRINT("blklist: size[%lu], pendding_clean[%lu]", blklist.size(), pendding_clean_);
-    auto SearchBlkList = [&](vector<ChunkBlk> &blklist) -> bool{
-        for (int i = blklist.size() - 1; i >= 0; i--) {
-            assert(i >= 0);
-            ChunkBlk &blk = blklist.at(i);
-            // |--bloom len--|--bloom data--|--chunk len--|--chunk data|
-            // ^
-            // |
-            // bloom data
-            char *chunk_head = buf + blk.offset_;
-            uint64_t bloom_bytes = blk.bloom_bytes_;
-            if (interal_options_->filter_policy_->KeyMayMatch(lkey.user_key(), Slice(chunk_head + 8, bloom_bytes))) {
-                // 3.如果有则读取元数据进行chunk内的查找
-                //DBG_PRINT("Key in chunk and search");
-                new(iter) PersistentChunkIterator(buf + blk.getDatOffset(), blk.chunkLen_, nullptr);
-                Status result = searchInChunk(iter, lkey.user_key(), value);
-                if (result.ok()) {
-                    delete iter;
-                    *s = Status::OK();
-                    DBG_PRINT("found it!");
-                    return true;
-                }
-            } else {
-                continue;
-            }
-        } // 4.循环直到查找完所有的chunk
-        return false;
-    };
-
     bool result = false;
-    result = SearchBlkList(wblklist_);
+    result = SearchBlockList(wblklist_, s, iter, lkey, value);
     if (!result && c_buffer_ != nullptr) {
-        result = SearchBlkList(cblklist_);
+        result = SearchBlockList(cblklist_, s, iter, lkey, value);
     }
     delete iter;
     return result;
+}
+
+bool FixedRangeTab::SearchBlockList(vector<rocksdb::ChunkBlk> &blklist, Status *s,
+        PersistentChunkIterator* iter, const LookupKey& lkey, std::string *value){
+    char *buf = raw_;
+    for (int i = blklist.size() - 1; i >= 0; i--) {
+        assert(i >= 0);
+        ChunkBlk &blk = blklist.at(i);
+        // |--bloom len--|--bloom data--|--chunk len--|--chunk data|
+        // ^
+        // |
+        // bloom data
+        char *chunk_head = buf + blk.offset_;
+        uint64_t bloom_bytes = blk.bloom_bytes_;
+        if (interal_options_->filter_policy_->KeyMayMatch(lkey.user_key(), Slice(chunk_head + 8, bloom_bytes))) {
+            // 3.如果有则读取元数据进行chunk内的查找
+            //DBG_PRINT("Key in chunk and search");
+            new(iter) PersistentChunkIterator(buf + blk.getDatOffset(), blk.chunkLen_, nullptr);
+            Status result = searchInChunk(iter, lkey.user_key(), value);
+            if (result.ok()) {
+                delete iter;
+                *s = Status::OK();
+                DBG_PRINT("found it!");
+                return true;
+            }
+        } else {
+            continue;
+        }
+    } // 4.循环直到查找完所有的chunk
+    return false;
 }
 
 /* *
@@ -250,49 +251,44 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const Slice &new_start, const Slice &
 
     if (update_start || update_end) {
         size_t range_data_size = cur_start.size() + cur_end.size() + 2 * sizeof(uint64_t);
-        auto UpdateRangeBuf = [&](persistent_ptr<NvRangeTab> p_content) {
-
-            auto AllocBufAndUpdate = [&](size_t range_size) {
-                persistent_ptr<char[]> new_range = nullptr;
-                transaction::run(pop_, [&] {
-                    new_range = make_persistent<char[]>(range_size);
-                    // get raw ptr
-                    char *p_new_range = new_range.get();
-                    // put start
-                    EncodeFixed64(p_new_range, cur_start.size());
-                    memcpy(p_new_range + sizeof(uint64_t), cur_start.data(), cur_start.size());
-                    // put end
-                    p_new_range += sizeof(uint64_t) + cur_start.size();
-                    EncodeFixed64(p_new_range, cur_end.size());
-                    memcpy(p_new_range + sizeof(uint64_t), cur_end.data(), cur_end.size());
-
-                    // switch old range with new range
-                    delete_persistent<char[]>(p_content->key_range_, p_content->range_buf_len_);
-                    p_content->key_range_ = new_range;
-                    p_content->range_buf_len_ = range_size;
-                });
-            };
-
-            if (range_data_size > w_buffer_->range_buf_len_) {
-                // 新的range data size大于已有的range buf空间
-                AllocBufAndUpdate(range_data_size);
-            } else if (range_data_size < (w_buffer_->range_buf_len_ / 2) && w_buffer_->range_buf_len_ > 200) {
-                // 此时rangebuf大小缩减一半
-                AllocBufAndUpdate(w_buffer_->range_buf_len_ / 2);
-            } else {
-                // 直接写进去
-                char *range_buf = w_buffer_->key_range_.get();
+        auto AllocBufAndUpdate = [&](size_t range_size) {
+            persistent_ptr<char[]> new_range = nullptr;
+            transaction::run(pop_, [&] {
+                new_range = make_persistent<char[]>(range_size);
+                // get raw ptr
+                char *p_new_range = new_range.get();
                 // put start
-                EncodeFixed64(range_buf, cur_start.size());
-                memcpy(range_buf + sizeof(uint64_t), cur_start.data(), cur_start.size());
+                EncodeFixed64(p_new_range, cur_start.size());
+                memcpy(p_new_range + sizeof(uint64_t), cur_start.data(), cur_start.size());
                 // put end
-                range_buf += sizeof(uint64_t) + cur_start.size();
-                EncodeFixed64(range_buf, cur_end.size());
-                memcpy(range_buf + sizeof(uint64_t), cur_end.data(), cur_end.size());
-            }
+                p_new_range += sizeof(uint64_t) + cur_start.size();
+                EncodeFixed64(p_new_range, cur_end.size());
+                memcpy(p_new_range + sizeof(uint64_t), cur_end.data(), cur_end.size());
+
+                // switch old range with new range
+                delete_persistent<char[]>(w_buffer_->key_range_, w_buffer_->range_buf_len_);
+                w_buffer_->key_range_ = new_range;
+                w_buffer_->range_buf_len_ = range_size;
+            });
         };
 
-        UpdateRangeBuf(w_buffer_);
+        if (range_data_size > w_buffer_->range_buf_len_) {
+            // 新的range data size大于已有的range buf空间
+            AllocBufAndUpdate(range_data_size);
+        } else if (range_data_size < (w_buffer_->range_buf_len_ / 2) && w_buffer_->range_buf_len_ > 200) {
+            // 此时rangebuf大小缩减一半
+            AllocBufAndUpdate(w_buffer_->range_buf_len_ / 2);
+        } else {
+            // 直接写进去
+            char *range_buf = w_buffer_->key_range_.get();
+            // put start
+            EncodeFixed64(range_buf, cur_start.size());
+            memcpy(range_buf + sizeof(uint64_t), cur_start.data(), cur_start.size());
+            // put end
+            range_buf += sizeof(uint64_t) + cur_start.size();
+            EncodeFixed64(range_buf, cur_end.size());
+            memcpy(range_buf + sizeof(uint64_t), cur_end.data(), cur_end.size());
+        }
     }
     //DBG_PRINT("end update range");
 }

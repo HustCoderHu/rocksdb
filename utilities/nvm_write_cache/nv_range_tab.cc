@@ -26,7 +26,6 @@ NvRangeTab::NvRangeTab(pool_base &pop, uint64_t off, const string &prefix, uint6
     });
 }
 
-
 bool NvRangeTab::equals(const string &prefix) {
     string cur_prefix(prefix_.get(), prefix_len_);
     return cur_prefix == prefix;

@@ -10,6 +10,8 @@
 #include "libpmemobj++/make_persistent.hpp"
 #include "libpmemobj++/make_persistent_array.hpp"
 
+#include "rocksdb/slice.h"
+
 namespace rocksdb{
 using std::string;
 using pmem::obj::p;
@@ -20,6 +22,7 @@ using pmem::obj::make_persistent;
 using pmem::obj::transaction;
 
 using p_buf = persistent_ptr<char[]>;
+
 
 struct NvRangeTab {
 public:

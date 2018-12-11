@@ -215,6 +215,8 @@ private:
 
     void CleanUp(NvRangeTab* tab);
 
+    bool SearchBlockList(vector<rocksdb::ChunkBlk> &blklist, Status *s, PersistentChunkIterator* iter, const LookupKey& lkey, std::string *value);
+
     pool_base &pop_;
     persistent_ptr<NvRangeTab> w_buffer_;
     persistent_ptr<NvRangeTab> c_buffer_;
