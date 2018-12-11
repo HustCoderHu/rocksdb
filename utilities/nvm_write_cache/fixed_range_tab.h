@@ -52,12 +52,6 @@ public:
     Usage():type(kEmptyUsage),
         chunk_num(0),
         range_size(0){
-        if(!start_.empty()){
-            istart.DecodeFrom(start_);
-        }
-        if(!end_.empty()){
-            iend.DecodeFrom(end_);
-        }
     }
 
     Usage(const Usage& u) {
@@ -83,13 +77,20 @@ public:
 
     InternalKey& start() {
         // TODO：start end 可能为空
+        if(!parsed_ && !start_.empty()){
+            istart.DecodeFrom(start_);
+        }
         return istart;
     }
 
     InternalKey& end() {
-        return iend;
+        if(!parsed_ && !end_.empty()){
+            iend.DecodeFrom(end_);
+        }
+        return istart;
     }
 private:
+    bool parsed_ = false;
     InternalKey istart, iend;
 
 
