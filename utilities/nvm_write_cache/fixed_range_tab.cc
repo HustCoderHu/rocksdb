@@ -491,7 +491,7 @@ void FixedRangeTab::GetProperties() const{
 void FixedRangeTab::SwitchBuffer(SwitchDirection direction) {
     switch(direction){
         case kToWBuffer:
-            assert(c_buffer_->writting_ = false);
+            assert(c_buffer_->writting_ == false);
             DBG_PRINT("[%s]switch to wbuffer", prefix().c_str());
             CleanUp(c_buffer_.get());
             cblklist_.clear();
@@ -513,7 +513,6 @@ void FixedRangeTab::SwitchBuffer(SwitchDirection direction) {
         default:
             break;
     }
-    return;
 }
 
 } // namespace rocksdb
