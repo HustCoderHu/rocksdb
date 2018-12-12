@@ -133,6 +133,11 @@ public:
 
     // 设置compaction状态
     void SetCompactionWorking(bool working) {
+        if(working){
+            DBG_PRINT("set working");
+        }else{
+            DBG_PRINT("set unworking");
+        }
         compaction_working_ = working;
     }
 
@@ -141,6 +146,11 @@ public:
 
     // 设置compaction queue状态
     void SetCompactionPendding(bool pendding) {
+        if(pendding){
+            DBG_PRINT("set pendding");
+        }else{
+            DBG_PRINT("set unpendding");
+        }
         compaction_pendding_ = pendding;
     }
 
