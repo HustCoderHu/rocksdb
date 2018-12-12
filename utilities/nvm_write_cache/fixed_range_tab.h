@@ -77,20 +77,23 @@ public:
 
     InternalKey& start() {
         // TODO：start end 可能为空
-        if(!parsed_ && !start_.empty()){
+        if(!start_parsed_ && !start_.empty()){
             istart.DecodeFrom(start_);
+            start_parsed_ = true;
         }
         return istart;
     }
 
     InternalKey& end() {
-        if(!parsed_ && !end_.empty()){
+        if(!end_parsed_ && !end_.empty()){
             iend.DecodeFrom(end_);
+            end_parsed_ = true;
         }
-        return istart;
+        return iend;
     }
 private:
-    bool parsed_ = false;
+    bool start_parsed_ = false;
+    bool end_parsed_ = false;
     InternalKey istart, iend;
 
 
