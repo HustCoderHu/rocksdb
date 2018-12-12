@@ -281,6 +281,7 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const Slice &new_start, const Slice &
         } else {
             // 直接写进去
             char *range_buf = w_buffer_->key_range_.get();
+            // put range data size
             EncodeFixed64(range_buf, cur_start.size() + cur_end.size() + 2 * sizeof(uint64_t));
             range_buf += sizeof(uint64_t);
             // put start
@@ -349,6 +350,7 @@ Slice FixedRangeTab::GetKVData(char *raw, uint64_t item_off) const{
 void FixedRangeTab::GetRealRange(NvRangeTab *tab, Slice &real_start, Slice &real_end) const{
     char *raw = tab->key_range_.get();
     uint64_t real_size = DecodeFixed64(raw);
+    DBG_PRINT("Ragne data size[%lu]", real_size);
     if (real_size != 0) {
         raw += sizeof(uint64_t);
         real_start = GetKVData(raw, 0);
@@ -432,6 +434,7 @@ Usage FixedRangeTab::RangeUsage(UsageType type) const{
 
         case kForCompaction:{
             get_usage(c_buffer_.get());
+            DBG_PRINT("get range[%s]-[%s]", usage.start().DebugString(true).c_str(), usage.end().DebugString(true).c_str());
             return usage;
         }
         case kForWritting:{
