@@ -2660,6 +2660,7 @@ namespace rocksdb {
                 // 完成compaction之后的清理工作
                 c->compaction_range()->lock();
                 c->compaction_range()->SwitchBuffer(kToWBuffer);
+                c->compaction_range()->SetCompactionWorking(false);
                 c->compaction_range()->unlock();
                 DBG_PRINT("switch buffer to w_buffer");
             }
