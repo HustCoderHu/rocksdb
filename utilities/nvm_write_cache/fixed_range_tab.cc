@@ -156,18 +156,17 @@ bool FixedRangeTab::Get(Status *s,
     // shared_ptr能够保证资源回收
     DBG_PRINT("wblklist: size[%lu]", wblklist_.size());
     bool result = false;
-    result = SearchBlockList(wblklist_, s, iter, lkey, value);
+    result = SearchBlockList(base_raw_ + w_buffer_->buf_size_ * w_buffer_->offset_, wblklist_, s, iter, lkey, value);
     if (!result && !cblklist_.empty()) {
         DBG_PRINT("search cblklist[%lu]", cblklist_.size());
-        result = SearchBlockList(cblklist_, s, iter, lkey, value);
+        result = SearchBlockList(base_raw_ + c_buffer_->buf_size_ * c_buffer_->offset_, cblklist_, s, iter, lkey, value);
     }
     delete iter;
     return result;
 }
 
-bool FixedRangeTab::SearchBlockList(vector<rocksdb::ChunkBlk> &blklist, Status *s,
+bool FixedRangeTab::SearchBlockList(char* buf, vector<rocksdb::ChunkBlk> &blklist, Status *s,
         PersistentChunkIterator* iter, const LookupKey& lkey, std::string *value){
-    char *buf = raw_;
     for (int i = blklist.size() - 1; i >= 0; i--) {
         assert(i >= 0);
         ChunkBlk &blk = blklist.at(i);
