@@ -283,6 +283,13 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const Slice &new_start, const Slice &
             AllocBufAndUpdate(w_buffer_->range_buf_len_ / 2);
         } else {
             // 直接写进去
+            {
+                InternalKey s,e;
+                s.DecodeFrom(cur_start);
+                e.DecodeFrom(cur_end);
+                DBG_PRINT("put key range[%s]-[%s]",s.DebugString(true).c_str(), e.DebugString(true).c_str());
+            }
+
             char *range_buf = w_buffer_->key_range_.get();
             // put range data size
             EncodeFixed64(range_buf, cur_start.size() + cur_end.size() + 2 * sizeof(uint64_t));
