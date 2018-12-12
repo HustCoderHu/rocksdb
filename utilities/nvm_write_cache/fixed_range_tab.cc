@@ -499,15 +499,22 @@ void FixedRangeTab::SwitchBuffer(SwitchDirection direction) {
             break;
 
         case kToCBuffer:
+            // 将当前w_buffer切换为c_buffer
             assert(c_buffer_ == nullptr);
             DBG_PRINT("[%lu]switch to cbuffer", w_buffer_->offset_);
             c_buffer_ = w_buffer_;
+            // c_buffer的writting为false
             c_buffer_->writting_=false;
             w_buffer_ = w_buffer_->pair_buf_;
             DBG_PRINT("new wbuffer [%lu] cur [%f]",w_buffer_->offset_,  DecodeFixed64(base_raw_+w_buffer_->buf_size_*w_buffer_->offset_) / 1048576.0);
             w_buffer_->writting_ = true;
+            // 更新seq
+            // 设置raw指针
+            EncodeFixed64(base_raw_ + w_buffer_->buf_size_ * w_buffer_->offset_ + sizeof(uint64_t),
+                    DecodeFixed64(base_raw_ + c_buffer_->buf_size_ * c_buffer_->offset_ + sizeof(uint64_t)));
             raw_ = base_raw_ + w_buffer_->buf_size_ * w_buffer_->offset_ + 2 * sizeof(uint64_t);
             DBG_PRINT("raw switch form [%p ]to [%p]",base_raw_+c_buffer_->buf_size_*c_buffer_->offset_,  raw_);
+            // 交换blklist的数据
             cblklist_.swap(wblklist_);
             wblklist_.clear();
             break;
