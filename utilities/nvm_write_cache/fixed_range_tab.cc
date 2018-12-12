@@ -303,6 +303,7 @@ void FixedRangeTab::CleanUp(NvRangeTab* tab) {
     // 清除被compact的chunk
     tab->data_len_ = 0;
     tab->chunk_num_ = 0;
+    memset(tab->key_range_.get(), 0, tab->range_buf_len_);
     EncodeFixed64(base_raw_ + tab->buf_size_ * tab->offset_, 0);
     DBG_PRINT("clear bufsize[%lu] off[%lu] cur[%lu]", tab->buf_size_, tab->offset_, DecodeFixed64(base_raw_ + tab->buf_size_ * tab->offset_));
 }

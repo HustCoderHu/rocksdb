@@ -1418,8 +1418,8 @@ bool LevelCompactionBuilder::SetupOtherInputsIfNeeded() {
         nvm_write_cache->GetCompactionData(pendding_compaction_);
         DBG_PRINT("Get range[%s], size[%f]",pendding_compaction_->pending_compated_range_->prefix().c_str(),
                   pendding_compaction_->range_usage.range_size / 1048576.0);
-        DBG_PRINT("start[%s], end[%s]",pendding_compaction_->range_usage.start().DebugString(false).c_str(),
-                pendding_compaction_->range_usage.end().DebugString(false).c_str());
+        DBG_PRINT("start[%s], end[%s]",pendding_compaction_->range_usage.start().DebugString(true).c_str(),
+                pendding_compaction_->range_usage.end().DebugString(true).c_str());
         assert(pendding_compaction_->pending_compated_range_ != nullptr);
         Usage range_usage = pendding_compaction_->range_usage;
         // 通过compaction_picker的SetupOtherInput获取output_level的file
@@ -1432,7 +1432,7 @@ bool LevelCompactionBuilder::SetupOtherInputsIfNeeded() {
         if (!range_usage.end_.empty()) {
             end = range_usage.end();
         }
-        DBG_PRINT("start[%s], end[%s]", start.DebugString(false).c_str(), end.DebugString(false).c_str());
+        DBG_PRINT("start[%s], end[%s]", start.DebugString(true).c_str(), end.DebugString(true).c_str());
         if (!compaction_picker_->SetupOtherInputs(cf_name_, mutable_cf_options_,
                                                   vstorage_, start, end,
                                                   &output_level_inputs_, &parent_index_, base_index_)) {
