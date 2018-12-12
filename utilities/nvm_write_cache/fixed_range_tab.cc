@@ -281,6 +281,8 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const Slice &new_start, const Slice &
         } else {
             // 直接写进去
             char *range_buf = w_buffer_->key_range_.get();
+            EncodeFixed64(range_buf, cur_start.size() + cur_end.size() + 2 * sizeof(uint64_t));
+            range_buf += sizeof(uint64_t);
             // put start
             EncodeFixed64(range_buf, cur_start.size());
             memcpy(range_buf + sizeof(uint64_t), cur_start.data(), cur_start.size());
@@ -345,8 +347,10 @@ Slice FixedRangeTab::GetKVData(char *raw, uint64_t item_off) const{
 }
 
 void FixedRangeTab::GetRealRange(NvRangeTab *tab, Slice &real_start, Slice &real_end) const{
-    if (tab->key_range_ != nullptr) {
-        char *raw = tab->key_range_.get();
+    char *raw = tab->key_range_.get();
+    uint64_t real_size = DecodeFixed64(raw);
+    if (real_size != 0) {
+        raw += sizeof(uint64_t);
         real_start = GetKVData(raw, 0);
         real_end = GetKVData(raw, real_start.size() + sizeof(uint64_t));
     } else {
