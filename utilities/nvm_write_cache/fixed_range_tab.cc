@@ -304,6 +304,7 @@ void FixedRangeTab::CleanUp(NvRangeTab* tab) {
     tab->data_len_ = 0;
     tab->chunk_num_ = 0;
     EncodeFixed64(base_raw_ + tab->buf_size_ * tab->offset_, 0);
+    DBG_PRINT("clear bufsize[%lu] off[%lu] cur[%lu]", tab->buf_size_, tab->offset_, DecodeFixed64(base_raw_ + tab->buf_size_ * tab->offset_));
 }
 
 Status FixedRangeTab::searchInChunk(PersistentChunkIterator *iter,
