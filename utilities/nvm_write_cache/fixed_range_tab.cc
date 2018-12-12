@@ -124,7 +124,7 @@ Status FixedRangeTab::Append(const string &bloom_data, const Slice &chunk_data,
     // transaction
     {
         if (raw_cur + chunk_blk_len >= max_range_size()) {
-            DBG_PRINT("assert: raw_cur[%lu] chunk_blk_len[%lu] max_range_size()[%lu]", raw_cur, chunk_blk_len,
+            DBG_PRINT("assert: buffer[%lu] raw_cur[%lu] chunk_blk_len[%lu] max_range_size()[%lu]", w_buffer_->offset_, raw_cur, chunk_blk_len,
                       max_range_size());
         }
         // TODO : transaction1
