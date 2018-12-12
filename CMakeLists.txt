@@ -84,6 +84,7 @@ else ()
         endif ()
     endif ()
 
+        message("with snappy")
     if (WITH_SNAPPY)
         find_package(snappy REQUIRED)
         add_definitions(-DSNAPPY)
