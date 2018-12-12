@@ -154,10 +154,11 @@ bool FixedRangeTab::Get(Status *s,
     // 1.从下往上遍历所有的chunk
     auto *iter = new PersistentChunkIterator();
     // shared_ptr能够保证资源回收
-    //DBG_PRINT("blklist: size[%lu], pendding_clean[%lu]", blklist.size(), pendding_clean_);
+    DBG_PRINT("wblklist: size[%lu]", wblklist_.size());
     bool result = false;
     result = SearchBlockList(wblklist_, s, iter, lkey, value);
     if (!result && !cblklist_.empty()) {
+        DBG_PRINT("search cblklist[%lu]", cblklist_.size());
         result = SearchBlockList(cblklist_, s, iter, lkey, value);
     }
     delete iter;
@@ -178,7 +179,7 @@ bool FixedRangeTab::SearchBlockList(vector<rocksdb::ChunkBlk> &blklist, Status *
         uint64_t bloom_bytes = blk.bloom_bytes_;
         if (interal_options_->filter_policy_->KeyMayMatch(lkey.user_key(), Slice(chunk_head + 8, bloom_bytes))) {
             // 3.如果有则读取元数据进行chunk内的查找
-            //DBG_PRINT("Key in chunk and search");
+            DBG_PRINT("Key in chunk and search");
             new(iter) PersistentChunkIterator(buf + blk.getDatOffset(), blk.chunkLen_, nullptr);
             Status result = searchInChunk(iter, lkey.user_key(), value);
             if (result.ok()) {
