@@ -301,6 +301,13 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const Slice &new_start, const Slice &
             range_buf += sizeof(uint64_t) + cur_start.size();
             EncodeFixed64(range_buf, cur_end.size());
             memcpy(range_buf + sizeof(uint64_t), cur_end.data(), cur_end.size());
+            {
+                InternalKey s,e;
+                GetRealRange(w_buffer_.get(), cur_start, cur_end);
+                s.DecodeFrom(cur_start);
+                e.DecodeFrom(cur_end);
+                DBG_PRINT("re-read key range[%s]-[%s]",s.DebugString(true).c_str(), e.DebugString(true).c_str());
+            }
         }
     }
     //DBG_PRINT("end update range");
