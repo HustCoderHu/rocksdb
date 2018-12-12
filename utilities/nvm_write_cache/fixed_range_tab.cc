@@ -504,7 +504,7 @@ void FixedRangeTab::SwitchBuffer(SwitchDirection direction) {
             c_buffer_ = w_buffer_;
             c_buffer_->writting_=false;
             w_buffer_ = w_buffer_->pair_buf_;
-            DBG_PRINT("new wbuffer cur [%f]", DecodeFixed64(base_raw_+w_buffer_->buf_size_*w_buffer_->offset_) / 1048576.0);
+            DBG_PRINT("new wbuffer [%lu] cur [%f]",w_buffer_->offset_,  DecodeFixed64(base_raw_+w_buffer_->buf_size_*w_buffer_->offset_) / 1048576.0);
             w_buffer_->writting_ = true;
             raw_ = base_raw_ + w_buffer_->buf_size_ * w_buffer_->offset_;
             DBG_PRINT("raw switch form [%p ]to [%p]",base_raw_+c_buffer_->buf_size_*c_buffer_->offset_,  raw_);
