@@ -367,17 +367,15 @@ Slice FixedRangeTab::GetKVData(char *raw, uint64_t item_off) const{
 void FixedRangeTab::GetRealRange(NvRangeTab *tab, Slice &real_start, Slice &real_end) const{
     char *raw = tab->key_range_.get();
     uint64_t real_size = DecodeFixed64(raw);
-    DBG_PRINT("Ragne data size[%lu]", real_size);
     if (real_size != 0) {
         raw += sizeof(uint64_t);
         real_start = GetKVData(raw, 0);
         real_end = GetKVData(raw, real_start.size() + sizeof(uint64_t));
         {
             InternalKey s,e;
-            GetRealRange(w_buffer_.get(), real_start, real_end);
             s.DecodeFrom(real_start);
             e.DecodeFrom(real_end);
-            DBG_PRINT("re-read key range[%s]-[%s]",s.DebugString(true).c_str(), e.DebugString(true).c_str());
+            DBG_PRINT("key range[%s]-[%s] size[%lu]",s.DebugString(true).c_str(), e.DebugString(true).c_str(), real_size);
         }
     } else {
         // if there is no key_range return null Slice
