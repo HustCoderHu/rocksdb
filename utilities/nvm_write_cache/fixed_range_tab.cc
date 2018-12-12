@@ -492,7 +492,7 @@ void FixedRangeTab::SwitchBuffer(SwitchDirection direction) {
     switch(direction){
         case kToWBuffer:
             assert(c_buffer_->writting_ == false);
-            DBG_PRINT("[%s]switch to wbuffer", prefix().c_str());
+            DBG_PRINT("[%lu]switch to wbuffer", c_buffer_->offset_);
             CleanUp(c_buffer_.get());
             cblklist_.clear();
             c_buffer_ = nullptr;
@@ -500,10 +500,11 @@ void FixedRangeTab::SwitchBuffer(SwitchDirection direction) {
 
         case kToCBuffer:
             assert(c_buffer_ == nullptr);
-            DBG_PRINT("[%s]switch to cbuffer", prefix().c_str());
+            DBG_PRINT("[%lu]switch to cbuffer", w_buffer_->offest_);
             c_buffer_ = w_buffer_;
             c_buffer_->writting_=false;
             w_buffer_ = w_buffer_->pair_buf_;
+            DBG_PRINT("new wbuffer cur [%f]", DecodeFixed64(base_raw_+w_buffer_->buf_size_*w_buffer_->offset_) / 1048576.0);
             w_buffer_->writting_ = true;
             raw_ = base_raw_ + w_buffer_->buf_size_ * w_buffer_->offset_;
             DBG_PRINT("raw switch form [%p ]to [%p]",base_raw_+c_buffer_->buf_size_*c_buffer_->offset_,  raw_);
