@@ -157,7 +157,7 @@ bool FixedRangeTab::Get(Status *s,
     //DBG_PRINT("blklist: size[%lu], pendding_clean[%lu]", blklist.size(), pendding_clean_);
     bool result = false;
     result = SearchBlockList(wblklist_, s, iter, lkey, value);
-    if (!result && c_buffer_ != nullptr) {
+    if (!result && !cblklist_.empty()) {
         result = SearchBlockList(cblklist_, s, iter, lkey, value);
     }
     delete iter;
