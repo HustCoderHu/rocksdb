@@ -443,7 +443,7 @@ uint64_t Compaction::CalculateTotalInputSize() const {
     uint64_t size = 0;
     // Add by Glitter
     size_t from_nvm_cache = 0;
-    if(pendding_range_->pending_compated_range_ != nullptr){
+    if(pendding_range_ != nullptr){
         from_nvm_cache = pendding_range_->range_usage.range_size;
         size += from_nvm_cache;
         DBG_PRINT("Input from range[%f]MB", from_nvm_cache / 1048576.0);
