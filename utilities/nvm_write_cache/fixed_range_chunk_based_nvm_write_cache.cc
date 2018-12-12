@@ -104,14 +104,14 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
         if (now_range->HasCompactionBuf()) {
             // has no space need wait
             while (now_range->EnoughFroWriting(bloom_data.size() + chunk_data.size())) {
+                // wait fo compaction end
                 sleep(1);
             }
-        } else {
-            // switch buffer
-            now_range->lock();
-            now_range->SwitchBuffer(kToCBuffer);
-            now_range->unlock();
         }
+        // switch buffer
+        now_range->lock();
+        now_range->SwitchBuffer(kToCBuffer);
+        now_range->unlock();
     }
     now_range->lock();
     now_range->Append(bloom_data, chunk_data, meta.cur_start, meta.cur_end);

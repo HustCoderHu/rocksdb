@@ -173,7 +173,7 @@ public:
     void SwitchBuffer(SwitchDirection direction);
 
     bool EnoughFroWriting(uint64_t wsize) const{
-        return wsize < (w_buffer_->buf_size_ - w_buffer_->data_len_);
+        return wsize +  w_buffer_->data_len_ < w_buffer_->buf_size_;
     }
 
     bool HasCompactionBuf() const{
