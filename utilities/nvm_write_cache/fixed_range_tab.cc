@@ -372,6 +372,13 @@ void FixedRangeTab::GetRealRange(NvRangeTab *tab, Slice &real_start, Slice &real
         raw += sizeof(uint64_t);
         real_start = GetKVData(raw, 0);
         real_end = GetKVData(raw, real_start.size() + sizeof(uint64_t));
+        {
+            InternalKey s,e;
+            GetRealRange(w_buffer_.get(), real_start, real_end);
+            s.DecodeFrom(real_start);
+            e.DecodeFrom(real_end);
+            DBG_PRINT("re-read key range[%s]-[%s]",s.DebugString(true).c_str(), e.DebugString(true).c_str());
+        }
     } else {
         // if there is no key_range return null Slice
         real_start = Slice();
