@@ -257,6 +257,9 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const Slice &new_start, const Slice &
                 new_range = make_persistent<char[]>(range_size);
                 // get raw ptr
                 char *p_new_range = new_range.get();
+                // update range data size
+                EncodeFixed64(p_new_range, cur_start.size() + cur_end.size() + 2 * sizeof(uint64_t));
+                p_new_range += sizeof(uint64_t);
                 // put start
                 EncodeFixed64(p_new_range, cur_start.size());
                 memcpy(p_new_range + sizeof(uint64_t), cur_start.data(), cur_start.size());
