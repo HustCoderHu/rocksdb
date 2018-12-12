@@ -283,12 +283,12 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const Slice &new_start, const Slice &
             AllocBufAndUpdate(w_buffer_->range_buf_len_ / 2);
         } else {
             // 直接写进去
-            {
+            /*{
                 InternalKey s,e;
                 s.DecodeFrom(cur_start);
                 e.DecodeFrom(cur_end);
                 DBG_PRINT("put key range[%s]-[%s]",s.DebugString(true).c_str(), e.DebugString(true).c_str());
-            }
+            }*/
 
             char *range_buf = w_buffer_->key_range_.get();
             // put range data size
@@ -301,13 +301,13 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const Slice &new_start, const Slice &
             range_buf += sizeof(uint64_t) + cur_start.size();
             EncodeFixed64(range_buf, cur_end.size());
             memcpy(range_buf + sizeof(uint64_t), cur_end.data(), cur_end.size());
-            {
+            /*{
                 InternalKey s,e;
                 GetRealRange(w_buffer_.get(), cur_start, cur_end);
                 s.DecodeFrom(cur_start);
                 e.DecodeFrom(cur_end);
                 DBG_PRINT("re-read key range[%s]-[%s]",s.DebugString(true).c_str(), e.DebugString(true).c_str());
-            }
+            }*/
         }
     }
     //DBG_PRINT("end update range");
@@ -536,14 +536,14 @@ void FixedRangeTab::SwitchBuffer(SwitchDirection direction) {
             // c_buffer的writting为false
             c_buffer_->writting_=false;
             w_buffer_ = w_buffer_->pair_buf_;
-            DBG_PRINT("new wbuffer [%lu] cur [%f]",w_buffer_->offset_,  DecodeFixed64(base_raw_+w_buffer_->buf_size_*w_buffer_->offset_) / 1048576.0);
+            //DBG_PRINT("new wbuffer [%lu] cur [%f]",w_buffer_->offset_,  DecodeFixed64(base_raw_+w_buffer_->buf_size_*w_buffer_->offset_) / 1048576.0);
             w_buffer_->writting_ = true;
             // 更新seq
             // 设置raw指针
             EncodeFixed64(base_raw_ + w_buffer_->buf_size_ * w_buffer_->offset_ + sizeof(uint64_t),
                     DecodeFixed64(base_raw_ + c_buffer_->buf_size_ * c_buffer_->offset_ + sizeof(uint64_t)));
             raw_ = base_raw_ + w_buffer_->buf_size_ * w_buffer_->offset_ + 2 * sizeof(uint64_t);
-            DBG_PRINT("raw switch form [%p ]to [%p]",base_raw_+c_buffer_->buf_size_*c_buffer_->offset_,  raw_);
+            //DBG_PRINT("raw switch form [%p ]to [%p]",base_raw_+c_buffer_->buf_size_*c_buffer_->offset_,  raw_);
             // 交换blklist的数据
             cblklist_.swap(wblklist_);
             wblklist_.clear();
