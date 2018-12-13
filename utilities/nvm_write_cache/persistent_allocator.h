@@ -114,7 +114,7 @@ public:
         // 从bitmap中获取一位
         offset = bitmap_->GetBit();
         char *alloc = nullptr;
-        if(offset != -1 && offset < range_num_){
+        if(offset != -1 && offset < static_cast<int>(range_num_)){
             //alloc = raw_.get() + offset * range_size_;
             // 标记分配状态
             allocated_ = allocated_ + 1;
