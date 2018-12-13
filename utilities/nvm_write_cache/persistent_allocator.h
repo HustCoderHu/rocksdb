@@ -122,10 +122,12 @@ public:
         if(offset != -1 && offset < static_cast<int>(range_num_)){
             //alloc = raw_.get() + offset * range_size_;
             // ±ê¼Ç·ÖÅä×´Ì¬
+            DBG_PRINT("alloc offset[%d] remain[%lu]", offset, Remain());
             allocated_ = allocated_ + 1;
             bitmap_->SetBit(offset, true);
+            return buf_array_[offset];
         }
-        return buf_array_[offset];
+        return nullptr;
     }
 
     uint64_t Remain() {
