@@ -25,23 +25,22 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
     pinfo_ = pop_.root();
     if (!pinfo_->inited_) {
         // init cache
-        uint64_t range_pool_size = pmem_size / 20;
+        uint64_t range_pool_size = pmem_size / 4;
         transaction::run(pop_, [&] {
             DBG_PRINT("alloc range map");
             pinfo_->range_map_ = make_persistent<pmem_hash_map<NvRangeTab>>(pop_, 0.75, 256);
             DBG_PRINT("alloc raw buf[%f]GB", range_pool_size/(1073741824.0));
-            persistent_ptr<char[]> buf = make_persistent<char[]>(range_pool_size);
             DBG_PRINT("alloc bitmap[%lu]bits",range_pool_size / ioptions->range_size_);
             persistent_ptr<PersistentBitMap> bitmap = make_persistent<PersistentBitMap>(pop_,
                                                                                         range_pool_size /
                                                                                         ioptions->range_size_);
-            pinfo_->allocator_ = make_persistent<PersistentAllocator>(pop_, buf, range_pool_size, ioptions->range_size_, bitmap);
+            pinfo_->allocator_ = make_persistent<BlockBasedPersistentAllocator>(pop_, range_pool_size, ioptions->range_size_);
             pinfo_->inited_ = true;
-            FixedRangeTab::base_raw_ = buf.get();
+            //FixedRangeTab::base_raw_ = buf.get();
         });
     } else if (reset) {
         // reset cache
-        FixedRangeTab::base_raw_ = pinfo_->allocator_->raw().get();
+        //FixedRangeTab::base_raw_ = pinfo_->allocator_->raw().get();
         transaction::run(pop_, [&] {
             delete_persistent<pmem_hash_map<NvRangeTab>>(pinfo_->range_map_);
             pinfo_->range_map_ = make_persistent<pmem_hash_map<NvRangeTab>>(pop_, 0.75, 256);
@@ -49,7 +48,7 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
         pinfo_->allocator_->Reset();
     } else {
         // rebuild cache
-        FixedRangeTab::base_raw_ = pinfo_->allocator_->raw().get();
+        //FixedRangeTab::base_raw_ = pinfo_->allocator_->raw().get();
         RebuildFromPersistentNode();
     }
 
@@ -127,11 +126,11 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
 persistent_ptr<NvRangeTab> FixedRangeChunkBasedNVMWriteCache::NewContent(const string &prefix, size_t bufSize) {
     persistent_ptr<NvRangeTab> p_content_1, p_content_2;
     int offset1 = 0, offset2 = 0;
-    char *pmem1 = pinfo_->allocator_->Allocate(offset1);
-    char *pmem2 = pinfo_->allocator_->Allocate(offset2);
+    p_buf pmem1 = pinfo_->allocator_->Allocate(offset1);
+    p_buf pmem2 = pinfo_->allocator_->Allocate(offset2);
     transaction::run(pop_, [&]{
-        p_content_1 = make_persistent<NvRangeTab>(pop_, offset1, prefix, bufSize);
-        p_content_2 = make_persistent<NvRangeTab>(pop_, offset2, prefix, bufSize);
+        p_content_1 = make_persistent<NvRangeTab>(pop_, pmem1, offset1, prefix, bufSize);
+        p_content_2 = make_persistent<NvRangeTab>(pop_, pmem2, offset2, prefix, bufSize);
         // NvRangeTab怎么释放空间
     });
     p_content_1->pair_buf_ = p_content_2;

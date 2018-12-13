@@ -16,10 +16,14 @@ using std::endl;
 using pmem::obj::persistent_ptr;
 
 
-char* FixedRangeTab::base_raw_ = nullptr;
+//char* FixedRangeTab::base_raw_ = nullptr;
+
+/*char* FixedRangeTab::get_raw(rocksdb::NvRangeTab *tab) {
+    return base_raw_ + tab->buf_size_ * tab->offset_;
+}*/
 
 char* FixedRangeTab::get_raw(rocksdb::NvRangeTab *tab) {
-    return base_raw_ + tab->buf_size_ * tab->offset_;
+    return tab->buf_.get();
 }
 
 FixedRangeTab::FixedRangeTab(pool_base &pop, const FixedRangeBasedOptions *options,

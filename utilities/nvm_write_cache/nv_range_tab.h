@@ -26,7 +26,7 @@ using p_buf = persistent_ptr<char[]>;
 
 struct NvRangeTab {
 public:
-    NvRangeTab(pool_base &pop, uint64_t off, const string &prefix, uint64_t range_size);
+    NvRangeTab(pool_base &pop, p_buf buf_, uint64_t off, const string &prefix, uint64_t range_size);
 
     uint64_t hashCode() {
         return hash_;
@@ -46,6 +46,7 @@ public:
     bool equals(NvRangeTab &b);
 
     //char* raw_;
+    p_buf buf_;
     p<int> offset_;
     p<uint64_t> hash_;
     p<bool> writting_;
