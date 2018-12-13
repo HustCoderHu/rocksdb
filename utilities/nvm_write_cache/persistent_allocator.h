@@ -5,6 +5,7 @@
 #pragma once
 
 #include "persistent_bitmap.h"
+#include "debug.h"
 namespace rocksdb{
 
 using pmem::obj::p;
@@ -94,6 +95,7 @@ public:
             buf_array_ = make_persistent<p_buf[]>(range_num_);
             for(size_t i = 0; i < range_num_; i++){
                 //分配所有的range空间
+                DBG_PRINT("Alloc [%lu]th buf", i);;
                 buf_array_[i] = make_persistent<char[]>(range_size);
             }
 
