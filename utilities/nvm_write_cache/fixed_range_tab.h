@@ -230,6 +230,8 @@ private:
 
     bool SearchBlockList(char* buf, vector<rocksdb::ChunkBlk> &blklist, Status *s, PersistentChunkIterator* iter, const LookupKey& lkey, std::string *value);
 
+    char* get_raw(NvRangeTab* tab);
+
     pool_base &pop_;
     persistent_ptr<NvRangeTab> w_buffer_;
     persistent_ptr<NvRangeTab> c_buffer_;
