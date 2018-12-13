@@ -39,7 +39,7 @@ namespace rocksdb{
         for(int i = 0; i < (16 - prefix_bits_); i++){
             key_num /= 10;
         }
-        uint16_t len = prefix_bits_ + 1;
+        uint16_t len = prefix_bits_;
         char buf[len];
         for(int i = len-1; i >=0; i--){
             buf[i] = key_num % 10 + '0';
