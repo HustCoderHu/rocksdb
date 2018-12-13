@@ -4249,7 +4249,7 @@ private:
                 int64_t ebytes = bytes - bytes_last_;
                 fprintf(stdout, "now= %f  i=%12ld : %11.3f micros/op speed = %.1lf MB/s time = %lf micros\n",
                         now,
-                        num_written, time / 250000,
+                        num_written, time / 16777216,
                         ((ebytes / 1048576.8) * 1000000) / time,
                         time);
                 //PrintStats("rocksdb.stats");
