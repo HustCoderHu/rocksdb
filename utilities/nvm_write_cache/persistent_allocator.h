@@ -154,7 +154,7 @@ public:
 private:
     pool_base& pop_;
     persistent_ptr<PersistentBitMap> bitmap_;
-    persistent_ptr<p_buf> buf_array_;
+    persistent_ptr<p_buf[]> buf_array_;
     p<uint64_t> total_size_;
     p<uint64_t > range_size_;
     p<uint64_t> range_num_;
