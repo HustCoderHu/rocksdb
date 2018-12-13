@@ -173,7 +173,6 @@ bool FixedRangeTab::SearchBlockList(char* buf, vector<rocksdb::ChunkBlk> &blklis
             new(iter) PersistentChunkIterator(buf + blk.getDatOffset(), blk.chunkLen_, nullptr);
             Status result = searchInChunk(iter, lkey.user_key(), value);
             if (result.ok()) {
-                delete iter;
                 *s = Status::OK();
                 DBG_PRINT("found it!");
                 return true;
