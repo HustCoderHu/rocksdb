@@ -210,7 +210,7 @@ void FixedRangeChunkBasedNVMWriteCache::RebuildFromPersistentNode() {
     pmem_hash_map<NvRangeTab> *vhash_map = vpinfo->range_map_.get();
     vector<persistent_ptr<NvRangeTab> > tab_vec;
     vhash_map->getAll(tab_vec);
-    char *raw_space = vpinfo->allocator_->raw().get();
+    //char *raw_space = vpinfo->allocator_->raw().get();
     for (auto content : tab_vec) {
         // 一对buf的状态一定是不一样的
         assert(content->writting_ != content->pair_buf_->writting_);
