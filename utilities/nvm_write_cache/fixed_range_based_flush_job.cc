@@ -319,8 +319,8 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
                 nvm_write_cache_->RangeExistsOrCreat(pendding_chunk.first);
             }
             // insert data of each range into nvm cache
-            std::vector<port::Thread> thread_pool;
-            thread_pool.clear();
+            //std::vector<port::Thread> thread_pool;
+            //thread_pool.clear();
             auto finish_build_chunk = [&](std::string prefix) {
                 //DBG_PRINT("start append [%s]", prefix.c_str());
                 // get chunk data
@@ -338,15 +338,15 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
             };
 
             auto pending_chunk = pending_output_chunk.begin();
-            pending_chunk++;
+            //pending_chunk++;
             for (; pending_chunk != pending_output_chunk.end(); pending_chunk++) {
-                thread_pool.emplace_back(finish_build_chunk, pending_chunk->first);
-                //finish_build_chunk(pending_chunk->first);
+                //thread_pool.emplace_back(finish_build_chunk, pending_chunk->first);
+                finish_build_chunk(pending_chunk->first);
             }
-            finish_build_chunk(pending_output_chunk.begin()->first);
+            /*finish_build_chunk(pending_output_chunk.begin()->first);
             for (auto &running_thread : thread_pool) {
                 running_thread.join();
-            }
+            }*/
             // check if there is need for compaction
             //DBG_PRINT("end this flush");
             nvm_write_cache_->MaybeNeedCompaction();
