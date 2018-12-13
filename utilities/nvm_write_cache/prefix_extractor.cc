@@ -4,6 +4,7 @@
 
 #include <sstream>
 #include "prefix_extractor.h"
+#include "debug.h"
 
 namespace rocksdb{
 
@@ -32,6 +33,8 @@ namespace rocksdb{
         {
             key_num = key_num * 16 * 16 + *(unsigned char*)(input + x);
         }
+
+        DBG_PRINT("key[%u]", key_num);
 
         for(int i = 0; i < (16 - prefix_bits_); i++){
             key_num /= 10;
