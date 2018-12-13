@@ -112,7 +112,10 @@ public:
     };
 
     p_buf Allocate(int &offset) {
-        assert(Remain() > range_size_);
+        if(Remain() == 0){
+            DBG_PRINT("space run out");
+            return nullptr;
+        }
         // 从bitmap中获取一位
         offset = bitmap_->GetBit();
         char *alloc = nullptr;
@@ -126,7 +129,8 @@ public:
     }
 
     uint64_t Remain() {
-        return total_size_ - allocated_ * range_size_;
+        assert(range_num_ >= allocated_);
+        return range_num_ - allocated_;
     }
 
     uint64_t Capacity() {
