@@ -4243,7 +4243,7 @@ private:
             }
             // test
 
-            if ((num_written) % 250000 == 0) {
+            if ((num_written) % 16777216 == 0) {
                 double now = Env::Default()->NowMicros();
                 double time = now - finish_last_;
                 int64_t ebytes = bytes - bytes_last_;
