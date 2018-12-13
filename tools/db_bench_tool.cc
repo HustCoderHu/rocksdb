@@ -4243,13 +4243,13 @@ private:
             }
             // test
 
-            if ((num_written) % 16777216 == 0) {
+            if ((num_written) % 10000000 == 0) {
                 double now = Env::Default()->NowMicros();
                 double time = now - finish_last_;
                 int64_t ebytes = bytes - bytes_last_;
                 fprintf(stdout, "now= %f  i=%12ld : %11.3f micros/op speed = %.1lf MB/s time = %lf micros\n",
                         now,
-                        num_written, time / 16777216,
+                        num_written, time / 10000000,
                         ((ebytes / 1048576.8) * 1000000) / time,
                         time);
                 //PrintStats("rocksdb.stats");
