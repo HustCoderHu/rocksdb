@@ -45,7 +45,7 @@ namespace rocksdb{
             buf[i] = key_num % 10 + '0';
             key_num /= 10;
         }
-        return std::string(buf);
+        return std::string(buf, len);
     }
 
     DBBenchDedicatedExtractor* DBBenchDedicatedExtractor::NewDBBenchDedicatedExtractor(uint16_t prefix_bits) {
