@@ -55,6 +55,7 @@ std::string *ArrayBasedChunk::Finish() {
     // 写num_pairs
     //DBG_PRINT("has kv item [%lu]", entry_offset_.size());
     PutFixed64(&raw_data_, entry_offset_.size());
+    // new string
     auto *result = new std::string(raw_data_);
     return result;
 }
@@ -84,6 +85,7 @@ uint64_t BuildingChunk::NumEntries() {
 
 void BuildingChunk::Insert(const rocksdb::Slice &key, const rocksdb::Slice &value) {
     chunk_->Insert(key, value);
+    // delete in Deconstructor
     char *key_rep = new char[key.size_];
     memcpy(key_rep, key.data_, key.size_);
     // InternalKey in keys
@@ -96,6 +98,7 @@ void BuildingChunk::Insert(const rocksdb::Slice &key, const rocksdb::Slice &valu
 std::string *BuildingChunk::Finish(string& bloom_data, rocksdb::Slice &cur_start, rocksdb::Slice &cur_end) {
     std::string *chunk_data;
     // get kv data
+    // delete in FlushJob
     chunk_data = chunk_->Finish();
     // get bloom data
     // Build bloom filter by internal_key

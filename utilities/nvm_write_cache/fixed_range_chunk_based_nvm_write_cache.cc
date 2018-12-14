@@ -155,12 +155,15 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
     //DBG_PRINT("start compaction check");
     // 选择所有range中数据大小占总容量80%的range并按照总容量的大小顺序插入compaction queue
     std::vector<CompactionItem> pendding_compact;
+    int compaction_working_range = 0, compaction_pendding_range = 0;
     for (auto range : vinfo_->prefix2range) {
         FixedRangeTab *tab = range.second;
         if (tab->IsCompactWorking()) {
+            compaction_working_range++;
             continue;
         }
         if (tab->IsCompactPendding()) {
+            compaction_pendding_range++;
             continue;
         }
         Usage range_usage = range.second->RangeUsage(kForWritting);
@@ -177,6 +180,8 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
         }
     }
     DBG_PRINT("[%lu]range need compaction", pendding_compact.size());
+    DBG_PRINT("[%d]range compaction working", compaction_working_range);
+    DBG_PRINT("[%d]range compaction pendding", compaction_pendding_range);
 }
 
 // call by compaction thread

@@ -100,7 +100,10 @@ FixedRangeBasedFlushJob::FixedRangeBasedFlushJob(const std::string &dbname,
 
 
 FixedRangeBasedFlushJob::~FixedRangeBasedFlushJob() {
-
+    for(auto chunk : pending_output_chunk){
+        delete chunk.second;
+    }
+    ThreadStatusUtil::ResetThreadStatus();
 }
 
 void FixedRangeBasedFlushJob::Prepare() {
