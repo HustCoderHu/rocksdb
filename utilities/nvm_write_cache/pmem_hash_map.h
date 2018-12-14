@@ -69,13 +69,16 @@ public:
 
 template <typename T>
 pmem_hash_map<T>::pmem_hash_map(pool_base &pop, double loadFactor, uint64_t tabLen) {
+    tabLen_ = tabLen;
     transaction::run(pop, [&]{
-        tabLen_ = tabLen;
         tab_ = make_persistent<p_node_t[]>(tabLen);
-        loadFactor_ = loadFactor;
-        threshold_ = tabLen_ * loadFactor_;
-        size_ = 0;
     });
+    loadFactor_ = loadFactor;
+    threshold_ = tabLen_ * loadFactor_;
+    size_ = 0;
+    for(int i = 0; i < tabLen_; i++){
+        tab_[i]->next = nullptr;
+    }
 }
 
 template <typename T>
@@ -86,7 +89,7 @@ void pmem_hash_map<T>::getAll(std::vector<pmem::obj::persistent_ptr<T>> &nodeVec
         p_node_t node = tab_[i];
         DBG_PRINT("[%s]", node==nullptr ? "null bucket" : "not null bucket");
 
-        while (node != nullptr) {
+        while (node->next != nullptr) {
             nodeVec.push_back(node->p_content);
             DBG_PRINT("get node [%s]", string(node->p_content->prefix_.get(), node->p_content->prefix_len_).c_str());
             node = node->next;
@@ -107,16 +110,17 @@ void pmem_hash_map<T>::put(pool_base &pop, persistent_ptr<T> p_content) {
         //tab_[_hash % tabLen_] = newhead;
     });
     newhead->p_content = p_content;
-    newhead->next = nullptr;
-    if (nullptr == bucketHeadNode) {
+    newhead->next = bucketHeadNode->next;
+    bucketHeadNode->next = newhead;
+    /*if (nullptr == bucketHeadNode) {
          bucketHeadNode = newhead;
          DBG_PRINT("insert to bucket");
     }else{
         newhead -> next = bucketHeadNode->next;
         bucketHeadNode->next = newhead;
         DBG_PRINT("insert to chain");
-    }
-    DBG_PRINT("hash [%lu]", bucketHeadNode->p_content->hashCode());
+    }*/
+    DBG_PRINT("hash [%lu]", bucketHeadNode->next->p_content->hashCode());
 }
 
 /*template <typename T>
