@@ -42,6 +42,7 @@ public:
     };
 
     char *Allocate(int &offset) {
+        DBG_PRINT("remain:[%lu]-[%lu]=[%lu], rangesize_[%ly]",total_size_, cur_*range_size_, Remain(), range_size_);
         assert(Remain() > range_size_);
         offset = bitmap_->GetBit();
         char *alloc = nullptr;
