@@ -18,7 +18,7 @@ using pmem::obj::persistent_ptr;
 
 inline void PmemEncodeFixed64(char* buf, uint64_t value) {
     if (port::kLittleEndian) {
-        pmem_memcpy_persist(buf, &value, sizeof(value));
+        pmem_memcpy_nodrain(buf, &value, sizeof(value));
     } else {
         buf[0] = value & 0xff;
         buf[1] = (value >> 8) & 0xff;
@@ -130,14 +130,16 @@ Status FixedRangeTab::Append(const string &bloom_data, const Slice &chunk_data,
     {
         if (raw_cur + chunk_blk_len >= max_range_size()) {
             DBG_PRINT("prefix [%s]", string(w_buffer_->prefix_.get(), w_buffer_->prefix_len_).c_str());
-            DBG_PRINT("assert: buffer[%lu] raw_cur[%lu] chunk_blk_len[%lu] max_range_size()[%lu]", w_buffer_->offset_, raw_cur, chunk_blk_len,
-                      max_range_size());
+            DBG_PRINT("assert: buffer[%lu] raw_cur[%lu] data_len_[%lu]", w_buffer_->offset_, raw_cur,
+                    w_buffer_->data_len_, max_range_size());
+            DBG_PRINT("assert: chunk_blk_len[%lu] max_range_size()[%lu]",chunk_blk_len,max_range_size());
             assert(false);
         }
         // TODO : transaction1
         PmemEncodeFixed64(raw_ - 2 * sizeof(uint64_t), raw_cur + chunk_blk_len);
         PmemEncodeFixed64(raw_ - sizeof(uint64_t), last_seq + 1);
     }
+    pmem_drain();
     // update meta info
 
     CheckAndUpdateKeyRange(start, end);
@@ -304,11 +306,12 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const Slice &new_start, const Slice &
             range_buf += sizeof(uint64_t);
             // put start
             PmemEncodeFixed64(range_buf, cur_start.size());
-            pmem_memcpy_persist(range_buf + sizeof(uint64_t), cur_start.data(), cur_start.size());
+            pmem_memcpy_nodrain(range_buf + sizeof(uint64_t), cur_start.data(), cur_start.size());
             // put end
             range_buf += sizeof(uint64_t) + cur_start.size();
             PmemEncodeFixed64(range_buf, cur_end.size());
-            pmem_memcpy_persist(range_buf + sizeof(uint64_t), cur_end.data(), cur_end.size());
+            pmem_memcpy_nodrain(range_buf + sizeof(uint64_t), cur_end.data(), cur_end.size());
+            pmem_drain();
             /*{
                 InternalKey s,e;
                 GetRealRange(w_buffer_.get(), cur_start, cur_end);
