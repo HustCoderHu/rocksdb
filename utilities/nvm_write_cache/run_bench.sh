@@ -23,12 +23,12 @@ if test $1 -eq 1
 then
 echo ${remake}
 echo ${clear}
-cmd="${bench_base_setting} --value_size=$2 ${nvm_setting} --range_num=$3 --prefix_bit=$4"
+cmd="./db_bench ${bench_base_setting} --value_size=$2 ${nvm_setting} --range_num=$3 --prefix_bits=$4"
 echo ${cmd}
 
 else
 echo ${clear}
-cmd="${bench_base_setting} --value_size=$2 ${nvm_setting} --range_num=$3 --prefix_bit=$4"
+cmd="./db_bench ${bench_base_setting} --value_size=$2 ${nvm_setting} --range_num=$3 --prefix_bits=$4"
 echo ${cmd}
 fi
 
