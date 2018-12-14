@@ -49,6 +49,7 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
         pinfo_->allocator_->Reset();
     } else {
         // rebuild cache
+        DBG_PRINT("recover cache");
         pinfo_->allocator_->Recover();
         FixedRangeTab::base_raw_ = pinfo_->allocator_->raw();
         RebuildFromPersistentNode();
