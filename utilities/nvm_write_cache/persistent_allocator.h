@@ -26,7 +26,7 @@ public:
         char* pmemaddr;
         size_t mapped_len;
         int is_pmem;
-        pmemaddr = pmem_map_file("/pmem/rocksdb_dir/rangefile", total_size, PMEM_FILE_CREATE, 0666, &mapped_len, &is_pmem);
+        pmemaddr = static_cast<char*>(pmem_map_file("/pmem/rocksdb_dir/rangefile", total_size, PMEM_FILE_CREATE, 0666, &mapped_len, &is_pmem));
         DBG_PRINT("map [%f]GB file", mapped_len / 1048576.0 / 1024);
         assert(pmemaddr != nullptr);
         bitmap_ = bitmap;
@@ -79,7 +79,7 @@ public:
         char* pmemaddr;
         size_t mapped_len;
         bool is_pmem;
-        pmemaddr = pmem_map_file("/pmem/rocksdb_dir/rangefile", total_size_, PMEM_FILE_CREATE, 0666, &mapped_len, &is_pmem);
+        pmemaddr = static_cast<char*>(pmem_map_file("/pmem/rocksdb_dir/rangefile", total_size_, PMEM_FILE_CREATE, 0666, &mapped_len, &is_pmem));
         DBG_PRINT("map [%f]GB file", mapped_len / 1048576.0 / 1024);
         assert(pmemaddr != nullptr);
     }
