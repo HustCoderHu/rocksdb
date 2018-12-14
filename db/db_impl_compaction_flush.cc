@@ -346,6 +346,7 @@ namespace rocksdb {
                                    job_context->job_id, nvm_flush_job.GetTableProperties());
 #endif  // ROCKSDB_LITE
         }*/
+        delete nvm_flush_job;
         return s;
 
     }

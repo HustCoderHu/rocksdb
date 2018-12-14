@@ -1,4 +1,5 @@
 #include <iostream>
+#include "libpmem.h"
 
 #include "util/coding.h"
 #include "table/merging_iterator.h"
@@ -15,6 +16,21 @@ using std::cout;
 using std::endl;
 using pmem::obj::persistent_ptr;
 
+inline void PmemEncodeFixed64(char* buf, uint64_t value) {
+    if (port::kLittleEndian) {
+        pmem_memcpy_persist(buf, &value, sizeof(value));
+    } else {
+        buf[0] = value & 0xff;
+        buf[1] = (value >> 8) & 0xff;
+        buf[2] = (value >> 16) & 0xff;
+        buf[3] = (value >> 24) & 0xff;
+        buf[4] = (value >> 32) & 0xff;
+        buf[5] = (value >> 40) & 0xff;
+        buf[6] = (value >> 48) & 0xff;
+        buf[7] = (value >> 56) & 0xff;
+        pmem_persist(buf, 8);
+    }
+}
 
 char* FixedRangeTab::base_raw_ = nullptr;
 
@@ -46,9 +62,9 @@ FixedRangeTab::FixedRangeTab(pool_base &pop, const FixedRangeBasedOptions *optio
         //raw_ = base_raw_ + raw_tab->offset_ * raw_tab->buf_size_;
         raw_ = get_raw(raw_tab);
         // set cur_
-        EncodeFixed64(raw_, 0);
+        PmemEncodeFixed64(raw_, 0);
         // set seq_
-        EncodeFixed64(raw_ + sizeof(uint64_t), 0);
+        PmemEncodeFixed64(raw_ + sizeof(uint64_t), 0);
         raw_ += 2 * sizeof(uint64_t);
     } else {
         // rebuild
@@ -88,14 +104,14 @@ Status FixedRangeTab::Append(const string &bloom_data, const Slice &chunk_data,
     uint64_t last_seq = DecodeFixed64(raw_ - sizeof(uint64_t));
     char *dst = raw_ + raw_cur; // move to start of this chunk
     // append bloom data
-    EncodeFixed64(dst, bloom_data.size()); //+8
-    memcpy(dst + sizeof(uint64_t), bloom_data.c_str(), bloom_data.size()); //+bloom data size
+    PmemEncodeFixed64(dst, bloom_data.size()); //+8
+    pmem_memcpy_nodrain(dst + sizeof(uint64_t), bloom_data.c_str(), bloom_data.size()); //+bloom data size
     // append chunk data size
-    EncodeFixed64(dst + bloom_data.size() + sizeof(uint64_t), chunk_data.size()); //+8
+    PmemEncodeFixed64(dst + bloom_data.size() + sizeof(uint64_t), chunk_data.size()); //+8
 
     dst += bloom_data.size() + sizeof(uint64_t) * 2;
     // append data
-    memcpy(dst, chunk_data.data(), chunk_data.size()); //+chunk data size
+    pmem_memcpy_nodrain(dst, chunk_data.data(), chunk_data.size()); //+chunk data size
     /*{
     	//DBG_PRINT("write bloom size [%lu]", bloom_data.size());
 		//DBG_PRINT("write chunk size [%lu]", chunk_data.size());
@@ -117,8 +133,8 @@ Status FixedRangeTab::Append(const string &bloom_data, const Slice &chunk_data,
                       max_range_size());
         }
         // TODO : transaction1
-        EncodeFixed64(raw_ - 2 * sizeof(uint64_t), raw_cur + chunk_blk_len);
-        EncodeFixed64(raw_ - sizeof(uint64_t), last_seq + 1);
+        PmemEncodeFixed64(raw_ - 2 * sizeof(uint64_t), raw_cur + chunk_blk_len);
+        PmemEncodeFixed64(raw_ - sizeof(uint64_t), last_seq + 1);
     }
     // update meta info
 
@@ -248,15 +264,15 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const Slice &new_start, const Slice &
                 // get raw ptr
                 char *p_new_range = new_range.get();
                 // update range data size
-                EncodeFixed64(p_new_range, cur_start.size() + cur_end.size() + 2 * sizeof(uint64_t));
+                PmemEncodeFixed64(p_new_range, cur_start.size() + cur_end.size() + 2 * sizeof(uint64_t));
                 p_new_range += sizeof(uint64_t);
                 // put start
                 EncodeFixed64(p_new_range, cur_start.size());
-                memcpy(p_new_range + sizeof(uint64_t), cur_start.data(), cur_start.size());
+                pmem_memcpy_persist(p_new_range + sizeof(uint64_t), cur_start.data(), cur_start.size());
                 // put end
                 p_new_range += sizeof(uint64_t) + cur_start.size();
                 EncodeFixed64(p_new_range, cur_end.size());
-                memcpy(p_new_range + sizeof(uint64_t), cur_end.data(), cur_end.size());
+                pmem_memcpy_persist(p_new_range + sizeof(uint64_t), cur_end.data(), cur_end.size());
 
                 // switch old range with new range
                 delete_persistent<char[]>(w_buffer_->key_range_, w_buffer_->range_buf_len_);
@@ -282,15 +298,15 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const Slice &new_start, const Slice &
 
             char *range_buf = w_buffer_->key_range_.get();
             // put range data size
-            EncodeFixed64(range_buf, cur_start.size() + cur_end.size() + 2 * sizeof(uint64_t));
+            PmemEncodeFixed64(range_buf, cur_start.size() + cur_end.size() + 2 * sizeof(uint64_t));
             range_buf += sizeof(uint64_t);
             // put start
-            EncodeFixed64(range_buf, cur_start.size());
-            memcpy(range_buf + sizeof(uint64_t), cur_start.data(), cur_start.size());
+            PmemEncodeFixed64(range_buf, cur_start.size());
+            pmem_memcpy_persist(range_buf + sizeof(uint64_t), cur_start.data(), cur_start.size());
             // put end
             range_buf += sizeof(uint64_t) + cur_start.size();
-            EncodeFixed64(range_buf, cur_end.size());
-            memcpy(range_buf + sizeof(uint64_t), cur_end.data(), cur_end.size());
+            PmemEncodeFixed64(range_buf, cur_end.size());
+            pmem_memcpy_persist(range_buf + sizeof(uint64_t), cur_end.data(), cur_end.size());
             /*{
                 InternalKey s,e;
                 GetRealRange(w_buffer_.get(), cur_start, cur_end);
@@ -313,8 +329,8 @@ void FixedRangeTab::CleanUp(NvRangeTab* tab) {
     // 清除被compact的chunk
     tab->data_len_ = 0;
     tab->chunk_num_ = 0;
-    memset(tab->key_range_.get(), 0, tab->range_buf_len_);
-    EncodeFixed64(get_raw(tab), 0);
+    pmem_memset_persist(tab->key_range_.get(), 0, tab->range_buf_len_);
+    PmemEncodeFixed64(get_raw(tab), 0);
     DBG_PRINT("clear bufsize[%lu] off[%lu] cur[%lu]", tab->buf_size_, tab->offset_, DecodeFixed64(get_raw(tab)));
 }
 
@@ -530,7 +546,7 @@ void FixedRangeTab::SwitchBuffer(SwitchDirection direction) {
             w_buffer_->writting_ = true;
             // 更新seq
             // 设置raw指针
-            EncodeFixed64(get_raw(w_buffer_.get()) + sizeof(uint64_t),
+            PmemEncodeFixed64(get_raw(w_buffer_.get()) + sizeof(uint64_t),
                     DecodeFixed64(get_raw(c_buffer_.get()) + sizeof(uint64_t)));
             raw_ = get_raw(w_buffer_.get()) + 2 * sizeof(uint64_t);
             //DBG_PRINT("raw switch form [%p ]to [%p]",base_raw_+c_buffer_->buf_size_*c_buffer_->offset_,  raw_);
