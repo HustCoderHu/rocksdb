@@ -25,17 +25,18 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
     pinfo_ = pop_.root();
     if (!pinfo_->inited_) {
         // init cache
-        uint64_t range_pool_size = pmem_size / 4;
-        range_pool_size += ioptions->range_size_ * 5;
+        //uint64_t range_pool_size = pmem_size / 4;
+        //range_pool_size += ioptions->range_size_ * 5;
         transaction::run(pop_, [&] {
             DBG_PRINT("alloc range map");
             pinfo_->range_map_ = make_persistent<pmem_hash_map<NvRangeTab>>(pop_, 0.75, 256);
-            DBG_PRINT("alloc raw buf[%f]GB", range_pool_size/(1073741824.0));
-            DBG_PRINT("alloc bitmap[%lu]bits",range_pool_size / ioptions->range_size_);
+            //DBG_PRINT("alloc raw buf[%f]GB", range_pool_size/(1073741824.0));
+            DBG_PRINT("alloc bitmap[%d]bits",ioptions->range_num_);
             //persistent_ptr<PersistentBitMap> bitmap = make_persistent<PersistentBitMap>(pop_,
                                                                                         //range_pool_size /
                                                                                         //ioptions->range_size_);
-            pinfo_->allocator_ = make_persistent<BlockBasedPersistentAllocator>(pop_, range_pool_size, ioptions->range_size_);
+            pinfo_->allocator_ = make_persistent<BlockBasedPersistentAllocator>(pop_,
+                    (ioptions->range_num_ + 5) * ioptions->range_size_, ioptions->range_size_);
             pinfo_->inited_ = true;
             //FixedRangeTab::base_raw_ = buf.get();
         });

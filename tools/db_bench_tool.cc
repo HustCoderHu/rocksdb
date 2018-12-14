@@ -1371,6 +1371,8 @@ DEFINE_int32(chunk_bloom_bits, 16, "size of bloom filer of chunk");
 
 DEFINE_int32(prefix_bits, 11, "prefix len of key");
 
+DEFINE_int32(range_num, 100, "range num");
+
 namespace rocksdb {
 
 namespace {
@@ -3827,6 +3829,7 @@ private:
             nvm_cache_setup->reset_cache_ = FLAGS_reset_nvm_write_cache;
             nvm_cache_setup->use_nvm_cache_ = FLAGS_use_nvm_write_cache;
             nvm_cache_setup->pmem_path = FLAGS_pmem_path;
+            nvm_cache_setup->range_num_ = FLAGS_range_num;
             options.nvm_cache_setup.reset(nvm_cache_setup);
         }
 

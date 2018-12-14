@@ -40,19 +40,22 @@ struct FixedRangeBasedOptions {
     const FilterPolicy *filter_policy_ = nullptr;
     //const uint64_t range_num_threshold_ = 0;
     const size_t range_size_ = 1 << 27;
+    const int range_num_ = 100;
 
     FixedRangeBasedOptions(
             uint16_t chunk_bloom_bits,
             uint16_t prefix_bits,
             //uint64_t range_num_threashold,
-            uint64_t range_size)
+            uint64_t range_size,
+            int range_num)
             :
             chunk_bloom_bits_(chunk_bloom_bits),
             prefix_bits_(prefix_bits),
             prefix_extractor_(new DBBenchDedicatedExtractor(prefix_bits)),
             filter_policy_(NewBloomFilterPolicy(chunk_bloom_bits, false)),
             //range_num_threshold_(range_num_threashold),
-            range_size_(range_size) {
+            range_size_(range_size),
+            range_num_(range_num){
 
     }
 
@@ -81,6 +84,8 @@ struct NVMCacheSetup{
     size_t prefix_bytes = 0;
 
     int bloom_bits = 16;
+
+    int range_num = 100;
 
     NVMCacheType cache_type_ = kRangeFixedChunk;
 

@@ -812,17 +812,17 @@ Status CompactionJob::Install(const MutableCFOptions &mutable_cf_options) {
 }
 
 void CompactionJob::ProcessKeyValueCompaction(SubcompactionState *sub_compact) {
-    DBG_PRINT("In Process");
+    //DBG_PRINT("In Process");
     assert(sub_compact != nullptr);
     ColumnFamilyData *cfd = sub_compact->compaction->column_family_data();
     std::unique_ptr<RangeDelAggregator> range_del_agg(
             new RangeDelAggregator(cfd->internal_comparator(), existing_snapshots_));
     std::unique_ptr<InternalIterator> input = nullptr;
     if (compact_->compaction->start_level() == 0) {
-        DBG_PRINT("before get range iter");
+        //DBG_PRINT("before get range iter");
         input.reset(versions_->MakeKeyRangeBasedInputIterator(
                 sub_compact->compaction, range_del_agg.get(), env_optiosn_for_read_));
-        DBG_PRINT("get range iter");
+        //DBG_PRINT("get range iter");
     } else {
         input.reset(versions_->MakeInputIterator(
                 sub_compact->compaction, range_del_agg.get(), env_optiosn_for_read_));
@@ -918,7 +918,7 @@ void CompactionJob::ProcessKeyValueCompaction(SubcompactionState *sub_compact) {
             range_del_agg.get(), sub_compact->compaction, compaction_filter,
             shutting_down_, preserve_deletes_seqnum_));
     auto c_iter = sub_compact->c_iter.get();
-    DBG_PRINT("get compaction iter");
+    //DBG_PRINT("get compaction iter");
     c_iter->SeekToFirst();
     if (c_iter->Valid() && sub_compact->compaction->output_level() != 0) {
         // ShouldStopBefore() maintains state based on keys processed so far. The
@@ -1073,7 +1073,7 @@ void CompactionJob::ProcessKeyValueCompaction(SubcompactionState *sub_compact) {
             }
         }
     }
-    DBG_PRINT("after iter");
+    //DBG_PRINT("after iter");
 
     sub_compact->num_input_records = c_iter_stats.num_input_records;
     sub_compact->compaction_job_stats.num_input_deletion_records =
