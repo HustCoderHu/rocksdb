@@ -1666,7 +1666,7 @@ void VersionStorageInfo::ComputeCompactionScore(
     }
     compaction_level_[level] = level;
     compaction_score_[level] = score;
-    DBG_PRINT("level [%d] score [%f]", level, score);
+    //DBG_PRINT("level [%d] score [%f]", level, score);
   }
 
   // sort all the levels based on their score. Higher scores get listed
