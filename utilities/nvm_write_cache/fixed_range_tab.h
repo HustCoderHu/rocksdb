@@ -203,7 +203,7 @@ public:
     // 输出range信息
     void GetProperties() const;
 
-    //static char *base_raw_;
+    static char *base_raw_;
 
 private:
 

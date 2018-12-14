@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <fcntl.h>
+#include "libpmem.h"
+
 #include "persistent_bitmap.h"
 #include "debug.h"
 namespace rocksdb{
@@ -18,11 +21,15 @@ using pmem::obj::delete_persistent;
 
 class PersistentAllocator {
 public:
-    explicit PersistentAllocator(pool_base& pop, persistent_ptr<char[]> raw_space,
-                                 uint64_t total_size, uint64_t range_size,
-                                 persistent_ptr<PersistentBitMap> bitmap):pop_(pop) {
+    explicit PersistentAllocator(uint64_t total_size, uint64_t range_size,
+                                 persistent_ptr<PersistentBitMap> bitmap){
+        char* pmemaddr;
+        size_t mapped_len;
+        bool is_pmem;
+        pmemaddr = pmem_map_file("/pmem/rocksdb_dir/rangefile", total_size, PMEM_FILE_CREATE, 0666, &mapped_len, &is_pmem);
+        DBG_PRINT("map [%f]GB file", mapped_len / 1048576.0 / 1024);
+        assert(pmemaddr != nullptr);
         bitmap_ = bitmap;
-        raw_ = raw_space;
         total_size_ = total_size;
         range_size_ = range_size;
         cur_ = 0;
@@ -39,7 +46,7 @@ public:
         offset = bitmap_->GetBit();
         char *alloc = nullptr;
         if(offset != -1){
-            alloc = raw_.get() + offset * range_size_;
+            alloc = raw_ + offset * range_size_;
             cur_ = cur_ + 1;
             bitmap_->SetBit(offset, true);
         }
@@ -60,9 +67,7 @@ public:
     }
 
     void Release(){
-        transaction::run(pop_, [&]{
-            delete_persistent<char[]>(raw_, total_size_);
-        });
+        pmem_unmap(raw_, total_size_);
     }
 
     void Free(int offset){
@@ -70,13 +75,21 @@ public:
         cur_ = cur_ - 1;
     }
 
-    persistent_ptr<char[]> raw(){return raw_;}
+    void Recover(){
+        char* pmemaddr;
+        size_t mapped_len;
+        bool is_pmem;
+        pmemaddr = pmem_map_file("/pmem/rocksdb_dir/rangefile", total_size_, PMEM_FILE_CREATE, 0666, &mapped_len, &is_pmem);
+        DBG_PRINT("map [%f]GB file", mapped_len / 1048576.0 / 1024);
+        assert(pmemaddr != nullptr);
+    }
+
+    char* raw(){return raw_;}
 
 
 private:
-    pool_base& pop_;
+    char* raw_;
     persistent_ptr<PersistentBitMap> bitmap_;
-    persistent_ptr<char[]> raw_;
     p<uint64_t> total_size_;
     p<uint64_t > range_size_;
     p<uint64_t> cur_;

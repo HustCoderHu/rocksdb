@@ -120,7 +120,7 @@ private:
         p<uint64_t> allocated_bits_;
         persistent_ptr<pmem_hash_map<NvRangeTab> > range_map_;
         // TODO: allocator分配的空间没法收回
-        persistent_ptr<BlockBasedPersistentAllocator> allocator_;
+        persistent_ptr<PersistentAllocator> allocator_;
     };
 
     pool<PersistentInfo> pop_;
