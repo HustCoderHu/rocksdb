@@ -3829,7 +3829,7 @@ private:
             nvm_cache_setup->reset_cache_ = FLAGS_reset_nvm_write_cache;
             nvm_cache_setup->use_nvm_cache_ = FLAGS_use_nvm_write_cache;
             nvm_cache_setup->pmem_path = FLAGS_pmem_path;
-            nvm_cache_setup->range_num_ = FLAGS_range_num;
+            nvm_cache_setup->range_num = FLAGS_range_num;
             options.nvm_cache_setup.reset(nvm_cache_setup);
         }
 

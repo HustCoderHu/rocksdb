@@ -7,7 +7,7 @@ bench_base_setting="--benchmarks=\"fillrandom,readrandom\" \
                     --num=10000000 \
                     --reads=1000
                     --write_buffer_size=16777216
-                    --max_bytes_for_level_base=`expr 256 * 1048576 * 10` \
+                    --max_bytes_for_level_base=`expr 256 \* 1048576 \* 10` \
                     --use_existing_db=0"
 
 nvm_setting="   --use_nvm_write_cache=1 \
