@@ -215,7 +215,6 @@ void FixedRangeChunkBasedNVMWriteCache::RebuildFromPersistentNode() {
     // 遍历每个Node，获取NvRangeTab
     // 根据NvRangeTab构建FixeRangeTab
     PersistentInfo *vpinfo = pinfo_.get();
-    vpinfo->allocator_->Recover();
     pmem_hash_map<NvRangeTab> *vhash_map = vpinfo->range_map_.get();
     vector<persistent_ptr<NvRangeTab> > tab_vec;
     vhash_map->getAll(tab_vec);
@@ -224,6 +223,7 @@ void FixedRangeChunkBasedNVMWriteCache::RebuildFromPersistentNode() {
         // 一对buf的状态一定是不一样的
         assert(content->writting_ != content->pair_buf_->writting_);
         NvRangeTab *ptab = content.get();
+        DBG_PRINT("Recover range[%s]", string(ptab->prefix_.get(), ptab->prefix_len_).c_str());
         if(!ptab->writting_){
             content = content->pair_buf_;
         }

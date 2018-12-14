@@ -86,6 +86,7 @@ void pmem_hash_map<T>::getAll(std::vector<pmem::obj::persistent_ptr<T>> &nodeVec
 
         while (node != nullptr) {
             nodeVec.push_back(node->p_content);
+            DBG_PRINT("get node [%s]", string(node->p_content->prefix_, node->p_content->prefix_len_).c_str());
             node = node->next;
         }
     }
