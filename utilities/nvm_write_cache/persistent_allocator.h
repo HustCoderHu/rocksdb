@@ -30,6 +30,7 @@ public:
         pmemaddr = static_cast<char*>(pmem_map_file("/pmem/rocksdb_dir/nvmtest/rangefile", total_size, PMEM_FILE_CREATE, 0666, &mapped_len, &is_pmem));
         DBG_PRINT("map [%f]GB file", mapped_len / 1048576.0 / 1024);
         assert(pmemaddr != nullptr);
+        raw_ = pmemaddr;
         bitmap_ = bitmap;
         total_size_ = total_size;
         range_size_ = range_size;
@@ -43,7 +44,7 @@ public:
     };
 
     char *Allocate(int &offset) {
-        DBG_PRINT("remain:[%lu]-[%lu]=[%lu], rangesize_[%ly]",total_size_, cur_*range_size_, Remain(), range_size_);
+        DBG_PRINT("remain:[%lu]-[%lu]=[%lu], rangesize[%lu]",total_size_, cur_*range_size_, Remain(), range_size_);
         assert(Remain() > range_size_);
         offset = bitmap_->GetBit();
         char *alloc = nullptr;
