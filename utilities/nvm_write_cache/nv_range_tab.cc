@@ -6,9 +6,9 @@
 
 
 namespace rocksdb{
-NvRangeTab::NvRangeTab(pool_base &pop, p_buf buf, uint64_t off, const string &prefix, uint64_t range_size){
+NvRangeTab::NvRangeTab(pool_base &pop, uint64_t off, const string &prefix, uint64_t range_size){
     transaction::run(pop, [&] {
-        buf_ = buf;
+        //buf_ = buf;
         offset_ = off;
         writting_ = true;
         prefix_ = make_persistent<char[]>(prefix.size());
