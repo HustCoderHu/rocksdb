@@ -84,6 +84,7 @@ void pmem_hash_map<T>::getAll(std::vector<pmem::obj::persistent_ptr<T>> &nodeVec
     DBG_PRINT("tab len [%lu]", tablen);
     for (size_t i = 0; i < tablen; ++i) {
         p_node_t node = tab_[i];
+        DBG_PRINT("[%s]", node==nullptr ? "null bucket" : "not null bucket");
 
         while (node != nullptr) {
             nodeVec.push_back(node->p_content);
