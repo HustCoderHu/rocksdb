@@ -446,7 +446,7 @@ Usage FixedRangeTab::RangeUsage(UsageType type) const{
 
         case kForCompaction:{
             get_usage(c_buffer_.get());
-            DBG_PRINT("get range[%s]-[%s]", usage.start().DebugString(true).c_str(), usage.end().DebugString(true).c_str());
+            //DBG_PRINT("get range[%s]-[%s]", usage.start().DebugString(true).c_str(), usage.end().DebugString(true).c_str());
             return usage;
         }
         case kForWritting:{
