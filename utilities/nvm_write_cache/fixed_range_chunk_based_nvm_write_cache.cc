@@ -40,7 +40,8 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
         });
     } else if (reset) {
         // reset cache
-        //FixedRangeTab::base_raw_ = pinfo_->allocator_->raw().get();
+        pinfo_->allocator_->Recover();
+        FixedRangeTab::base_raw_ = pinfo_->allocator_->raw();
         transaction::run(pop_, [&] {
             delete_persistent<pmem_hash_map<NvRangeTab>>(pinfo_->range_map_);
             pinfo_->range_map_ = make_persistent<pmem_hash_map<NvRangeTab>>(pop_, 0.75, 256);
@@ -48,7 +49,8 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
         pinfo_->allocator_->Reset();
     } else {
         // rebuild cache
-        //FixedRangeTab::base_raw_ = pinfo_->allocator_->raw().get();
+        pinfo_->allocator_->Recover();
+        FixedRangeTab::base_raw_ = pinfo_->allocator_->raw();
         RebuildFromPersistentNode();
     }
 
