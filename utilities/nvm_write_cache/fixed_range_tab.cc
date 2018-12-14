@@ -98,7 +98,7 @@ FixedRangeTab::FixedRangeTab(pool_base &pop, const FixedRangeBasedOptions *optio
 Status FixedRangeTab::Append(const string &bloom_data, const Slice &chunk_data,
                              const Slice &start, const Slice &end) {
     //DBG_PRINT("start Append");
-    assert(w_buffer_->data_len_ + chunk_data.size_ <= max_range_size());
+    assert(w_buffer_->data_len_ + chunk_data.size_ + 2 * 8 <= max_range_size());
     size_t chunk_blk_len = bloom_data.size() + chunk_data.size() + 2 * sizeof(uint64_t);
     uint64_t raw_cur = DecodeFixed64(raw_ - 2 * sizeof(uint64_t));
     uint64_t last_seq = DecodeFixed64(raw_ - sizeof(uint64_t));
@@ -129,8 +129,10 @@ Status FixedRangeTab::Append(const string &bloom_data, const Slice &chunk_data,
     // transaction
     {
         if (raw_cur + chunk_blk_len >= max_range_size()) {
+            DBG_PRINT("prefix [%s]", string(w_buffer_->prefix_.get(), w_buffer_->prefix_len_).c_str());
             DBG_PRINT("assert: buffer[%lu] raw_cur[%lu] chunk_blk_len[%lu] max_range_size()[%lu]", w_buffer_->offset_, raw_cur, chunk_blk_len,
                       max_range_size());
+            assert(false);
         }
         // TODO : transaction1
         PmemEncodeFixed64(raw_ - 2 * sizeof(uint64_t), raw_cur + chunk_blk_len);
