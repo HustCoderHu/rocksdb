@@ -81,6 +81,7 @@ pmem_hash_map<T>::pmem_hash_map(pool_base &pop, double loadFactor, uint64_t tabL
 template <typename T>
 void pmem_hash_map<T>::getAll(std::vector<pmem::obj::persistent_ptr<T>> &nodeVec) {
     size_t tablen = tabLen_;
+    DBG_PRINT("tab len [%lu]", tablen);
     for (size_t i = 0; i < tablen; ++i) {
         p_node_t node = tab_[i];
 
