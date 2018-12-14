@@ -119,7 +119,7 @@ void pmem_hash_map<T>::put(pool_base &pop, persistent_ptr<T> p_content) {
         bucketHeadNode->next = newhead;
         DBG_PRINT("insert to chain");
     }
-    DBG_PRINT("hash [%lu]", bucketHeadNode->next->p_content->hashCode());
+    DBG_PRINT("hash [%lu]", bucketHeadNode->p_content->hashCode());
 }
 
 /*template <typename T>
