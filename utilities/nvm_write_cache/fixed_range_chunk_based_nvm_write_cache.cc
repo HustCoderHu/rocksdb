@@ -36,7 +36,7 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
                                                                                         //range_pool_size /
                                                                                         //ioptions->range_size_);
             pinfo_->allocator_ = make_persistent<BlockBasedPersistentAllocator>(pop_,
-                    (ioptions->range_num_ + 5) * ioptions->range_size_ * 2, ioptions->range_size_);
+                    (ioptions->range_num_ + 5) * 2, ioptions->range_size_);
             pinfo_->inited_ = true;
             //FixedRangeTab::base_raw_ = buf.get();
         });

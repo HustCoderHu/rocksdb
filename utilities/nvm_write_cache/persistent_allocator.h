@@ -85,10 +85,9 @@ private:
 
 class BlockBasedPersistentAllocator{
 public:
-    explicit BlockBasedPersistentAllocator(pool_base& pop,
-            uint64_t total_size, uint64_t range_size):pop_(pop) {
+    explicit BlockBasedPersistentAllocator(pool_base& pop, uint64_t range_num, uint64_t range_size):pop_(pop) {
 
-        range_num_ = ceil(total_size / range_size);
+        range_num_ = range_num;
         transaction::run(pop, [&]{
             //≥ı ºªØbitmap
             bitmap_ = make_persistent<PersistentBitMap>(pop, range_num_);
@@ -100,7 +99,7 @@ public:
             }
 
         });
-        total_size_ = total_size;
+        total_size_ = range_num_ * range_size_;
         range_size_ = range_size;
         allocated_ = 0;
     }
