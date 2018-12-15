@@ -349,8 +349,9 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
             for (; pending_chunk != pending_output_chunk.end(); pending_chunk++) {
 #ifdef PARALLEL_INSERT
                 thread_pool.emplace_back(finish_build_chunk, pending_chunk->first);
-#endif
+#else
                 finish_build_chunk(pending_chunk->first);
+#endif
             }
 #ifdef PARALLEL_INSERT
             finish_build_chunk(pending_output_chunk.begin()->first);
