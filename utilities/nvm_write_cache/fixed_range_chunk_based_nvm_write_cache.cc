@@ -186,6 +186,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
 }
 
 void FixedRangeChunkBasedNVMWriteCache::RollbackCompaction(rocksdb::FixedRangeTab *range) {
+    DBG_PRINT("Rollback compaction[%s]", range->prefix().c_str());
     vinfo_->queue_lock_.Lock();
     range->SetCompactionPendding(true);
     vinfo_->range_queue_.push_back(range);
