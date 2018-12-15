@@ -102,6 +102,8 @@ public:
 
 	FixedRangeTab* GetRangeTab(const std::string &prefix);
 
+	void RollbackCompaction(FixedRangeTab* range);
+
 	//TODO: DeleteCache;
 
 private:

@@ -185,6 +185,13 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
     DBG_PRINT("[%d]range compaction pendding", compaction_pendding_range);
 }
 
+void FixedRangeChunkBasedNVMWriteCache::RollbackCompaction(rocksdb::FixedRangeTab *range) {
+    vinfo_->queue_lock_.Lock();
+    range->SetCompactionPendding(true);
+    vinfo_->range_queue_.push_back(range);
+    vinfo_->queue_lock_.Unlock();
+}
+
 // call by compaction thread
 void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionItem *compaction) {
     assert(!vinfo_->range_queue_.empty());

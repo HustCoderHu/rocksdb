@@ -1498,6 +1498,9 @@ Compaction *LevelCompactionBuilder::PickCompaction() {
     // 在这里修改的~
     if (!SetupOtherInputsIfNeeded()) {
         DBG_PRINT("cancle compaction");
+        if(pendding_compaction_ != nullptr){
+            pendding_compaction_->pending_compated_range_->SetCompactionWorking(false);
+        }
         return nullptr;
     }
     DBG_PRINT("start_level_input size[%lu], level[%d]", start_level_inputs_.size(), start_level_inputs_.level);
