@@ -1497,6 +1497,7 @@ Compaction *LevelCompactionBuilder::PickCompaction() {
     // Add by Glitter
     // 在这里修改的~
     if (!SetupOtherInputsIfNeeded()) {
+        DBG_PRINT("cancle compaction");
         return nullptr;
     }
     DBG_PRINT("start_level_input size[%lu], level[%d]", start_level_inputs_.size(), start_level_inputs_.level);
