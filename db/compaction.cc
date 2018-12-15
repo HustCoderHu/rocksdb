@@ -270,13 +270,16 @@ Compaction::Compaction(VersionStorageInfo *vstorage,
                                       &arena_);
         }
     }
+    GetBoundaryKeys(vstorage, inputs_, &smallest_user_key_, &largest_user_key_);
     if(start_level_ == 0){
         //TODO ÅĞ¶ÏÊÇ·ñÎª¿Õ
         Usage usage = pendding_range_->range_usage;
-        smallest_user_key_ = usage.start().user_key();
-        largest_user_key_ = usage.end().user_key();
-    }else{
-        GetBoundaryKeys(vstorage, inputs_, &smallest_user_key_, &largest_user_key_);
+        if(vstorage->InternalComparator()->user_comparator()->Compare(usage.start().user_key(), smallest_user_key_) < 0){
+            smallest_user_key_ = usage.start().user_key();
+        }
+        if(vstorage->InternalComparator()->user_comparator()->Compare(usage.end().user_key(), largest_user_key_) > 0){
+            largest_user_key_ = usage.end().user_key();
+        }
     }
 }
 
