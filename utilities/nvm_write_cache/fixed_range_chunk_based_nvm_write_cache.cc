@@ -198,7 +198,9 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
     compaction->pending_compated_range_ = vinfo_->range_queue_.back();
     if(!compaction->pending_compated_range_->HasCompactionBuf()){
         // TODO : 可能有问题
+        compaction->pending_compated_range_->lock();
         compaction->pending_compated_range_->SwitchBuffer(kToCBuffer);
+        compaction->pending_compated_range_->unlock();
     }
     compaction->range_usage = compaction->pending_compated_range_->RangeUsage(kForCompaction);
     DBG_PRINT("Get range[%s], size[%f]",compaction->pending_compated_range_->prefix().c_str(),

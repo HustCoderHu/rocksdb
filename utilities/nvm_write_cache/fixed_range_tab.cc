@@ -18,7 +18,7 @@ using pmem::obj::persistent_ptr;
 
 inline void PmemEncodeFixed64(char* buf, uint64_t value) {
     if (port::kLittleEndian) {
-        pmem_memcpy_nodrain(buf, &value, sizeof(value));
+        pmem_memcpy_persist(buf, &value, sizeof(value));
     } else {
         buf[0] = value & 0xff;
         buf[1] = (value >> 8) & 0xff;
@@ -102,6 +102,7 @@ Status FixedRangeTab::Append(const string &bloom_data, const Slice &chunk_data,
     size_t chunk_blk_len = bloom_data.size() + chunk_data.size() + 2 * sizeof(uint64_t);
     uint64_t raw_cur = DecodeFixed64(raw_ - 2 * sizeof(uint64_t));
     uint64_t last_seq = DecodeFixed64(raw_ - sizeof(uint64_t));
+    DBG_PRINT("raw cur[%lu]-datalen[%lu]", raw_cur, w_buffer_->data_len_);
     char *dst = raw_ + raw_cur; // move to start of this chunk
     // append bloom data
     PmemEncodeFixed64(dst, bloom_data.size()); //+8
@@ -112,6 +113,7 @@ Status FixedRangeTab::Append(const string &bloom_data, const Slice &chunk_data,
     dst += bloom_data.size() + sizeof(uint64_t) * 2;
     // append data
     pmem_memcpy_nodrain(dst, chunk_data.data(), chunk_data.size()); //+chunk data size
+    pmem_drain();
     /*{
     	//DBG_PRINT("write bloom size [%lu]", bloom_data.size());
 		//DBG_PRINT("write chunk size [%lu]", chunk_data.size());
@@ -139,7 +141,6 @@ Status FixedRangeTab::Append(const string &bloom_data, const Slice &chunk_data,
         PmemEncodeFixed64(raw_ - 2 * sizeof(uint64_t), raw_cur + chunk_blk_len);
         PmemEncodeFixed64(raw_ - sizeof(uint64_t), last_seq + 1);
     }
-    pmem_drain();
     // update meta info
 
     CheckAndUpdateKeyRange(start, end);
