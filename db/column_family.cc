@@ -484,7 +484,7 @@ namespace rocksdb {
             DBG_PRINT("open pmem file name[%s]", pmem_file_name.c_str());
             auto foptions = new FixedRangeBasedOptions(ioptions_.nvm_cache_setup->bloom_bits,
                                                        ioptions_.nvm_cache_setup->prefix_bytes,
-                                                       1 << 28, ioptions_.nvm_cache_setup->range_num);
+                                                       /*1 << 27*/400ul * 1024 * 1024, ioptions_.nvm_cache_setup->range_num);
             ioptions_.nvm_cache_options->nvm_write_cache_ =
                     reinterpret_cast<NVMWriteCache*>(NVMCacheOptions::NewFixedRangeChunkBasedCache(
                             ioptions_.nvm_cache_options.get(), foptions, &ioptions_.internal_comparator));
