@@ -1373,6 +1373,8 @@ DEFINE_int32(prefix_bits, 11, "prefix len of key");
 
 DEFINE_int32(range_num, 100, "range num");
 
+DEFINE_int64(range_size, 1<<27, "range size");
+
 namespace rocksdb {
 
 namespace {
@@ -3830,6 +3832,7 @@ private:
             nvm_cache_setup->use_nvm_cache_ = FLAGS_use_nvm_write_cache;
             nvm_cache_setup->pmem_path = FLAGS_pmem_path;
             nvm_cache_setup->range_num = FLAGS_range_num;
+            nvm_cache_setup->range_size = FLAGS_range_size;
             options.nvm_cache_setup.reset(nvm_cache_setup);
         }
 

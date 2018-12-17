@@ -87,6 +87,8 @@ struct NVMCacheSetup{
 
     int range_num = 100;
 
+    uint64_t range_size = 1<<27;
+
     NVMCacheType cache_type_ = kRangeFixedChunk;
 
     NVMCacheSetup& operator=(const NVMCacheSetup& setup) =default;
