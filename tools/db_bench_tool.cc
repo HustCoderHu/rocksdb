@@ -1375,6 +1375,8 @@ DEFINE_int32(range_num, 100, "range num");
 
 DEFINE_int64(range_size, 128, "range size by MB");
 
+DEFINE_int32(num_stat, 250000, "statistics per num keys");
+
 namespace rocksdb {
 
 namespace {
@@ -4249,13 +4251,13 @@ private:
             }
             // test
 
-            if ((num_written) % 8000000 == 0) {
+            if ((num_written) % FLAGS_num_stat == 0) {
                 double now = Env::Default()->NowMicros();
                 double time = now - finish_last_;
                 int64_t ebytes = bytes - bytes_last_;
                 fprintf(stdout, "now= %f  i=%12ld : %11.3f micros/op speed = %.1lf MB/s time = %lf micros\n",
                         now,
-                        num_written, time / 8000000,
+                        num_written, time / FLAGS_num_stat,
                         ((ebytes / 1048576.8) * 1000000) / time,
                         time);
                 //PrintStats("rocksdb.stats");
