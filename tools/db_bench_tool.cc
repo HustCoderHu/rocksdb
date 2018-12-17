@@ -1373,7 +1373,7 @@ DEFINE_int32(prefix_bits, 11, "prefix len of key");
 
 DEFINE_int32(range_num, 100, "range num");
 
-DEFINE_int64(range_size, 1<<27, "range size");
+DEFINE_int64(range_size, 128, "range size by MB");
 
 namespace rocksdb {
 

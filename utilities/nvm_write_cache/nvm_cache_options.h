@@ -39,7 +39,7 @@ struct FixedRangeBasedOptions {
     unique_ptr<PrefixExtractor> prefix_extractor_ = nullptr;
     const FilterPolicy *filter_policy_ = nullptr;
     //const uint64_t range_num_threshold_ = 0;
-    const size_t range_size_ = 1 << 27;
+    const size_t range_size_ = 128;
     const int range_num_ = 100;
 
     FixedRangeBasedOptions(
