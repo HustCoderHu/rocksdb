@@ -19,6 +19,7 @@ using pmem::obj::pool_base;
 using pmem::obj::make_persistent;
 using pmem::obj::delete_persistent;
 
+static std::string rangefile_path = "/pmem/rocksdb_dir/nvmtest/rangefile";
 class PersistentAllocator {
 public:
     explicit PersistentAllocator(uint64_t total_size, uint64_t range_size,
@@ -27,7 +28,7 @@ public:
         size_t mapped_len;
         int is_pmem;
         DBG_PRINT("prepare map [%f]GB file", total_size / 1048576.0 / 1024);
-        pmemaddr = static_cast<char*>(pmem_map_file("/pmem/rocksdb_dir/nvmtest/rangefile", total_size, PMEM_FILE_CREATE, 0666, &mapped_len, &is_pmem));
+        pmemaddr = static_cast<char*>(pmem_map_file(rangefile_path.c_str(), total_size, PMEM_FILE_CREATE, 0666, &mapped_len, &is_pmem));
         DBG_PRINT("map [%f]GB file", mapped_len / 1048576.0 / 1024);
         assert(pmemaddr != nullptr);
         raw_ = pmemaddr;
@@ -82,7 +83,7 @@ public:
         char* pmemaddr;
         size_t mapped_len;
         int is_pmem;
-        pmemaddr = static_cast<char*>(pmem_map_file("/pmem/rocksdb_dir/rangefile", total_size_, PMEM_FILE_CREATE, 0666, &mapped_len, &is_pmem));
+        pmemaddr = static_cast<char*>(pmem_map_file(rangefile_path.c_str(), total_size_, PMEM_FILE_CREATE, 0666, &mapped_len, &is_pmem));
         DBG_PRINT("map [%f]GB file", mapped_len / 1048576.0 / 1024);
         assert(pmemaddr != nullptr);
     }
