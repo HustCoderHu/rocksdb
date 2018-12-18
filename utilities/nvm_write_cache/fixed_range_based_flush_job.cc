@@ -326,18 +326,18 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
             std::vector<port::Thread> thread_pool;
             thread_pool.clear();
 #endif
-            auto finish_build_chunk = [&](std::string prefix) {
+            auto finish_build_chunk = [](const InternalKeyComparator& icmp, FixedRangeChunkBasedNVMWriteCache* cache, std::string prefix, BuildingChunk* chunk) {
                 //DBG_PRINT("start append [%s]", prefix.c_str());
                 // get chunk data
                 string bloom_data;
                 ChunkMeta meta;
                 meta.prefix = prefix;
-                std::string *output_data = pending_output_chunk[prefix]->Finish(bloom_data,
+                std::string *output_data = chunk->Finish(bloom_data,
                         meta.cur_start, meta.cur_end);
                 // append to range tab
                 //range_found->second.Append(bloom_data/*char**/, output_data/*Slice*/,ChunkMeta(internal_comparator, cur_start, cur_end));
                 //DBG_PRINT("decode from raw chunk data[%lu]chunkdata size[%lu]", DecodeFixed64(output_data->data() + output_data->size() - 8), output_data->size());
-                nvm_write_cache_->AppendToRange(internal_comparator, bloom_data, Slice(output_data->c_str(), output_data->size()), meta);
+                cache->AppendToRange(icmp, bloom_data, Slice(output_data->c_str(), output_data->size()), meta);
                 // TODO:Slice是否需要delete
                 delete output_data;
             };
@@ -348,13 +348,13 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
 #endif
             for (; pending_chunk != pending_output_chunk.end(); pending_chunk++) {
 #ifdef PARALLEL_INSERT
-                thread_pool.emplace_back(finish_build_chunk, pending_chunk->first);
+                thread_pool.emplace_back(finish_build_chunk, cfd_->internal_comparator(), nvm_write_cache_, pending_chunk->first, pending_chunk->second);
 #else
-                finish_build_chunk(pending_chunk->first);
+                finish_build_chunk(cfd_->internal_comparator(), nvm_write_cache_, pending_chunk->first, pending_chunk->second);
 #endif
             }
 #ifdef PARALLEL_INSERT
-            finish_build_chunk(pending_output_chunk.begin()->first);
+            finish_build_chunk(cfd_->internal_comparator(), nvm_write_cache_, pending_output_chunk.begin()->first, pending_output_chunk.begin()->second);
             for (auto &running_thread : thread_pool) {
                 running_thread.join();
             }
