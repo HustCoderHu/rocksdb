@@ -24,7 +24,7 @@
 #include "fixed_range_chunk_based_nvm_write_cache.h"
 #include "chunk.h"
 #include "fixed_range_tab.h"
-//#define PARALLEL_INSERT
+#define PARALLEL_INSERT
 
 namespace rocksdb {
 
