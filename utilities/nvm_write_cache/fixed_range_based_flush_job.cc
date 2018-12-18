@@ -24,7 +24,7 @@
 #include "fixed_range_chunk_based_nvm_write_cache.h"
 #include "chunk.h"
 #include "fixed_range_tab.h"
-//#define PARALLEL_INSERT
+#define PARALLEL_INSERT
 
 namespace rocksdb {
 
@@ -63,7 +63,7 @@ const char *NVMGetFlushReasonString(FlushReason flush_reason) {
 FixedRangeBasedFlushJob::FixedRangeBasedFlushJob(const std::string &dbname,
                                                  const ImmutableDBOptions &db_options,
                                                  const MutableCFOptions &mutable_cf_options,
-                                                 VersionSet* versions,
+                                                 VersionSet *versions,
                                                  JobContext *job_context,
                                                  EventLogger *event_logger,
                                                  ColumnFamilyData *cfd,
@@ -73,7 +73,7 @@ FixedRangeBasedFlushJob::FixedRangeBasedFlushJob(const std::string &dbname,
                                                  InstrumentedMutex *db_mutex,
                                                  std::atomic<bool> *shutting_down,
                                                  LogBuffer *log_buffer,
-                                                 Statistics* stats,
+                                                 Statistics *stats,
                                                  NVMCacheOptions *nvm_cache_options,
                                                  bool write_manifest)
         : dbname_(dbname),
@@ -92,15 +92,15 @@ FixedRangeBasedFlushJob::FixedRangeBasedFlushJob(const std::string &dbname,
           stats_(stats),
           nvm_cache_options_(nvm_cache_options),
           nvm_write_cache_(dynamic_cast<FixedRangeChunkBasedNVMWriteCache *>(nvm_cache_options_->nvm_write_cache_)),
-          //range_list_(nvm_write_cache_->GetRangeList()),
+        //range_list_(nvm_write_cache_->GetRangeList()),
           last_chunk(nullptr),
-          write_manifest_(write_manifest){
+          write_manifest_(write_manifest) {
 
 }
 
 
 FixedRangeBasedFlushJob::~FixedRangeBasedFlushJob() {
-    for(auto chunk : pending_output_chunk){
+    for (auto chunk : pending_output_chunk) {
         delete chunk.second;
     }
     ThreadStatusUtil::ResetThreadStatus();
@@ -318,7 +318,7 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
         if (s.ok()) {
             // check is the prefix existing in nvm cache or create it
             //DBG_PRINT("total prefix num[%lu]", pending_output_chunk.size());
-            for(auto pendding_chunk:pending_output_chunk){
+            for (auto pendding_chunk:pending_output_chunk) {
                 nvm_write_cache_->RangeExistsOrCreat(pendding_chunk.first);
             }
             // insert data of each range into nvm cache
@@ -326,14 +326,15 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
             std::vector<port::Thread> thread_pool;
             thread_pool.clear();
 #endif
-            auto finish_build_chunk = [](const InternalKeyComparator& icmp, FixedRangeChunkBasedNVMWriteCache* cache, std::string prefix, BuildingChunk* chunk) {
+            auto finish_build_chunk = [](const InternalKeyComparator &icmp, FixedRangeChunkBasedNVMWriteCache *cache,
+                                         std::string prefix, BuildingChunk *chunk) {
                 //DBG_PRINT("start append [%s]", prefix.c_str());
                 // get chunk data
                 string bloom_data;
                 ChunkMeta meta;
                 meta.prefix = prefix;
                 std::string *output_data = chunk->Finish(bloom_data,
-                        meta.cur_start, meta.cur_end);
+                                                         meta.cur_start, meta.cur_end);
                 // append to range tab
                 //range_found->second.Append(bloom_data/*char**/, output_data/*Slice*/,ChunkMeta(internal_comparator, cur_start, cur_end));
                 //DBG_PRINT("decode from raw chunk data[%lu]chunkdata size[%lu]", DecodeFixed64(output_data->data() + output_data->size() - 8), output_data->size());
@@ -350,7 +351,8 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
 #ifdef PARALLEL_INSERT
                 thread_pool.emplace_back(finish_build_chunk, cfd_->internal_comparator(), nvm_write_cache_, pending_chunk->first, pending_chunk->second);
 #else
-                finish_build_chunk(cfd_->internal_comparator(), nvm_write_cache_, pending_chunk->first, pending_chunk->second);
+                finish_build_chunk(cfd_->internal_comparator(), nvm_write_cache_, pending_chunk->first,
+                                   pending_chunk->second);
 #endif
             }
 #ifdef PARALLEL_INSERT
