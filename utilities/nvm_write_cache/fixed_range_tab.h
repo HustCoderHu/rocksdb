@@ -200,6 +200,10 @@ public:
         return string(w_buffer_->prefix_.get(), w_buffer_->prefix_len_);
     }
 
+    uint64_t RangeTotalSize(){
+        return w_buffer_->data_len_ + w_buffer_->pair_buf_->data_len_;
+    }
+
     // 输出range信息
     void GetProperties() const;
 

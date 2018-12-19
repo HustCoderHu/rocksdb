@@ -1,6 +1,6 @@
 #include "utilities/nvm_write_cache/skiplist/test_common.h"
 #include "fixed_range_chunk_based_nvm_write_cache.h"
-
+#define RANGE_SIZE_TEST
 namespace rocksdb {
 
 using std::string;
@@ -122,6 +122,19 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
     now_range->lock();
     now_range->Append(bloom_data, chunk_data, meta.cur_start, meta.cur_end);
     now_range->unlock();
+#ifdef RANGE_SIZE_TEST
+    {
+        vector<persistent_ptr<NvRangeTab> > tab_vec;
+        pinfo_->range_map_->getAll(tab_vec);
+        FILE* fp = fopen("/home/hustzyw/nvm-rocksdb/range-data-size", "a");
+        for(auto tab : tab_vec){
+            fprintf(fp, "%lu,", tab->data_len_);
+        }
+        fprintf(fp, "\n");
+        fclose(fp);
+    }
+
+#endif
     //DBG_PRINT("end append");
 
 }
@@ -168,12 +181,12 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
             continue;
         }
         Usage range_usage = range.second->RangeUsage(kForWritting);
-        if (range_usage.range_size >= tab->max_range_size() * 0.6 || (tab->HasCompactionBuf()&&
+        if (range_usage.range_size >= tab->max_range_size() * 0.90 || (tab->HasCompactionBuf()&&
                                                                         !tab->IsCompactPendding() &&
                                                                         !tab->IsCompactWorking())) {
             DBG_PRINT("Range [%s] Need Compaction [%f]MB > [%f]MB", tab->prefix().c_str(),
                     range_usage.range_size / 1048576.0,
-                      (tab->max_range_size() / 1048576.0) * 0.6);
+                      (tab->max_range_size() / 1048576.0) * 0.9);
             vinfo_->queue_lock_.Lock();
             tab->SetCompactionPendding(true);
             vinfo_->range_queue_.push_back(tab);
@@ -197,13 +210,25 @@ void FixedRangeChunkBasedNVMWriteCache::RollbackCompaction(rocksdb::FixedRangeTa
 void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionItem *compaction) {
     assert(!vinfo_->range_queue_.empty());
     vinfo_->queue_lock_.Lock();
-    std::sort(vinfo_->range_queue_.begin(), vinfo_->range_queue_.end(),
+    /*std::sort(vinfo_->range_queue_.begin(), vinfo_->range_queue_.end(),
               [](const FixedRangeTab *ltab, const FixedRangeTab *rtab) {
+                    // 升序
                   return ltab->RangeUsage(kForWritting).range_size <
                          rtab->RangeUsage(kForWritting).range_size;
-              });
+              });*/
     //DBG_PRINT("In cache lock");
-    compaction->pending_compated_range_ = vinfo_->range_queue_.back();
+    uint64_t min_writable_size = vinfo_->internal_options_->range_size_ * 2;
+    FixedRangeTab* pendding_range = nullptr;
+    for(auto range : vinfo_->range_queue_){
+        uint64_t range_size = range->RangeTotalSize();
+        if( range_size < min_writable_size){
+            min_writable_size = range_size;
+            pendding_range = range;
+        }
+    }
+    //compaction->pending_compated_range_ = vinfo_->range_queue_.back();
+    compaction->pending_compated_range_ = pendding_range;
+    assert(pendding_range != nullptr);
     if(!compaction->pending_compated_range_->HasCompactionBuf()){
         // TODO : 可能有问题
         compaction->pending_compated_range_->lock();
