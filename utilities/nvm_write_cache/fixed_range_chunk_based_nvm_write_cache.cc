@@ -221,7 +221,7 @@ void FixedRangeChunkBasedNVMWriteCache::RollbackCompaction(rocksdb::FixedRangeTa
 // call by compaction thread
 void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionItem *compaction) {
     assert(!vinfo_->range_queue_.empty());
-    vinfo_->queue_lock_.Lock();
+    //vinfo_->queue_lock_.Lock();
     if(!vinfo_->queue_sorted_){
         std::sort(vinfo_->range_queue_.begin(), vinfo_->range_queue_.end(),
                   [](const FixedRangeTab *ltab, const FixedRangeTab *rtab) {
@@ -231,11 +231,21 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
                   });
         vinfo_->queue_sorted_ = true;
     }
+    uint64_t max_range_size = 0;
+    FixedRangeTab* pendding_range = nullptr;
+    for(auto range : vinfo_->prefix2range){
+        uint64_t range_size = range.second->RangeTotalSize();
+        if(max_range_size < range_size){
+            max_range_size = range_size;
+            pendding_range = range.second;
+        }
+    }
+    compaction->pending_compated_range_ = pendding_range;
     //DBG_PRINT("In cache lock");
     /*DBG_PRINT("Get range[%s], size[%f]",pendding_range->prefix().c_str(),
               pendding_range->RangeUsage(kForCompaction).range_size / 1048576.0);*/
     //compaction->pending_compated_range_ = vinfo_->range_queue_.back();
-    compaction->pending_compated_range_ = vinfo_->range_queue_.back();
+    //compaction->pending_compated_range_ = vinfo_->range_queue_.back();
 
     //assert(pendding_range != nullptr);
     if(!compaction->pending_compated_range_->HasCompactionBuf()){
@@ -249,7 +259,7 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
             compaction->range_usage.range_size / 1048576.0);
     compaction->allocator_ = nullptr;
 
-    vinfo_->range_queue_.pop_back();
+    //vinfo_->range_queue_.pop_back();
     compaction->pending_compated_range_->SetCompactionPendding(false);
     compaction->pending_compated_range_->SetCompactionWorking(true);
 
@@ -259,7 +269,7 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
     vinfo_->total_size_.fetch_sub(compaction->range_usage.range_size);
     if(vinfo_->total_size_ < total_buffer_size * 0.8) vinfo_->compaction_requested_ = false;
 
-    vinfo_->queue_lock_.Unlock();
+    //vinfo_->queue_lock_.Unlock();
     //DBG_PRINT("end get compaction and unlock");
 }
 

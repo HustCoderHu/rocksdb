@@ -136,7 +136,7 @@ private:
         const InternalKeyComparator* icmp_;
         unordered_map<string, FixedRangeTab*> prefix2range;
         std::vector<FixedRangeTab*> range_queue_;
-        InstrumentedMutex queue_lock_;
+        //InstrumentedMutex queue_lock_;
         atomic<uint64_t> total_size_;
         atomic_bool compaction_requested_;
         bool queue_sorted_;
