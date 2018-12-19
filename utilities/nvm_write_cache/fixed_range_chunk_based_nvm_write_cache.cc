@@ -231,7 +231,7 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
         }
     }
     DBG_PRINT("Get range[%s], size[%f]",pendding_range->prefix().c_str(),
-              pendding_range->range_usage.range_size / 1048576.0);
+              pendding_range->RangeUsage(kForCompaction).range_size / 1048576.0);
     //compaction->pending_compated_range_ = vinfo_->range_queue_.back();
     compaction->pending_compated_range_ = pendding_range;
     assert(pendding_range != nullptr);
