@@ -236,6 +236,8 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
     FixedRangeTab* pendding_range = nullptr;
     for(auto range : vinfo_->prefix2range){
         // choose a range with max size
+        // skip range which is in compaction
+        if(range.second->IsCompactWorking()) continue;
         uint64_t range_size = range.second->RangeTotalSize();
         if(max_range_size < range_size){
             max_range_size = range_size;
