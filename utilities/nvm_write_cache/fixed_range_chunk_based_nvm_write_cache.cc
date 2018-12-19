@@ -186,12 +186,12 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
             continue;
         }
         //Usage range_usage = range.second->RangeUsage(kForWritting);
-        if (tab->WriteBufferSize() >= tab->max_range_size() * 0.90 || (tab->HasCompactionBuf()&&
+        if (tab->WriteBufferSize() >= tab->max_range_size() * 0.45 || (tab->HasCompactionBuf()&&
                                                                         !tab->IsCompactPendding() &&
                                                                         !tab->IsCompactWorking())) {
             DBG_PRINT("Range [%s] Need Compaction [%f]MB > [%f]MB", tab->prefix().c_str(),
                       tab->WriteBufferSize() / 1048576.0,
-                      (tab->max_range_size() / 1048576.0) * 0.9);
+                      (tab->max_range_size() / 1048576.0) * 0.45);
             vinfo_->queue_lock_.Lock();
             tab->SetCompactionPendding(true);
             vinfo_->range_queue_.push_back(tab);
