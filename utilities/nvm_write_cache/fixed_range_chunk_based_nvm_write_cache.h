@@ -135,11 +135,15 @@ private:
         std::vector<FixedRangeTab*> range_queue_;
         InstrumentedMutex queue_lock_;
         uint64_t total_size_;
+        bool queue_sorted_;
 
 
         explicit VolatileInfo(const FixedRangeBasedOptions *ioptions, const InternalKeyComparator* icmp)
                 :   internal_options_(ioptions),
-                    icmp_(icmp){total_size_ = 0;}
+                    icmp_(icmp){
+            total_size_ = 0;
+            queue_sorted_ = false;
+        }
     };
 
     VolatileInfo *vinfo_;

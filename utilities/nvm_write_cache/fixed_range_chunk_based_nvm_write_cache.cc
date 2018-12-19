@@ -112,7 +112,8 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
         while(now_range->HasCompactionBuf()){
             // has no space need wait
             // wait fo compaction end
-            sleep(1);
+            //sleep(1);
+            usleep(10);
         }
         // switch buffer
         now_range->lock();
@@ -184,16 +185,17 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
             compaction_pendding_range++;
             continue;
         }
-        Usage range_usage = range.second->RangeUsage(kForWritting);
-        if (range_usage.range_size >= tab->max_range_size() * 0.90 || (tab->HasCompactionBuf()&&
+        //Usage range_usage = range.second->RangeUsage(kForWritting);
+        if (tab->WriteBufferSize() >= tab->max_range_size() * 0.90 || (tab->HasCompactionBuf()&&
                                                                         !tab->IsCompactPendding() &&
                                                                         !tab->IsCompactWorking())) {
             DBG_PRINT("Range [%s] Need Compaction [%f]MB > [%f]MB", tab->prefix().c_str(),
-                    range_usage.range_size / 1048576.0,
+                      tab->WriteBufferSize() / 1048576.0,
                       (tab->max_range_size() / 1048576.0) * 0.9);
             vinfo_->queue_lock_.Lock();
             tab->SetCompactionPendding(true);
             vinfo_->range_queue_.push_back(tab);
+            vinfo_->queue_sorted_ = false;
             vinfo_->queue_lock_.Unlock();
         }
     }
@@ -214,28 +216,16 @@ void FixedRangeChunkBasedNVMWriteCache::RollbackCompaction(rocksdb::FixedRangeTa
 void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionItem *compaction) {
     assert(!vinfo_->range_queue_.empty());
     vinfo_->queue_lock_.Lock();
-    std::sort(vinfo_->range_queue_.begin(), vinfo_->range_queue_.end(),
-              [](const FixedRangeTab *ltab, const FixedRangeTab *rtab) {
-                    // 升序
-                  return ltab->RangeUsage(kForTotal).range_size <
-                         rtab->RangeUsage(kForTotal).range_size;
-              });
-    //DBG_PRINT("In cache lock");
-    /*uint64_t min_writable_size = vinfo_->internal_options_->range_size_ * 2 + 1;
-    FixedRangeTab* pendding_range = nullptr;
-    size_t idx = 0, num = 0;
-    // find a range has the largest data size
-    for(auto range : vinfo_->range_queue_){
-        uint64_t range_size = range->RangeTotalSize();
-        if( range_size < min_writable_size){
-            min_writable_size = range_size;
-            pendding_range = range;
-            idx = num;
-        }
-        num++;
+    if(!vinfo_->queue_sorted_){
+        std::sort(vinfo_->range_queue_.begin(), vinfo_->range_queue_.end(),
+                  [](const FixedRangeTab *ltab, const FixedRangeTab *rtab) {
+                      // 升序
+                      return ltab->RangeUsage(kForTotal).range_size <
+                             rtab->RangeUsage(kForTotal).range_size;
+                  });
+        vinfo_->queue_sorted_ = true;
     }
-    // remove this range from vector
-    vinfo_->range_queue_.erase(vinfo_->range_queue_.begin() + idx);*/
+    //DBG_PRINT("In cache lock");
     /*DBG_PRINT("Get range[%s], size[%f]",pendding_range->prefix().c_str(),
               pendding_range->RangeUsage(kForCompaction).range_size / 1048576.0);*/
     //compaction->pending_compated_range_ = vinfo_->range_queue_.back();

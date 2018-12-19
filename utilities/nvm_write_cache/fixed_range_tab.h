@@ -204,6 +204,10 @@ public:
         return w_buffer_->data_len_ + w_buffer_->pair_buf_->data_len_;
     }
 
+    uint64_t WriteBufferSize(){
+        return w_buffer_->data_len_;
+    }
+
     // 输出range信息
     void GetProperties() const;
 
