@@ -132,7 +132,7 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
             pinfo_->range_map_->getAll(tab_vec);
             FILE* fp = fopen("/home/hustzyw/nvm-rocksdb/range-data-size", "a");
             for(auto tab : tab_vec){
-                fprintf(fp, "%lu,", tab->data_len_);
+                fprintf(fp, "%f,", (tab->data_len_ + tab->pair_buf_->data_len_)/1048576.0);
             }
             fprintf(fp, "\n");
             fclose(fp);
