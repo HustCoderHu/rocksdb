@@ -164,7 +164,7 @@ persistent_ptr<NvRangeTab> FixedRangeChunkBasedNVMWriteCache::NewContent(const s
 
 
 FixedRangeTab *FixedRangeChunkBasedNVMWriteCache::NewRange(const std::string &prefix) {
-    persistent_ptr<NvRangeTab> p_content = NewContent(prefix, vinfo_->internal_options_->range_size_);
+    persistent_ptr<NvRangeTab> p_content = NewContent(prefix, vinfo_->internal_options_->range_size_ * 10);
     pinfo_->range_map_->put(pop_, p_content);
     p_content->writting_ = true;
     FixedRangeTab *range = new FixedRangeTab(pop_, vinfo_->internal_options_, vinfo_->icmp_, p_content);
@@ -205,7 +205,11 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
     DBG_PRINT("[%d]range compaction working", compaction_working_range);
     DBG_PRINT("[%d]range compaction pendding", compaction_pendding_range);*/
     uint64_t total_buffer_size = vinfo_->internal_options_->range_num_ * vinfo_->internal_options_->range_size_;
-    if(vinfo_->total_size_ > total_buffer_size){
+    uint64_t total_size = 0;
+    for(auto range : vinfo_->prefix2range){
+        total_size += range.second->RangeTotalSize();
+    }
+    if(total_size > total_buffer_size){
         vinfo_->compaction_requested_ = true;
     }
 }
@@ -216,7 +220,7 @@ void FixedRangeChunkBasedNVMWriteCache::RollbackCompaction(rocksdb::FixedRangeTa
     //range->SetCompactionPendding(true);
     //vinfo_->range_queue_.push_back(range);
     //vinfo_->queue_lock_.Unlock();
-    vinfo_->total_size_.fetch_add(range->RangeUsage(kForCompaction).range_size);
+    //vinfo_->total_size_.fetch_add(range->RangeUsage(kForCompaction).range_size);
 }
 
 // call by compaction thread
@@ -271,7 +275,11 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
     uint64_t total_buffer_size = vinfo_->internal_options_->range_size_ * vinfo_->internal_options_->range_num_;
     //atomic sub
     vinfo_->total_size_.fetch_sub(compaction->range_usage.range_size);
-    if(vinfo_->total_size_ < total_buffer_size * 0.8) vinfo_->compaction_requested_ = false;
+    uint64_t total_size = 0;
+    for(auto range : vinfo_->prefix2range){
+        total_size += range.second->RangeTotalSize();
+    }
+    if(total_size < total_buffer_size * 0.8) vinfo_->compaction_requested_ = false;
 
     //vinfo_->queue_lock_.Unlock();
     //DBG_PRINT("end get compaction and unlock");
