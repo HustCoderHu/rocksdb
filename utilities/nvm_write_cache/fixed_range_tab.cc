@@ -552,9 +552,9 @@ void FixedRangeTab::SwitchBuffer(SwitchDirection direction) {
             //DBG_PRINT("new wbuffer [%lu] cur [%f]",w_buffer_->offset_,  DecodeFixed64(base_raw_+w_buffer_->buf_size_*w_buffer_->offset_) / 1048576.0);
             w_buffer_->writting_ = true;
             // 更新seq
-            // 设置raw指针
             PmemEncodeFixed64(get_raw(w_buffer_.get()) + sizeof(uint64_t),
                     DecodeFixed64(get_raw(c_buffer_.get()) + sizeof(uint64_t)));
+            // 设置raw指针
             raw_ = get_raw(w_buffer_.get()) + 2 * sizeof(uint64_t);
             //DBG_PRINT("raw switch form [%p ]to [%p]",base_raw_+c_buffer_->buf_size_*c_buffer_->offset_,  raw_);
             // 交换blklist的数据

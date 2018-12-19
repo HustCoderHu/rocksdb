@@ -113,7 +113,7 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
             // has no space need wait
             // wait fo compaction end
             //sleep(1);
-            usleep(10);
+            //usleep(10);
         }
         // switch buffer
         now_range->lock();
