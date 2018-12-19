@@ -55,7 +55,6 @@ FixedRangeTab::FixedRangeTab(pool_base &pop, const FixedRangeBasedOptions *optio
     NvRangeTab *raw_tab = wbuffer.get();
     compaction_working_ = false;
     compaction_pendding_ = false;
-    urgent_ = false;
     DBG_PRINT("seq_num is %lu", raw_tab->seq_num_.get_ro());
     if (0 == raw_tab->seq_num_.get_ro()) {
         // new node
