@@ -124,14 +124,18 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
     now_range->unlock();
 #ifdef RANGE_SIZE_TEST
     {
-        vector<persistent_ptr<NvRangeTab> > tab_vec;
-        pinfo_->range_map_->getAll(tab_vec);
-        FILE* fp = fopen("/home/hustzyw/nvm-rocksdb/range-data-size", "a");
-        for(auto tab : tab_vec){
-            fprintf(fp, "%lu,", tab->data_len_);
+        vinfo_->total_size_ += bloom_data.size() + chunk_data.size();
+        if(vinfo_->total_size_ >= 1ul * 1024 * 1024 * 1024){
+            vinfo_->total_size_ = 0;
+            vector<persistent_ptr<NvRangeTab> > tab_vec;
+            pinfo_->range_map_->getAll(tab_vec);
+            FILE* fp = fopen("/home/hustzyw/nvm-rocksdb/range-data-size", "a");
+            for(auto tab : tab_vec){
+                fprintf(fp, "%lu,", tab->data_len_);
+            }
+            fprintf(fp, "\n");
+            fclose(fp);
         }
-        fprintf(fp, "\n");
-        fclose(fp);
     }
 
 #endif
@@ -217,7 +221,7 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
                          rtab->RangeUsage(kForWritting).range_size;
               });*/
     //DBG_PRINT("In cache lock");
-    uint64_t min_writable_size = vinfo_->internal_options_->range_size_ * 2;
+    uint64_t min_writable_size = vinfo_->internal_options_->range_size_ * 2 + 1;
     FixedRangeTab* pendding_range = nullptr;
     for(auto range : vinfo_->range_queue_){
         uint64_t range_size = range->RangeTotalSize();
@@ -226,6 +230,8 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
             pendding_range = range;
         }
     }
+    DBG_PRINT("Get range[%s], size[%f]",pendding_range->prefix().c_str(),
+              pendding_range->range_usage.range_size / 1048576.0);
     //compaction->pending_compated_range_ = vinfo_->range_queue_.back();
     compaction->pending_compated_range_ = pendding_range;
     assert(pendding_range != nullptr);

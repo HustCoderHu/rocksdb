@@ -134,11 +134,12 @@ private:
         unordered_map<string, FixedRangeTab*> prefix2range;
         std::vector<FixedRangeTab*> range_queue_;
         InstrumentedMutex queue_lock_;
+        uint64_t total_size_;
 
 
         explicit VolatileInfo(const FixedRangeBasedOptions *ioptions, const InternalKeyComparator* icmp)
                 :   internal_options_(ioptions),
-                    icmp_(icmp){}
+                    icmp_(icmp){total_size_ = 0;}
     };
 
     VolatileInfo *vinfo_;
