@@ -63,6 +63,7 @@ struct ChunkMeta {
 
 using p_buf = persistent_ptr<char[]>;
 using std::atomic;
+using std::atomic_bool;
 
 class FixedRangeChunkBasedNVMWriteCache : public NVMWriteCache {
 public:
