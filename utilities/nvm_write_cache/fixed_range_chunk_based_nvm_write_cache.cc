@@ -214,14 +214,14 @@ void FixedRangeChunkBasedNVMWriteCache::RollbackCompaction(rocksdb::FixedRangeTa
 void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionItem *compaction) {
     assert(!vinfo_->range_queue_.empty());
     vinfo_->queue_lock_.Lock();
-    /*std::sort(vinfo_->range_queue_.begin(), vinfo_->range_queue_.end(),
+    std::sort(vinfo_->range_queue_.begin(), vinfo_->range_queue_.end(),
               [](const FixedRangeTab *ltab, const FixedRangeTab *rtab) {
                     // 升序
-                  return ltab->RangeUsage(kForWritting).range_size <
-                         rtab->RangeUsage(kForWritting).range_size;
-              });*/
+                  return ltab->RangeUsage(kForTotal).range_size <
+                         rtab->RangeUsage(kForTotal).range_size;
+              });
     //DBG_PRINT("In cache lock");
-    uint64_t min_writable_size = vinfo_->internal_options_->range_size_ * 2 + 1;
+    /*uint64_t min_writable_size = vinfo_->internal_options_->range_size_ * 2 + 1;
     FixedRangeTab* pendding_range = nullptr;
     size_t idx = 0, num = 0;
     // find a range has the largest data size
@@ -235,13 +235,13 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
         num++;
     }
     // remove this range from vector
-    vinfo_->range_queue_.erase(vinfo_->range_queue_.begin() + idx);
-    DBG_PRINT("Get range[%s], size[%f]",pendding_range->prefix().c_str(),
-              pendding_range->RangeUsage(kForCompaction).range_size / 1048576.0);
+    vinfo_->range_queue_.erase(vinfo_->range_queue_.begin() + idx);*/
+    /*DBG_PRINT("Get range[%s], size[%f]",pendding_range->prefix().c_str(),
+              pendding_range->RangeUsage(kForCompaction).range_size / 1048576.0);*/
     //compaction->pending_compated_range_ = vinfo_->range_queue_.back();
-    compaction->pending_compated_range_ = pendding_range;
+    compaction->pending_compated_range_ = vinfo_->range_queue_.back();
 
-    assert(pendding_range != nullptr);
+    //assert(pendding_range != nullptr);
     if(!compaction->pending_compated_range_->HasCompactionBuf()){
         // TODO : 可能有问题
         compaction->pending_compated_range_->lock();
@@ -253,7 +253,7 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
             compaction->range_usage.range_size / 1048576.0);
     compaction->allocator_ = nullptr;
 
-    //vinfo_->range_queue_.pop_back();
+    vinfo_->range_queue_.pop_back();
     compaction->pending_compated_range_->SetCompactionPendding(false);
     compaction->pending_compated_range_->SetCompactionWorking(true);
     vinfo_->queue_lock_.Unlock();
