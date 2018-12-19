@@ -212,10 +212,11 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
 
 void FixedRangeChunkBasedNVMWriteCache::RollbackCompaction(rocksdb::FixedRangeTab *range) {
     DBG_PRINT("Rollback compaction[%s]", range->prefix().c_str());
-    vinfo_->queue_lock_.Lock();
-    range->SetCompactionPendding(true);
-    vinfo_->range_queue_.push_back(range);
-    vinfo_->queue_lock_.Unlock();
+    //vinfo_->queue_lock_.Lock();
+    //range->SetCompactionPendding(true);
+    //vinfo_->range_queue_.push_back(range);
+    //vinfo_->queue_lock_.Unlock();
+    vinfo_->total_size_.fetch_add(range->RangeUsage(kForCompaction).range_size);
 }
 
 // call by compaction thread
