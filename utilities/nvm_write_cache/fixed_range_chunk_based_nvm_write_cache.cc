@@ -123,6 +123,8 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
     now_range->lock();
     now_range->Append(bloom_data, chunk_data, meta.cur_start, meta.cur_end);
     now_range->unlock();
+    // atomic add
+    vinfo_->total_size_.fetch_add(bloom_data.size() + chunk_data.size() + 2 * 8);
 #ifdef RANGE_SIZE_TEST
     {
         vinfo_->total_size_ += bloom_data.size() + chunk_data.size();
@@ -173,7 +175,7 @@ FixedRangeTab *FixedRangeChunkBasedNVMWriteCache::NewRange(const std::string &pr
 void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
     //DBG_PRINT("start compaction check");
     // 选择所有range中数据大小占总容量80%的range并按照总容量的大小顺序插入compaction queue
-    std::vector<CompactionItem> pendding_compact;
+    /*std::vector<CompactionItem> pendding_compact;
     int compaction_working_range = 0, compaction_pendding_range = 0;
     for (auto range : vinfo_->prefix2range) {
         FixedRangeTab *tab = range.second;
@@ -201,7 +203,11 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
     }
     DBG_PRINT("[%lu]range need compaction", pendding_compact.size());
     DBG_PRINT("[%d]range compaction working", compaction_working_range);
-    DBG_PRINT("[%d]range compaction pendding", compaction_pendding_range);
+    DBG_PRINT("[%d]range compaction pendding", compaction_pendding_range);*/
+    uint64_t total_buffer_size = vinfo_->internal_options_->range_num_ * vinfo_->internal_options_->range_size_;
+    if(vinfo_->total_size_ > total_buffer_size){
+        vinfo_->compaction_requested_ = true;
+    }
 }
 
 void FixedRangeChunkBasedNVMWriteCache::RollbackCompaction(rocksdb::FixedRangeTab *range) {
@@ -246,6 +252,13 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
     vinfo_->range_queue_.pop_back();
     compaction->pending_compated_range_->SetCompactionPendding(false);
     compaction->pending_compated_range_->SetCompactionWorking(true);
+
+    // total size decline and caculate state
+    uint64_t total_buffer_size = vinfo_->internal_options_->range_size_ * vinfo_->internal_options_->range_num_;
+    //atomic sub
+    vinfo_->total_size_.fetch_sub(compaction->range_usage.range_size);
+    if(vinfo_->total_size_ < total_buffer_size * 0.8) vinfo_->compaction_requested_ = false;
+
     vinfo_->queue_lock_.Unlock();
     //DBG_PRINT("end get compaction and unlock");
 }

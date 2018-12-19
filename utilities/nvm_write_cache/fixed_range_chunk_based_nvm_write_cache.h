@@ -62,6 +62,7 @@ struct ChunkMeta {
 
 
 using p_buf = persistent_ptr<char[]>;
+using std::atomic;
 
 class FixedRangeChunkBasedNVMWriteCache : public NVMWriteCache {
 public:
@@ -87,7 +88,8 @@ public:
     InternalIterator *NewIterator(const InternalKeyComparator *icmp, Arena *arena) override;
 
     // return there is need for compaction or not
-    bool NeedCompaction() override { return !vinfo_->range_queue_.empty(); }
+    /*bool NeedCompaction() override { return !vinfo_->range_queue_.empty(); }*/
+    bool NeedCompaction() override { return vinfo_->compaction_requested_; }
 
     //get iterator of data that will be drained
     // get 之后释放没有 ?
@@ -134,7 +136,8 @@ private:
         unordered_map<string, FixedRangeTab*> prefix2range;
         std::vector<FixedRangeTab*> range_queue_;
         InstrumentedMutex queue_lock_;
-        uint64_t total_size_;
+        atomic<uint64_t> total_size_;
+        atomic_bool compaction_requested_;
         bool queue_sorted_;
 
 
@@ -143,6 +146,7 @@ private:
                     icmp_(icmp){
             total_size_ = 0;
             queue_sorted_ = false;
+            compaction_requested_ = false;
         }
     };
 
