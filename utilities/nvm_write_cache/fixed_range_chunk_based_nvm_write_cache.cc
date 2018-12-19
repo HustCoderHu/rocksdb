@@ -223,7 +223,7 @@ void FixedRangeChunkBasedNVMWriteCache::RollbackCompaction(rocksdb::FixedRangeTa
 void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionItem *compaction) {
     assert(!vinfo_->range_queue_.empty());
     //vinfo_->queue_lock_.Lock();
-    if(!vinfo_->queue_sorted_){
+    /*if(!vinfo_->queue_sorted_){
         std::sort(vinfo_->range_queue_.begin(), vinfo_->range_queue_.end(),
                   [](const FixedRangeTab *ltab, const FixedRangeTab *rtab) {
                       // 升序
@@ -231,10 +231,11 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
                              rtab->RangeUsage(kForTotal).range_size;
                   });
         vinfo_->queue_sorted_ = true;
-    }
+    }*/
     uint64_t max_range_size = 0;
     FixedRangeTab* pendding_range = nullptr;
     for(auto range : vinfo_->prefix2range){
+        // choose a range with max size
         uint64_t range_size = range.second->RangeTotalSize();
         if(max_range_size < range_size){
             max_range_size = range_size;
