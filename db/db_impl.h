@@ -58,6 +58,8 @@
 #include "util/thread_local.h"
 #include "util/trace_replay.h"
 
+#define TIME_CACULE
+
 namespace rocksdb {
 
     class Arena;
@@ -1777,6 +1779,13 @@ namespace rocksdb {
         //   std::vector<MemTableList*> imm_lists;
         // };
         bool atomic_flush_commit_in_progress_;
+
+#ifdef TIME_CACULE
+        uint64_t total_write_time;
+        uint64_t total_flush_time;
+        uint64_t total_compact_time;
+        uint64_t total_write;
+#endif
     };
 
     extern Options SanitizeOptions(const std::string &db,

@@ -74,6 +74,9 @@ Status DBImpl::WriteImpl(const WriteOptions& write_options,
                          size_t batch_cnt,
                          PreReleaseCallback* pre_release_callback) {
   assert(!seq_per_batch_ || batch_cnt != 0);
+#ifdef TIME_CACULE
+  uint64_t write_start = env_->NowMicros();
+#endif
   if (my_batch == nullptr) {
     return Status::Corruption("Batch is nullptr!");
   }
@@ -409,6 +412,10 @@ Status DBImpl::WriteImpl(const WriteOptions& write_options,
   if (status.ok()) {
     status = w.FinalStatus();
   }
+#ifdef TIME_CACULE
+  uint64_t write_end = env_->NowMicros();
+  total_write_time += (write_end - write_start);
+#endif
   return status;
 }
 

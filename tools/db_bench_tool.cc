@@ -4118,7 +4118,7 @@ private:
 
         int64_t stage = 0;
         int64_t num_written = 0;
-        double finish_last_ = Env::Default()->NowMicros();;
+        double finish_last_ = Env::Default()->NowMicros();
         int64_t bytes_last_ = 0;
 
         while (!duration.Done(entries_per_batch_)) {

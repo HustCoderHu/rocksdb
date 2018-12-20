@@ -254,6 +254,12 @@ DBImpl::DBImpl(const DBOptions &options, const std::string &dbname,
     // we won't drop any deletion markers until SetPreserveDeletesSequenceNumber()
     // is called by client and this seqnum is advanced.
     preserve_deletes_seqnum_.store(0);
+#ifdef TIME_CACULE
+    total_write_time = 0;
+    total_flush_time = 0;
+    total_compact_time = 0;
+    total_write = 0;
+#endif
 }
 
 Status DBImpl::Resume() {
@@ -583,6 +589,13 @@ Status DBImpl::CloseHelper() {
             ret = s;
         }
     }
+
+#ifdef TIME_CACULE
+    FILE* fp = fopen("time_recored", "w");
+    fprintf(fp, "total write,total flush, total_comapct\n");
+    fprintf(fp, "%lu,%lu,%lu\n", total_write_time, total_flush_time, total_compact_time);
+
+#endif
     return ret;
 }
 

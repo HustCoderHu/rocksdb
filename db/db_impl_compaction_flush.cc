@@ -2114,9 +2114,15 @@ namespace rocksdb {
             auto pending_outputs_inserted_elem =
                     CaptureCurrentFileNumberInPendingOutputs();
             FlushReason reason;
-
+#ifdef TIME_CACULE
+            uint64_t flush_start = env_->NowMicros();
+#endif
             Status s =
                     BackgroundFlush(&made_progress, &job_context, &log_buffer, &reason);
+#ifdef TIME_CACULE
+            uint64_t flush_end = env_->NowMicros();
+            total_flush_time += (flush_end - flush_start);
+#endif
             if (!s.ok() && !s.IsShutdownInProgress() &&
                 reason != FlushReason::kErrorRecovery) {
                 // Wait a little bit before retrying background flush in
@@ -2197,8 +2203,16 @@ namespace rocksdb {
             assert((bg_thread_pri == Env::Priority::BOTTOM &&
                     bg_bottom_compaction_scheduled_) ||
                    (bg_thread_pri == Env::Priority::LOW && bg_compaction_scheduled_));
+#ifdef TIME_CACULE
+            uint64_t compaction_start = env_->NowMicros();
+#endif
             Status s = BackgroundCompaction(&made_progress, &job_context, &log_buffer,
                                             prepicked_compaction);
+
+#ifdef TIME_CACULE
+            uint64_t compaction_end = env_->NowMicros();
+            total_compact_time += (compaction_end - compaction_start);
+#endif
             TEST_SYNC_POINT("BackgroundCallCompaction:1");
             if (!s.ok() && !s.IsShutdownInProgress()) {
                 // Wait a little bit before retrying background compaction in
