@@ -138,6 +138,15 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
             }
             fprintf(fp, "\n");
             fclose(fp);
+
+            uint64_t total_size = 0;
+            for(auto range : vinfo_->prefix2range){
+                total_size += range.second->RangeTotalSize();
+            }
+            FILE* fp2 = fopen("/home/hustzyw/nvm-rocksdb/total_data_size", "a");
+            fprintf(fp2, "%f\n", total_size / 1048576.0 / 1024);
+            fclose(fp2);
+
         }
     }
 
@@ -209,7 +218,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
     for(auto range : vinfo_->prefix2range){
         total_size += range.second->RangeTotalSize();
     }
-    if(total_size > total_buffer_size * 0.8){
+    if(total_size > total_buffer_size * 0.6){
         vinfo_->compaction_requested_ = true;
     }
 }
@@ -280,7 +289,7 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
         total_size += range.second->RangeTotalSize();
     }
     total_size -= compaction->range_usage.range_size;
-    if(total_size < total_buffer_size * 0.8) vinfo_->compaction_requested_ = false;
+    if(total_size < total_buffer_size * 0.6) vinfo_->compaction_requested_ = false;
 
     //vinfo_->queue_lock_.Unlock();
     //DBG_PRINT("end get compaction and unlock");
