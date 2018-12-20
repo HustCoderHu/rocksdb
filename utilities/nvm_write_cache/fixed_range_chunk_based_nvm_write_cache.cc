@@ -1,6 +1,6 @@
 #include "utilities/nvm_write_cache/skiplist/test_common.h"
 #include "fixed_range_chunk_based_nvm_write_cache.h"
-#define RANGE_SIZE_TEST
+//#define RANGE_SIZE_TEST
 namespace rocksdb {
 
 using std::string;
@@ -130,14 +130,14 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
         vinfo_->total_size_ += bloom_data.size() + chunk_data.size();
         if(vinfo_->total_size_ >= 1ul * 1024 * 1024 * 1024){
             vinfo_->total_size_ = 0;
-            vector<persistent_ptr<NvRangeTab> > tab_vec;
+            /*vector<persistent_ptr<NvRangeTab> > tab_vec;
             pinfo_->range_map_->getAll(tab_vec);
             FILE* fp = fopen("/home/hustzyw/nvm-rocksdb/range-data-size", "a");
             for(auto tab : tab_vec){
                 fprintf(fp, "%f,", (tab->data_len_ + tab->pair_buf_->data_len_)/1048576.0);
             }
             fprintf(fp, "\n");
-            fclose(fp);
+            fclose(fp);*/
 
             uint64_t total_size = 0;
             for(auto range : vinfo_->prefix2range){
@@ -218,7 +218,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
     for(auto range : vinfo_->prefix2range){
         total_size += range.second->RangeTotalSize();
     }
-    if(total_size > total_buffer_size * 0.6){
+    if(total_size > total_buffer_size * 0.8){
         vinfo_->compaction_requested_ = true;
     }
 }
@@ -289,7 +289,7 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
         total_size += range.second->RangeTotalSize();
     }
     total_size -= compaction->range_usage.range_size;
-    if(total_size < total_buffer_size * 0.6) vinfo_->compaction_requested_ = false;
+    if(total_size < total_buffer_size * 0.8) vinfo_->compaction_requested_ = false;
 
     //vinfo_->queue_lock_.Unlock();
     //DBG_PRINT("end get compaction and unlock");
