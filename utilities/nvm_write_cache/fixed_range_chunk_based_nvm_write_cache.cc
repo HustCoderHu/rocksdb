@@ -124,7 +124,7 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
     now_range->Append(bloom_data, chunk_data, meta.cur_start, meta.cur_end);
     now_range->unlock();
     // atomic add
-    vinfo_->total_size_.fetch_add(bloom_data.size() + chunk_data.size() + 2 * 8);
+    //vinfo_->total_size_.fetch_add(bloom_data.size() + chunk_data.size() + 2 * 8);
 #ifdef RANGE_SIZE_TEST
     {
         vinfo_->total_size_ += bloom_data.size() + chunk_data.size();
@@ -274,7 +274,7 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
     // total size decline and caculate state
     uint64_t total_buffer_size = vinfo_->internal_options_->range_size_ * vinfo_->internal_options_->range_num_;
     //atomic sub
-    vinfo_->total_size_.fetch_sub(compaction->range_usage.range_size);
+    //vinfo_->total_size_.fetch_sub(compaction->range_usage.range_size);
     uint64_t total_size = 0;
     for(auto range : vinfo_->prefix2range){
         total_size += range.second->RangeTotalSize();
