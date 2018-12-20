@@ -2122,6 +2122,9 @@ namespace rocksdb {
 #ifdef TIME_CACULE
             uint64_t flush_end = env_->NowMicros();
             total_flush_time += (flush_end - flush_start);
+            FILE* fp = fopen("time_flush", "a");
+            fprintf(fp, "%lu\n", flush_end - flush_start);
+            fclose(fp);
 #endif
             if (!s.ok() && !s.IsShutdownInProgress() &&
                 reason != FlushReason::kErrorRecovery) {
@@ -2212,6 +2215,9 @@ namespace rocksdb {
 #ifdef TIME_CACULE
             uint64_t compaction_end = env_->NowMicros();
             total_compact_time += (compaction_end - compaction_start);
+            FILE* fp = fopen("time_compaction", "a");
+            fprintf(fp, "%lu\n", compaction_end - compaction_start);
+            fclose(fp);
 #endif
             TEST_SYNC_POINT("BackgroundCallCompaction:1");
             if (!s.ok() && !s.IsShutdownInProgress()) {
