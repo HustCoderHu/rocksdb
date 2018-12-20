@@ -209,7 +209,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
     for(auto range : vinfo_->prefix2range){
         total_size += range.second->RangeTotalSize();
     }
-    if(total_size > total_buffer_size){
+    if(total_size > total_buffer_size * 0.8){
         vinfo_->compaction_requested_ = true;
     }
 }
@@ -279,6 +279,7 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
     for(auto range : vinfo_->prefix2range){
         total_size += range.second->RangeTotalSize();
     }
+    total_size -= compaction->range_usage.range_size;
     if(total_size < total_buffer_size * 0.8) vinfo_->compaction_requested_ = false;
 
     //vinfo_->queue_lock_.Unlock();
