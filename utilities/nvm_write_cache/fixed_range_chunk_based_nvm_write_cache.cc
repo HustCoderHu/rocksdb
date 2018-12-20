@@ -27,7 +27,7 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
         // init cache
         //uint64_t range_pool_size = pmem_size / 4;
         //range_pool_size += ioptions->range_size_ * 5;
-        uint64_t total_range_num = ioptions->range_num_ * 2 + 10;
+        uint64_t total_range_num = ioptions->range_num_ * 2 + 2;
         transaction::run(pop_, [&] {
             DBG_PRINT("alloc range map");
             pinfo_->range_map_ = make_persistent<pmem_hash_map<NvRangeTab>>(pop_, 0.75, 256);
