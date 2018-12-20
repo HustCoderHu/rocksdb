@@ -594,7 +594,7 @@ Status DBImpl::CloseHelper() {
     FILE* fp = fopen("time_recored", "w");
     fprintf(fp, "total write,total flush, total_comapct\n");
     fprintf(fp, "%lu,%lu,%lu\n", total_write_time, total_flush_time, total_compact_time);
-
+    fclose(fp);
 #endif
     return ret;
 }
