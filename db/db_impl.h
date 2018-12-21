@@ -58,7 +58,7 @@
 #include "util/thread_local.h"
 #include "util/trace_replay.h"
 
-#define TIME_CACULE
+//#define TIME_CACULE
 
 namespace rocksdb {
 
