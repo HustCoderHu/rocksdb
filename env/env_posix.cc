@@ -57,6 +57,7 @@
 #include "util/sync_point.h"
 #include "util/thread_local.h"
 #include "util/threadpool_imp.h"
+#include "utilities/nvm_write_cache/debug.h"
 
 #if !defined(TMPFS_MAGIC)
 #define TMPFS_MAGIC 0x01021994
@@ -1017,6 +1018,7 @@ PosixEnv::PosixEnv()
       page_size_(getpagesize()),
       thread_pools_(Priority::TOTAL),
       allow_non_owner_access_(true) {
+    DBG_PRINT("posix env construct");
   ThreadPoolImpl::PthreadCall("mutex_init", pthread_mutex_init(&mu_, nullptr));
   for (int pool_id = 0; pool_id < Env::Priority::TOTAL; ++pool_id) {
     thread_pools_[pool_id].SetThreadPriority(
