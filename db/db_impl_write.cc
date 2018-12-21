@@ -1227,7 +1227,8 @@ Status DBImpl::DelayWrite(uint64_t num_bytes,
       mutex_.Unlock();
       // We will delay the write until we have slept for delay ms or
       // we don't need a delay anymore
-      const uint64_t kDelayInterval = 1000;
+      //const uint64_t kDelayInterval = 1000;
+      const uint64_t kDelayInterval = 10;
       uint64_t stall_end = sw.start_time() + delay;
       while (write_controller_.NeedsDelay()) {
         if (env_->NowMicros() >= stall_end) {
