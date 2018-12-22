@@ -5,7 +5,7 @@
 #include <cstdint>
 #include "global_statistic.h"
 
-namespace rocskdb{
+namespace rocksdb{
 #ifdef DELAY_COUNT
     int delay_count;
     int cur;
