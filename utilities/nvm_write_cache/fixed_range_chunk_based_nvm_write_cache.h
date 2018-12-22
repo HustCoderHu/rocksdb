@@ -24,7 +24,7 @@
 
 #include "debug.h"
 
-#define DENY_COMPACTION
+//#define DENY_COMPACTION
 
 using std::string;
 using std::mutex;
