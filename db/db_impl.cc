@@ -101,6 +101,7 @@ namespace rocksdb {
 
 #ifdef DELAY_COUNT
 uint64_t delay_count;
+uint64_t compact_count;
 #endif
 
 const std::string kDefaultColumnFamilyName("default");
