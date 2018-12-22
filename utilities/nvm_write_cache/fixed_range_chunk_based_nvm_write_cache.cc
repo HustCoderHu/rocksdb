@@ -213,6 +213,9 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
     DBG_PRINT("[%lu]range need compaction", pendding_compact.size());
     DBG_PRINT("[%d]range compaction working", compaction_working_range);
     DBG_PRINT("[%d]range compaction pendding", compaction_pendding_range);*/
+#ifdef DENY_COMPACTION
+
+#else
     uint64_t total_buffer_size = vinfo_->internal_options_->range_num_ * vinfo_->internal_options_->range_size_;
     uint64_t total_size = 0;
     for(auto range : vinfo_->prefix2range){
@@ -221,6 +224,8 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
     if(total_size > total_buffer_size * 0.8){
         vinfo_->compaction_requested_ = true;
     }
+#endif
+
 }
 
 void FixedRangeChunkBasedNVMWriteCache::RollbackCompaction(rocksdb::FixedRangeTab *range) {

@@ -24,6 +24,8 @@
 
 #include "debug.h"
 
+#define DENY_COMPACTION
+
 using std::string;
 using std::mutex;
 using std::unordered_map;

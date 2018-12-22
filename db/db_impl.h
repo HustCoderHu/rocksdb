@@ -59,6 +59,7 @@
 #include "util/trace_replay.h"
 
 //#define TIME_CACULE
+#define DELAY_COUNT
 
 namespace rocksdb {
 
@@ -82,7 +83,9 @@ namespace rocksdb {
     struct ExternalSstFileInfo;
     struct MemTableInfo;
 
+#ifdef DELAY_COUNT
     extern uint64_t delay_count;
+#endif
 
     class DBImpl : public DB {
     public:

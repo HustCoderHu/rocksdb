@@ -4255,17 +4255,25 @@ private:
                 double now = Env::Default()->NowMicros();
                 double time = now - finish_last_;
                 int64_t ebytes = bytes - bytes_last_;
+#ifdef DELAY_COUNT
                 fprintf(stdout, "now= %f  i=%12ld : %11.3f micros/op speed = %.1lf MB/s time = %lf micros delay time = %lu\n",
                         now,
                         num_written, time / FLAGS_num_stat,
                         ((ebytes / 1048576.8) * 1000000) / time,
                         time,
                         rocksdb::delay_count);
+                rocksdb::delay_count = 0;
+#else
+                fprintf(stdout, "now= %f  i=%12ld : %11.3f micros/op speed = %.1lf MB/s time = %lf micros\n",
+                        now,
+                        num_written, time / FLAGS_num_stat,
+                        ((ebytes / 1048576.8) * 1000000) / time,
+                        time);
+#endif
                 //PrintStats("rocksdb.stats");
                 fflush(stdout);
                 finish_last_ = now;
                 bytes_last_ = bytes;
-                rocksdb::delay_count = 0;
             }
             //
 

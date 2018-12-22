@@ -99,7 +99,10 @@
 
 namespace rocksdb {
 
+#ifdef DELAY_COUNT
 uint64_t delay_count;
+#endif
+
 const std::string kDefaultColumnFamilyName("default");
 
 void DumpRocksDBBuildVersion(Logger *log);
@@ -256,7 +259,11 @@ DBImpl::DBImpl(const DBOptions &options, const std::string &dbname,
     // we won't drop any deletion markers until SetPreserveDeletesSequenceNumber()
     // is called by client and this seqnum is advanced.
     preserve_deletes_seqnum_.store(0);
+
+#ifdef DELAY_COUNT
     rocksdb::delay_count = 0;
+#endif
+
 #ifdef TIME_CACULE
     total_write_time = 0;
     total_flush_time = 0;

@@ -1259,7 +1259,10 @@ Status DBImpl::DelayWrite(uint64_t num_bytes,
       write_thread_.BeginWriteStall();
       TEST_SYNC_POINT("DBImpl::DelayWrite:Wait");
       DBG_PRINT("DBImpl::DelayWrite:Wait");
+
+#ifdef DELAY_COUNT
       rocksdb::delay_count++;
+#endif
       //printf("delay %lu\n", delay_count);
       bg_cv_.Wait();
       write_thread_.EndWriteStall();
