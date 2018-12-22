@@ -4260,7 +4260,7 @@ private:
                         num_written, time / FLAGS_num_stat,
                         ((ebytes / 1048576.8) * 1000000) / time,
                         time,
-                        rocksdb::delay_time);
+                        rocksdb::delay_count);
                 //PrintStats("rocksdb.stats");
                 fflush(stdout);
                 finish_last_ = now;
