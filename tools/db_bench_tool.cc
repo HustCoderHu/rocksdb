@@ -4256,12 +4256,13 @@ private:
                 double time = now - finish_last_;
                 int64_t ebytes = bytes - bytes_last_;
 #ifdef DELAY_COUNT
-                fprintf(stdout, "now= %f  i=%12ld : %11.3f micros/op speed = %.1lf MB/s time = %lf micros delay time = %lu\n",
+                fprintf(stdout, "now= %f  i=%12ld : %11.3f micros/op speed = %.1lf MB/s time = %lf micros delay time = %lu compact_time = %lu\n",
                         now,
                         num_written, time / FLAGS_num_stat,
                         ((ebytes / 1048576.8) * 1000000) / time,
                         time,
-                        rocksdb::delay_count);
+                        rocksdb::delay_count,
+                        rocksdb::compact_time);
                 rocksdb::delay_count = 0;
 #else
                 fprintf(stdout, "now= %f  i=%12ld : %11.3f micros/op speed = %.1lf MB/s time = %lf micros\n",

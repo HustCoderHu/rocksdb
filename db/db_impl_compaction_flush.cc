@@ -2661,6 +2661,9 @@ namespace rocksdb {
 
             mutex_.Unlock();
             DBG_PRINT("Compaction run");
+#ifdef DELAY_COUNT
+            rocksdb::compact_count++;
+#endif
             compaction_job.Run();
             DBG_PRINT("after compaction run");
             TEST_SYNC_POINT("DBImpl::BackgroundCompaction:NonTrivial:AfterRun");

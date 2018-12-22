@@ -262,6 +262,7 @@ DBImpl::DBImpl(const DBOptions &options, const std::string &dbname,
 
 #ifdef DELAY_COUNT
     rocksdb::delay_count = 0;
+    rocksdb::compact_count = 0;
 #endif
 
 #ifdef TIME_CACULE

@@ -85,6 +85,7 @@ namespace rocksdb {
 
 #ifdef DELAY_COUNT
     extern uint64_t delay_count;
+    extern uint64_t compact_count;
 #endif
 
     class DBImpl : public DB {
