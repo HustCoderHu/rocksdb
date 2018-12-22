@@ -4262,7 +4262,7 @@ private:
                         ((ebytes / 1048576.8) * 1000000) / time,
                         time,
                         rocksdb::delay_count,
-                        rocksdb::compact_time);
+                        rocksdb::compact_count);
                 rocksdb::delay_count = 0;
 #else
                 fprintf(stdout, "now= %f  i=%12ld : %11.3f micros/op speed = %.1lf MB/s time = %lf micros\n",
