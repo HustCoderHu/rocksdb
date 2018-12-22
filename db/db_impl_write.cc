@@ -753,6 +753,7 @@ Status DBImpl::PreprocessWrite(const WriteOptions& write_options,
     // for previous one. It might create a fairness issue that expiration
     // might happen for smaller writes but larger writes can go through.
     // Can optimize it if it is an issue.
+    rocksdb::delay_count++;
     status = DelayWrite(last_batch_group_size_, write_options);
     PERF_TIMER_START(write_pre_and_post_process_time);
   }
