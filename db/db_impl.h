@@ -82,7 +82,7 @@ namespace rocksdb {
     struct ExternalSstFileInfo;
     struct MemTableInfo;
 
-    uint64_t delay_count;
+    static uint64_t delay_count;
 
     class DBImpl : public DB {
     public:
