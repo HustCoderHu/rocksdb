@@ -58,8 +58,9 @@
 #include "util/thread_local.h"
 #include "util/trace_replay.h"
 
+#include "utilities/nvm_write_cache/global_statistic.h"
 //#define TIME_CACULE
-#define DELAY_COUNT
+
 
 namespace rocksdb {
 
@@ -82,11 +83,6 @@ namespace rocksdb {
     struct JobContext;
     struct ExternalSstFileInfo;
     struct MemTableInfo;
-
-#ifdef DELAY_COUNT
-    extern uint64_t delay_count;
-    extern uint64_t compact_count;
-#endif
 
     class DBImpl : public DB {
     public:

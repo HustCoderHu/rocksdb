@@ -706,6 +706,7 @@ set(SOURCES
         #utilities/nvm_write_cache/range_tab_test.cc
         utilities/nvm_write_cache/nv_range_tab.cc
         utilities/nvm_write_cache/persistent_bitmap.cc
+        utilities/nvm_write_cache/global_statistic.cc
         $<TARGET_OBJECTS:build_version>)
 
 if (HAVE_SSE42 AND NOT MSVC)

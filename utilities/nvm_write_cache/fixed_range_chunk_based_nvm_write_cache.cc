@@ -1,5 +1,6 @@
 #include "utilities/nvm_write_cache/skiplist/test_common.h"
 #include "fixed_range_chunk_based_nvm_write_cache.h"
+#include "global_statistic.h"
 //#define RANGE_SIZE_TEST
 namespace rocksdb {
 
@@ -216,6 +217,25 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
 #ifdef DENY_COMPACTION
 
 #else
+#ifdef DELAY_COUNT
+    int total = 0;
+    for(int i = 0 ; i < 5; i++){
+        total += delay_stat[i];
+    }
+    int threshold = total / 5;
+    uint64_t total_buffer_size = vinfo_->internal_options_->range_num_ * vinfo_->internal_options_->range_size_;
+    uint64_t total_size = 0;
+    for(auto range : vinfo_->prefix2range){
+        total_size += range.second->RangeTotalSize();
+    }
+    if(total_size > total_buffer_size * 0.8 && delay_count < threshold){
+        printf("compaction triggered by small delay\n");
+        vinfo_->compaction_requested_ = true;
+    }else if(total > total_buffer_size * 0.9){
+        printf("compaction triggered by data size\n");
+        vinfo_->compaction_requested_ = true;
+    }
+#else
     uint64_t total_buffer_size = vinfo_->internal_options_->range_num_ * vinfo_->internal_options_->range_size_;
     uint64_t total_size = 0;
     for(auto range : vinfo_->prefix2range){
@@ -224,6 +244,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
     if(total_size > total_buffer_size * 0.8){
         vinfo_->compaction_requested_ = true;
     }
+#endif
 #endif
 
 }

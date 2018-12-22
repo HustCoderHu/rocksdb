@@ -99,11 +99,6 @@
 
 namespace rocksdb {
 
-#ifdef DELAY_COUNT
-uint64_t delay_count;
-uint64_t compact_count;
-#endif
-
 const std::string kDefaultColumnFamilyName("default");
 
 void DumpRocksDBBuildVersion(Logger *log);
@@ -262,6 +257,10 @@ DBImpl::DBImpl(const DBOptions &options, const std::string &dbname,
     preserve_deletes_seqnum_.store(0);
 
 #ifdef DELAY_COUNT
+    for(size_t i = 0; i < 5; i++){
+        rocksdb::delay_stat[i] = 0;
+    }
+    rocksdb::cur = 0;
     rocksdb::delay_count = 0;
     rocksdb::compact_count = 0;
 #endif
