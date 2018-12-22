@@ -12,6 +12,8 @@ namespace rocksdb{
     extern int cur;
     extern int delay_stat[];
     extern uint64_t compact_count;
+    extern int key_written;
+    extern double key_percent;
 #endif
 }
 

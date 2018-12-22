@@ -263,6 +263,8 @@ DBImpl::DBImpl(const DBOptions &options, const std::string &dbname,
     rocksdb::cur = 0;
     rocksdb::delay_count = 0;
     rocksdb::compact_count = 0;
+    rocksdb::key_written = 0;
+    rocksdb::key_percent = 0.0;
 #endif
 
 #ifdef TIME_CACULE
