@@ -4263,7 +4263,7 @@ private:
                         time,
                         rocksdb::delay_count,
                         rocksdb::compact_count);
-                rocskdb::delay_stat[cur] = delay_count;
+                rocksdb::delay_stat[cur] = delay_count;
                 if(++cur = 5) cur = 0;
                 rocksdb::delay_count = 0;
                 rocksdb::compact_count=0;
