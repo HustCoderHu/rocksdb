@@ -4173,7 +4173,7 @@ private:
                 ++num_written;
 #ifdef DELAY_COUNT
                 rocksdb::key_written++;
-                rocksdb::key_percent = key_written / FLAGS_num_stat;
+                rocksdb::key_percent = static_cast<double>(key_written) / FLAGS_num_stat;
 #endif
                 if (writes_per_range_tombstone_ > 0 &&
                     num_written > writes_before_delete_range_ &&
