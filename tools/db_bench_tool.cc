@@ -4174,7 +4174,7 @@ private:
 #ifdef DELAY_COUNT
                 rocksdb::key_written++;
                 rocksdb::key_percent = key_written / FLAGS_num_stat;
-#else
+#endif
                 if (writes_per_range_tombstone_ > 0 &&
                     num_written > writes_before_delete_range_ &&
                     (num_written - writes_before_delete_range_) /
