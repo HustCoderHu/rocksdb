@@ -4272,6 +4272,7 @@ private:
                 if(++cur == 5) cur = 0;
                 rocksdb::delay_count = 0;
                 rocksdb::compact_count=0;
+                rocksdb::key_written = 0;
 #else
                 fprintf(stdout, "now= %f  i=%12ld : %11.3f micros/op speed = %.1lf MB/s time = %lf micros\n",
                         now,
