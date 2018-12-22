@@ -232,7 +232,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
         printf("compaction triggered by small delay[%d]<[%d]\n", delay_count, threshold * key_percent);
         vinfo_->compaction_requested_ = true;
     }else if(total_size > total_buffer_size * 0.9){
-        printf("compaction triggered by data size\n");
+        printf("compaction triggered by data size delay[%d]:threshold[%d]*[%f]=[%d]\n", delay_count, threshold, key_percent,key_percent*threshold);
         vinfo_->compaction_requested_ = true;
     }
 #else
