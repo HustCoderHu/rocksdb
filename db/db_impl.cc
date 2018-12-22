@@ -99,7 +99,7 @@
 
 namespace rocksdb {
 
-uint64_t delay_count;
+//uint64_t delay_count;
 const std::string kDefaultColumnFamilyName("default");
 
 void DumpRocksDBBuildVersion(Logger *log);
