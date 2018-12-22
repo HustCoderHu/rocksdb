@@ -1209,7 +1209,6 @@ uint64_t DBImpl::GetMaxTotalWalSize() const {
 // REQUIRES: this thread is currently at the front of the writer queue
 Status DBImpl::DelayWrite(uint64_t num_bytes,
                           const WriteOptions& write_options) {
-  rocksdb::delay_count++;
   uint64_t time_delayed = 0;
   bool delayed = false;
   {
@@ -1260,6 +1259,7 @@ Status DBImpl::DelayWrite(uint64_t num_bytes,
       write_thread_.BeginWriteStall();
       TEST_SYNC_POINT("DBImpl::DelayWrite:Wait");
       DBG_PRINT("DBImpl::DelayWrite:Wait");
+      rocksdb::delay_count++;
       bg_cv_.Wait();
       write_thread_.EndWriteStall();
     }
