@@ -256,7 +256,7 @@ DBImpl::DBImpl(const DBOptions &options, const std::string &dbname,
     // we won't drop any deletion markers until SetPreserveDeletesSequenceNumber()
     // is called by client and this seqnum is advanced.
     preserve_deletes_seqnum_.store(0);
-    delay_count = 0;
+    rocksdb::delay_count = 0;
 #ifdef TIME_CACULE
     total_write_time = 0;
     total_flush_time = 0;
