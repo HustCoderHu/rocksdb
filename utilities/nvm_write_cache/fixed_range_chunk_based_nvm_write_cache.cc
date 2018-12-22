@@ -228,8 +228,8 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
     for(auto range : vinfo_->prefix2range){
         total_size += range.second->RangeTotalSize();
     }
-    if(total_size > total_buffer_size * 0.8 && delay_count < threshold * key_percent){
-        printf("compaction triggered by small delay[%d]<[%d]([%d]*[%f])\n", delay_count, static_cast<int>(threshold * key_percent),key_written, key_percent);
+    if(total_size > total_buffer_size * 0.8 && delay_count < static_cast<int>(threshold * key_percent)){
+        printf("compaction triggered by small delay[%d]<[%d]([%d]*[%f])[%d]\n", delay_count, static_cast<int>(threshold * key_percent), threshold, key_percent, key_written);
         vinfo_->compaction_requested_ = true;
     }else if(total_size > total_buffer_size * 0.9){
         printf("compaction triggered by data size delay[%d]:threshold[%d]*[%f]=[%d]\n", delay_count, threshold, key_percent,key_percent*threshold);
