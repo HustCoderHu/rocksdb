@@ -8,6 +8,7 @@
 #include "include/rocksdb/options.h"
 #include "utilities/nvm_write_cache/prefix_extractor.h"
 #include "utilities/nvm_write_cache/nvm_write_cache.h"
+#include "debug.h"
 
 namespace rocksdb {
 
@@ -57,6 +58,7 @@ struct FixedRangeBasedOptions {
             //range_num_threshold_(range_num_threashold),
             range_size_(range_size),
             range_num_(range_num){
+        DBG_PRINT("num per range [%lu]", key_num / range_num);
 
     }
 
