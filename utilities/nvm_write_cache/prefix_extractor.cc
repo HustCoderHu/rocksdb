@@ -68,7 +68,7 @@ std::string ArbitrarilyExtractor::operator()(const char *input, size_t length) {
         key_num = key_num * 16 * 16 + *(unsigned char *) (input + x);
     }
     key_num /= range_num_;
-    DBG_PRINT("get num [%u] base[%d]", key_num, range_num_);
+    //DBG_PRINT("get num [%u] base[%d]", key_num, range_num_);
     char buf[16];
     for (int i = 15; i >= 0; i--) {
         buf[i] = key_num % 10 + '0';
