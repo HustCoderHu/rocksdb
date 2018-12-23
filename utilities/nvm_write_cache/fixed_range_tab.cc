@@ -9,7 +9,7 @@
 #include "persistent_chunk_iterator.h"
 #include "debug.h"
 #include "persistent_allocator.h"
-#define FLUSH_CACUL
+//#define FLUSH_CACUL
 namespace rocksdb {
 
 using std::cout;

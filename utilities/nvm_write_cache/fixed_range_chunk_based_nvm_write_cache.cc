@@ -2,7 +2,7 @@
 #include "fixed_range_chunk_based_nvm_write_cache.h"
 #include "global_statistic.h"
 //#define RANGE_SIZE_TEST
-#define FLUSH_CACUL
+//#define FLUSH_CACUL
 namespace rocksdb {
 
 using std::string;

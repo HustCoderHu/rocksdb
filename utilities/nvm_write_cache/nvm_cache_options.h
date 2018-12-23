@@ -51,7 +51,7 @@ struct FixedRangeBasedOptions {
             :
             chunk_bloom_bits_(chunk_bloom_bits),
             prefix_bits_(prefix_bits),
-            prefix_extractor_(new DBBenchDedicatedExtractor(prefix_bits)),
+            prefix_extractor_(ArbitrarilyExtractor::NewArbitrarilyExtractor(range_num)),
             filter_policy_(NewBloomFilterPolicy(chunk_bloom_bits, false)),
             //range_num_threshold_(range_num_threashold),
             range_size_(range_size),

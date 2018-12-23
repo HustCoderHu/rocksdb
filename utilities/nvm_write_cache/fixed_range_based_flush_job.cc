@@ -25,7 +25,7 @@
 #include "chunk.h"
 #include "fixed_range_tab.h"
 //#define PARALLEL_INSERT
-#define FLUSH_CACUL
+//#define FLUSH_CACUL
 
 namespace rocksdb {
 
