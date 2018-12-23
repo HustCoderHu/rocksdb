@@ -47,11 +47,12 @@ struct FixedRangeBasedOptions {
             uint16_t prefix_bits,
             //uint64_t range_num_threashold,
             uint64_t range_size,
-            int range_num)
+            int range_num,
+            int key_num)
             :
             chunk_bloom_bits_(chunk_bloom_bits),
             prefix_bits_(prefix_bits),
-            prefix_extractor_(ArbitrarilyExtractor::NewArbitrarilyExtractor(range_num)),
+            prefix_extractor_(ArbitrarilyExtractor::NewArbitrarilyExtractor(key_num/range_num)),
             filter_policy_(NewBloomFilterPolicy(chunk_bloom_bits, false)),
             //range_num_threshold_(range_num_threashold),
             range_size_(range_size),
@@ -88,6 +89,8 @@ struct NVMCacheSetup{
     int range_num = 100;
 
     uint64_t range_size = 1<<27;
+
+    int key_num = 1000000;
 
     NVMCacheType cache_type_ = kRangeFixedChunk;
 

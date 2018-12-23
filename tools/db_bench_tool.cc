@@ -3836,6 +3836,7 @@ private:
             nvm_cache_setup->pmem_path = FLAGS_pmem_path;
             nvm_cache_setup->range_num = FLAGS_range_num;
             nvm_cache_setup->range_size = FLAGS_range_size;
+            nvm_cache_setup->key_num = FLAGS_num;
             options.nvm_cache_setup.reset(nvm_cache_setup);
         }
 

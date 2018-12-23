@@ -485,7 +485,8 @@ namespace rocksdb {
             auto foptions = new FixedRangeBasedOptions(ioptions_.nvm_cache_setup->bloom_bits,
                                                        ioptions_.nvm_cache_setup->prefix_bytes,
                                                        ioptions_.nvm_cache_setup->range_size * 1048576,
-                                                       ioptions_.nvm_cache_setup->range_num);
+                                                       ioptions_.nvm_cache_setup->range_num,
+                                                       ioptions_.nvm_cache_setup->key_num);
             ioptions_.nvm_cache_options->nvm_write_cache_ =
                     reinterpret_cast<NVMWriteCache*>(NVMCacheOptions::NewFixedRangeChunkBasedCache(
                             ioptions_.nvm_cache_options.get(), foptions, &ioptions_.internal_comparator));
