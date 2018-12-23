@@ -4,7 +4,7 @@
 
 #pragma once
 
-#define DELAY_COUNT
+//#define DELAY_COUNT
 
 namespace rocksdb{
 #ifdef DELAY_COUNT

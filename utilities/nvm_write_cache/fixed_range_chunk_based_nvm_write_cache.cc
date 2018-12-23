@@ -110,7 +110,9 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
                 sleep(1);
             }
         }*/
+        printf("no enough for w_buffer\n");
         while(now_range->HasCompactionBuf()){
+            printf("wait for compaction\n");
             // has no space need wait
             // wait fo compaction end
             //sleep(1);
