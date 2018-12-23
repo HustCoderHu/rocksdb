@@ -4121,6 +4121,7 @@ private:
         int64_t stage = 0;
         int64_t num_written = 0;
         double finish_last_ = Env::Default()->NowMicros();
+        time_t last_ = time(NULL);
         int64_t bytes_last_ = 0;
 
         while (!duration.Done(entries_per_batch_)) {
@@ -4258,7 +4259,8 @@ private:
             // test
 
             //if ((num_written) % FLAGS_num_stat == 0) {
-            if (static_cast<int>(Env::Default()->NowMicros() - finish_last_) %6000000 == 0) {
+            if ((time(NULL) - last_) %60 == 0) {
+                last_ = time(NULL);
                 double now = Env::Default()->NowMicros();
                 double time = now - finish_last_;
                 int64_t ebytes = bytes - bytes_last_;
