@@ -8,46 +8,61 @@
 #include <string>
 #include <include/rocksdb/slice.h>
 
-namespace rocksdb{
+namespace rocksdb {
 
-    class PrefixExtractor{
-    public:
-        PrefixExtractor() =default;
+class PrefixExtractor {
+public:
+    PrefixExtractor() = default;
 
-        virtual ~PrefixExtractor() =default;
+    virtual ~PrefixExtractor() = default;
 
-        virtual std::string operator ()(const char* input, size_t length) = 0;
+    virtual std::string operator()(const char *input, size_t length) = 0;
 
-    };
-
-
-    class SimplePrefixExtractor: public PrefixExtractor{
-    public:
-        explicit SimplePrefixExtractor(uint16_t prefix_bits_);
-
-        ~SimplePrefixExtractor() =default;
-
-        std::string operator()(const char* input, size_t length);
-
-        static SimplePrefixExtractor* NewSimplePrefixExtractor(uint16_t prefix_bits);
+};
 
 
-    private:
-        uint16_t prefix_bits_;
-    };
+class SimplePrefixExtractor : public PrefixExtractor {
+public:
+    explicit SimplePrefixExtractor(uint16_t prefix_bits_);
+
+    ~SimplePrefixExtractor() = default;
+
+    std::string operator()(const char *input, size_t length);
+
+    static SimplePrefixExtractor *NewSimplePrefixExtractor(uint16_t prefix_bits);
 
 
-    class DBBenchDedicatedExtractor: public PrefixExtractor{
-    public:
-        explicit DBBenchDedicatedExtractor(uint16_t prefix_len);
-        ~DBBenchDedicatedExtractor() = default;
+private:
+    uint16_t prefix_bits_;
+};
 
-        std::string operator()(const char* input, size_t length);
 
-        static  DBBenchDedicatedExtractor* NewDBBenchDedicatedExtractor(uint16_t prefix_bits);
+class DBBenchDedicatedExtractor : public PrefixExtractor {
+public:
+    explicit DBBenchDedicatedExtractor(uint16_t prefix_len);
 
-    private:
-        uint16_t prefix_bits_;
-    };
+    ~DBBenchDedicatedExtractor() = default;
+
+    std::string operator()(const char *input, size_t length);
+
+    static DBBenchDedicatedExtractor *NewDBBenchDedicatedExtractor(uint16_t prefix_bits);
+
+private:
+    uint16_t prefix_bits_;
+};
+
+class ArbitrarilyExtractor : public PrefixExtractor {
+public:
+    explicit ArbitrarilyExtractor(uint16_t range_num);
+
+    ~ArbitrarilyExtractor() = default;
+
+    std::string operator()(const char *input, size_t length);
+
+    static ArbitrarilyExtractor *NewArbitrarilyExtractor(uint16_t range_num);
+
+private:
+    uint16_t range_num_;
+};
 }// end rocksdb
 

@@ -319,11 +319,7 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
         if (s.ok()) {
             // check is the prefix existing in nvm cache or create it
             //DBG_PRINT("total prefix num[%lu]", pending_output_chunk.size());
-#ifdef FLUSH_CACUL
-            FILE* fp = fopen("range_num_flush", "a");
-            fprintf(fp, "flush: %lu range\n", pending_output_chunk.size());
-            fclose(fp);
-#endif
+
             for (auto pendding_chunk:pending_output_chunk) {
                 nvm_write_cache_->RangeExistsOrCreat(pendding_chunk.first);
             }
@@ -344,7 +340,17 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
                 // append to range tab
                 //range_found->second.Append(bloom_data/*char**/, output_data/*Slice*/,ChunkMeta(internal_comparator, cur_start, cur_end));
                 //DBG_PRINT("decode from raw chunk data[%lu]chunkdata size[%lu]", DecodeFixed64(output_data->data() + output_data->size() - 8), output_data->size());
+#ifdef FLUSH_CACUL
+                uint64_t start_time = Env::Default()->NowMicros();
+#endif
                 cache->AppendToRange(icmp, bloom_data, Slice(output_data->c_str(), output_data->size()), meta);
+#ifdef FLUSH_CACUL
+                uint64_t end_time = Env::Default()->NowMicros();
+                FILE* fp = fopen("range_flush", "a");
+                fprintf(fp, "flush %lu bytes spent %lu time\n", bloom_data.size() + output_data->size() + 16, end_time - start_time);
+                fclose(fp);
+#endif
+
                 // TODO:Slice是否需要delete
                 delete output_data;
             };
