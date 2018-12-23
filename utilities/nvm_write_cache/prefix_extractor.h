@@ -62,7 +62,7 @@ public:
     static ArbitrarilyExtractor *NewArbitrarilyExtractor(size_t range_num);
 
 private:
-    uint16_t range_num_;
+    size_t range_num_;
 };
 }// end rocksdb
 
