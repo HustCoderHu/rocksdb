@@ -290,9 +290,11 @@ void FixedRangeTab::CheckAndUpdateKeyRange(const Slice &new_start, const Slice &
         if (range_data_size > w_buffer_->range_buf_len_) {
             // 新的range data size大于已有的range buf空间
             AllocBufAndUpdate(range_data_size);
+            printf("large range data\n");
         } else if (range_data_size < (w_buffer_->range_buf_len_ / 2) && w_buffer_->range_buf_len_ > 200) {
             // 此时rangebuf大小缩减一半
             AllocBufAndUpdate(w_buffer_->range_buf_len_ / 2);
+            printf("shrink range size\n");
         } else {
             // 直接写进去
             /*{
