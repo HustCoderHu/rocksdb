@@ -8,7 +8,7 @@
 
 namespace rocksdb {
 
-SimplePrefixExtractor::SimplePrefixExtractor(uint16_t prefix_bits) : PrefixExtractor(), prefix_bits_(prefix_bits) {}
+SimplePrefixExtractor::SimplePrefixExtractor(size_t prefix_bits) : PrefixExtractor(), prefix_bits_(prefix_bits) {}
 
 std::string SimplePrefixExtractor::operator()(const char *input, size_t length) {
     return length > prefix_bits_ ? std::string(input, prefix_bits_) : std::string(input, length);
@@ -19,7 +19,7 @@ SimplePrefixExtractor *SimplePrefixExtractor::NewSimplePrefixExtractor(uint16_t 
     return new SimplePrefixExtractor(prefix_bits);
 }
 
-DBBenchDedicatedExtractor::DBBenchDedicatedExtractor(uint16_t prefix_len)
+DBBenchDedicatedExtractor::DBBenchDedicatedExtractor(size_t prefix_len)
         : prefix_bits_(prefix_len) {}
 
 std::string DBBenchDedicatedExtractor::operator()(const char *input, size_t length) {
@@ -52,8 +52,9 @@ DBBenchDedicatedExtractor *DBBenchDedicatedExtractor::NewDBBenchDedicatedExtract
 }
 
 
-ArbitrarilyExtractor::ArbitrarilyExtractor(uint16_t range_num)
+ArbitrarilyExtractor::ArbitrarilyExtractor(size_t  range_num)
         : range_num_(range_num) {
+    DBG_PRINT("new extractor [%d]", range_num);
 
 }
 

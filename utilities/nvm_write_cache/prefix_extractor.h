@@ -23,7 +23,7 @@ public:
 
 class SimplePrefixExtractor : public PrefixExtractor {
 public:
-    explicit SimplePrefixExtractor(uint16_t prefix_bits_);
+    explicit SimplePrefixExtractor(size_t prefix_bits_);
 
     ~SimplePrefixExtractor() = default;
 
@@ -39,7 +39,7 @@ private:
 
 class DBBenchDedicatedExtractor : public PrefixExtractor {
 public:
-    explicit DBBenchDedicatedExtractor(uint16_t prefix_len);
+    explicit DBBenchDedicatedExtractor(size_t prefix_len);
 
     ~DBBenchDedicatedExtractor() = default;
 
@@ -53,7 +53,7 @@ private:
 
 class ArbitrarilyExtractor : public PrefixExtractor {
 public:
-    explicit ArbitrarilyExtractor(uint16_t range_num);
+    explicit ArbitrarilyExtractor(size_t range_num);
 
     ~ArbitrarilyExtractor() = default;
 
