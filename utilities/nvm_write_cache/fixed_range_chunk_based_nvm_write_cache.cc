@@ -2,6 +2,7 @@
 #include "fixed_range_chunk_based_nvm_write_cache.h"
 #include "global_statistic.h"
 //#define RANGE_SIZE_TEST
+#define FLUSH_CACUL
 namespace rocksdb {
 
 using std::string;
@@ -15,7 +16,7 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
     vinfo_ = new VolatileInfo(ioptions, icmp);
     if (file_exists(file.c_str()) != 0) {
         // creat pool
-        DBG_PRINT("pmem size[%f]GB", pmem_size/(1073741824.0));
+        DBG_PRINT("pmem size[%f]GB", pmem_size / (1073741824.0));
         pop_ = pmem::obj::pool<PersistentInfo>::create(file.c_str(), "FixedRangeChunkBasedNVMWriteCache", pmem_size,
                                                        CREATE_MODE_RW);
     } else {
@@ -33,9 +34,10 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
             DBG_PRINT("alloc range map");
             pinfo_->range_map_ = make_persistent<pmem_hash_map<NvRangeTab>>(pop_, 0.75, 256);
             //DBG_PRINT("alloc raw buf[%f]GB", range_pool_size/(1073741824.0));
-            DBG_PRINT("alloc bitmap[%d]bits",ioptions->range_num_);
-            persistent_ptr<PersistentBitMap> bitmap = make_persistent<PersistentBitMap>(pop_,total_range_num);
-            pinfo_->allocator_ = make_persistent<PersistentAllocator>(total_range_num * ioptions->range_size_ * 10, ioptions->range_size_ * 10, bitmap);
+            DBG_PRINT("alloc bitmap[%d]bits", ioptions->range_num_);
+            persistent_ptr<PersistentBitMap> bitmap = make_persistent<PersistentBitMap>(pop_, total_range_num);
+            pinfo_->allocator_ = make_persistent<PersistentAllocator>(total_range_num * ioptions->range_size_ * 10,
+                                                                      ioptions->range_size_ * 10, bitmap);
             pinfo_->inited_ = true;
             FixedRangeTab::base_raw_ = pinfo_->allocator_->raw();
         });
@@ -111,7 +113,7 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
             }
         }*/
         printf("no enough for w_buffer\n");
-        while(now_range->HasCompactionBuf()){
+        while (now_range->HasCompactionBuf()) {
             printf("wait for compaction\n");
             // has no space need wait
             // wait fo compaction end
@@ -124,7 +126,16 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
         now_range->unlock();
     }
     now_range->lock();
+#ifdef FLUSH_CACUL
+    uint64_t start_time = Env::Default()->NowMicros();
+#endif
     now_range->Append(bloom_data, chunk_data, meta.cur_start, meta.cur_end);
+#ifdef FLUSH_CACUL
+    uint64_t end_time = Env::Default()->NowMicros();
+    FILE *fp = fopen("append time", "a");
+    fprintf(fp, "flush %lu bytes spent %lu time\n", bloom_data.size() + chunk_data.size() + 16, end_time - start_time);
+    fclose(fp);
+#endif
     now_range->unlock();
     // atomic add
     //vinfo_->total_size_.fetch_add(bloom_data.size() + chunk_data.size() + 2 * 8);
@@ -164,7 +175,7 @@ persistent_ptr<NvRangeTab> FixedRangeChunkBasedNVMWriteCache::NewContent(const s
     /*p_buf pmem1 = */pinfo_->allocator_->Allocate(offset1);
     /*p_buf pmem2 = */pinfo_->allocator_->Allocate(offset2);
     DBG_PRINT("alloc range[%d][%d]", offset1, offset2);
-    transaction::run(pop_, [&]{
+    transaction::run(pop_, [&] {
         p_content_1 = make_persistent<NvRangeTab>(pop_,/* pmem1, */offset1, prefix, bufSize);
         p_content_2 = make_persistent<NvRangeTab>(pop_,/* pmem2, */offset2, prefix, bufSize);
         // NvRangeTab怎么释放空间
@@ -240,10 +251,10 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
 #else
     uint64_t total_buffer_size = vinfo_->internal_options_->range_num_ * vinfo_->internal_options_->range_size_;
     uint64_t total_size = 0;
-    for(auto range : vinfo_->prefix2range){
+    for (auto range : vinfo_->prefix2range) {
         total_size += range.second->RangeTotalSize();
     }
-    if(total_size > total_buffer_size * 0.8){
+    if (total_size > total_buffer_size * 0.8) {
         vinfo_->compaction_requested_ = true;
     }
 #endif
@@ -274,13 +285,13 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
         vinfo_->queue_sorted_ = true;
     }*/
     uint64_t max_range_size = 0;
-    FixedRangeTab* pendding_range = nullptr;
-    for(auto range : vinfo_->prefix2range){
+    FixedRangeTab *pendding_range = nullptr;
+    for (auto range : vinfo_->prefix2range) {
         // choose a range with max size
         // skip range which is in compaction
-        if(range.second->IsCompactWorking()) continue;
+        if (range.second->IsCompactWorking()) continue;
         uint64_t range_size = range.second->RangeTotalSize();
-        if(max_range_size < range_size){
+        if (max_range_size < range_size) {
             max_range_size = range_size;
             pendding_range = range.second;
         }
@@ -293,15 +304,15 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
     //compaction->pending_compated_range_ = vinfo_->range_queue_.back();
 
     //assert(pendding_range != nullptr);
-    if(!compaction->pending_compated_range_->HasCompactionBuf()){
+    if (!compaction->pending_compated_range_->HasCompactionBuf()) {
         // TODO : 可能有问题
         compaction->pending_compated_range_->lock();
         compaction->pending_compated_range_->SwitchBuffer(kToCBuffer);
         compaction->pending_compated_range_->unlock();
     }
     compaction->range_usage = compaction->pending_compated_range_->RangeUsage(kForCompaction);
-    DBG_PRINT("Get range[%s], size[%f]",compaction->pending_compated_range_->prefix().c_str(),
-            compaction->range_usage.range_size / 1048576.0);
+    DBG_PRINT("Get range[%s], size[%f]", compaction->pending_compated_range_->prefix().c_str(),
+              compaction->range_usage.range_size / 1048576.0);
     compaction->allocator_ = nullptr;
 
     //vinfo_->range_queue_.pop_back();
@@ -313,11 +324,11 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
     //atomic sub
     //vinfo_->total_size_.fetch_sub(compaction->range_usage.range_size);
     uint64_t total_size = 0;
-    for(auto range : vinfo_->prefix2range){
+    for (auto range : vinfo_->prefix2range) {
         total_size += range.second->RangeTotalSize();
     }
     total_size -= compaction->range_usage.range_size;
-    if(total_size < total_buffer_size * 0.8) vinfo_->compaction_requested_ = false;
+    if (total_size < total_buffer_size * 0.8) vinfo_->compaction_requested_ = false;
 
     //vinfo_->queue_lock_.Unlock();
     //DBG_PRINT("end get compaction and unlock");
@@ -337,7 +348,7 @@ void FixedRangeChunkBasedNVMWriteCache::RebuildFromPersistentNode() {
         assert(content->writting_ != content->pair_buf_->writting_);
         NvRangeTab *ptab = content.get();
         DBG_PRINT("Recover range[%s]", string(ptab->prefix_.get(), ptab->prefix_len_).c_str());
-        if(!ptab->writting_){
+        if (!ptab->writting_) {
             content = content->pair_buf_;
         }
         // 恢复tab的char*指针，这是一个易失量
