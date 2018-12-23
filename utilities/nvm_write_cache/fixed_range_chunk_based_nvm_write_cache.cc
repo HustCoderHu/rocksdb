@@ -132,7 +132,7 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
     now_range->Append(bloom_data, chunk_data, meta.cur_start, meta.cur_end);
 #ifdef FLUSH_CACUL
     uint64_t end_time = Env::Default()->NowMicros();
-    FILE *fp = fopen("append time", "a");
+    FILE *fp = fopen("append_time", "a");
     fprintf(fp, "flush %lu bytes spent %lu time\n", bloom_data.size() + chunk_data.size() + 16, end_time - start_time);
     fclose(fp);
 #endif
