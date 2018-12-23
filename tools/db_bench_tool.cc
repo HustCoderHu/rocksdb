@@ -4259,9 +4259,9 @@ private:
             // test
 
             //if ((num_written) % FLAGS_num_stat == 0) {
-            cur = time(NULL);
-            if (cur - last_) % 60 == 0) {
-                last_ = cur;
+            cur_ = time(NULL);
+            if (cur_ - last_) % 60 == 0) {
+                last_ = cur_;
                 double now = Env::Default()->NowMicros();
                 double time = now - finish_last_;
                 int64_t ebytes = bytes - bytes_last_;
