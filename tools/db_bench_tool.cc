@@ -12,7 +12,7 @@
 #endif
 
 /// TODO: ifdef
-#ifdef GFLAGS
+#ifndef GFLAGS
 #ifdef NUMA
                                                                                                                         #include <numa.h>
 #include <numaif.h>
@@ -4258,7 +4258,7 @@ private:
             // test
 
             //if ((num_written) % FLAGS_num_stat == 0) {
-            if (Env::Default()->NowMicros() - finish_last_ == 6000000) {
+            if ((Env::Default()->NowMicros() - finish_last_) % 60000000 = 0) {
                 double now = Env::Default()->NowMicros();
                 double time = now - finish_last_;
                 int64_t ebytes = bytes - bytes_last_;
