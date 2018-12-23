@@ -58,7 +58,7 @@ ArbitrarilyExtractor::ArbitrarilyExtractor(size_t  range_num)
 
 }
 
-ArbitrarilyExtractor *ArbitrarilyExtractor::NewArbitrarilyExtractor(uint16_t range_num) {
+ArbitrarilyExtractor *ArbitrarilyExtractor::NewArbitrarilyExtractor(size_t range_num) {
     return new ArbitrarilyExtractor(range_num);
 }
 

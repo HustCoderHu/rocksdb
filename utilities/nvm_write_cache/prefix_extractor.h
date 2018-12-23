@@ -59,7 +59,7 @@ public:
 
     std::string operator()(const char *input, size_t length);
 
-    static ArbitrarilyExtractor *NewArbitrarilyExtractor(uint16_t range_num);
+    static ArbitrarilyExtractor *NewArbitrarilyExtractor(size_t range_num);
 
 private:
     uint16_t range_num_;
