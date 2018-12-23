@@ -9,7 +9,7 @@
 #include "persistent_chunk_iterator.h"
 #include "debug.h"
 #include "persistent_allocator.h"
-
+#define FLUSH_CACUL
 namespace rocksdb {
 
 using std::cout;
@@ -106,6 +106,10 @@ Status FixedRangeTab::Append(const string &bloom_data, const Slice &chunk_data,
     assert(raw_cur == w_buffer_->data_len_);
     char *dst = raw_ + raw_cur; // move to start of this chunk
     // append bloom data
+#ifdef FLUSH_CACUL
+    uint64_t start_time = Env::Default()->NowMicros();
+#endif
+
     PmemEncodeFixed64(dst, bloom_data.size()); //+8
     pmem_memcpy_nodrain(dst + sizeof(uint64_t), bloom_data.c_str(), bloom_data.size()); //+bloom data size
     // append chunk data size
@@ -115,6 +119,10 @@ Status FixedRangeTab::Append(const string &bloom_data, const Slice &chunk_data,
     // append data
     pmem_memcpy_nodrain(dst, chunk_data.data(), chunk_data.size()); //+chunk data size
     pmem_drain();
+
+#ifdef FLUSH_CACUL
+    uint64_t write_end_time = Env::Default()->NowMicros();
+#endif
     /*{
     	//DBG_PRINT("write bloom size [%lu]", bloom_data.size());
 		//DBG_PRINT("write chunk size [%lu]", chunk_data.size());
@@ -151,6 +159,14 @@ Status FixedRangeTab::Append(const string &bloom_data, const Slice &chunk_data,
     w_buffer_->seq_num_ = w_buffer_->seq_num_ + 1;
     w_buffer_->chunk_num_ = w_buffer_->chunk_num_ + 1;
     w_buffer_->data_len_ = w_buffer_->data_len_ + chunk_blk_len;
+
+#ifdef FLUSH_CACUL
+    uint64_t meta_end_time = Env::Default()->NowMicros();
+    FILE *fp = fopen("write_time", "a");
+    fprintf(fp, "flush %lu bytes spent %lu time write + %lu time meta\n", bloom_data.size() + chunk_data.size() + 16,
+            write_end_time - start_time, meta_end_time - write_end_time);
+    fclose(fp);
+#endif
 
 
     // record this offset to volatile vector
