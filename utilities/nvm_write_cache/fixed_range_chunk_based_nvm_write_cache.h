@@ -144,6 +144,7 @@ private:
         atomic<uint64_t> total_size_;
         atomic_bool compaction_requested_;
         bool queue_sorted_;
+        FixedRangeTab* last_canceled_;
 
 
         explicit VolatileInfo(const FixedRangeBasedOptions *ioptions, const InternalKeyComparator* icmp)
@@ -152,6 +153,7 @@ private:
             total_size_ = 0;
             queue_sorted_ = false;
             compaction_requested_ = false;
+            last_canceled_ = nullptr;
         }
     };
 

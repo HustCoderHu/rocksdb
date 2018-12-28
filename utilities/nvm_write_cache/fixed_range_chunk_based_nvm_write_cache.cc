@@ -264,6 +264,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
 
 void FixedRangeChunkBasedNVMWriteCache::RollbackCompaction(rocksdb::FixedRangeTab *range) {
     DBG_PRINT("Rollback compaction[%s]", range->prefix().c_str());
+    vinfo_->last_canceled_ = range;
     //vinfo_->queue_lock_.Lock();
     //range->SetCompactionPendding(true);
     //vinfo_->range_queue_.push_back(range);
@@ -290,6 +291,10 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
         // choose a range with max size
         // skip range which is in compaction
         if (range.second->IsCompactWorking()) continue;
+        if (range.second == vinfo_->last_canceled_) {
+            printf("skip last cancled range\n");
+            continue;
+        }
         uint64_t range_size = range.second->RangeTotalSize();
         if (max_range_size < range_size) {
             max_range_size = range_size;
@@ -297,6 +302,7 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
         }
     }
     compaction->pending_compated_range_ = pendding_range;
+    vinfo_->last_canceled_ = nullptr;
     //DBG_PRINT("In cache lock");
     /*DBG_PRINT("Get range[%s], size[%f]",pendding_range->prefix().c_str(),
               pendding_range->RangeUsage(kForCompaction).range_size / 1048576.0);*/
