@@ -1235,7 +1235,7 @@ Status DBImpl::DelayWrite(uint64_t num_bytes,
       write_thread_.BeginWriteStall();
       TEST_SYNC_POINT("DBImpl::DelayWrite:BeginWriteStallDone");
 #ifdef DEBUG_FOR_COMPACTION
-      printf("write_thread.BeginWriteStall\n");
+      printf("write_thread.BeginWriteStall[delay>0]\n");
 #endif
       mutex_.Unlock();
       // We will delay the write until we have slept for delay ms or
@@ -1256,7 +1256,7 @@ Status DBImpl::DelayWrite(uint64_t num_bytes,
       mutex_.Lock();
       write_thread_.EndWriteStall();
 #ifdef DEBUG_FOR_COMPACTION
-      printf("write_thread.EndWriteStall\n");
+      printf("write_thread.EndWriteStall[delay>0]\n");
 #endif
     }
 
