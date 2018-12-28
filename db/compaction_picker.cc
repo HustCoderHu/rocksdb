@@ -1286,7 +1286,7 @@ void LevelCompactionBuilder::SetupInitialFiles() {
         );
         // TODO：权衡一下最优先compact NVMcache还是其他的level
         double range_score = nvm_write_cache->CompactionScore();
-        if(range_score > 1.5 || (range_score <= 1.5 && range_score > vstorage_->CompactionScore(0))){
+        if(vstorage_->CompactionScore(0) < 1 || range_score > 1.2 || (range_score <= 1.2 && range_score > vstorage_->CompactionScore(0))){
             // 当超过总容量1.5倍（12G）或者没有超过1.5倍但是score大于最大的compaction score的时候
             printf("range score[%f] compaction score[%f]\n",range_score, vstorage_->CompactionScore(0));
             start_level_ = 0;
