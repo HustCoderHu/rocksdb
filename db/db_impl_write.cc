@@ -19,7 +19,7 @@
 #include "options/options_helper.h"
 #include "util/sync_point.h"
 
-#define  DEBUG_FOR_COMPACTION
+//#define  DEBUG_FOR_COMPACTION
 
 namespace rocksdb {
 // Convenience methods
@@ -763,7 +763,7 @@ Status DBImpl::PreprocessWrite(const WriteOptions& write_options,
     // for previous one. It might create a fairness issue that expiration
     // might happen for smaller writes but larger writes can go through.
     // Can optimize it if it is an issue.
-    status = DelayWrite(last_batch_group_size_, write_options);
+    //status = DelayWrite(last_batch_group_size_, write_options);
     PERF_TIMER_START(write_pre_and_post_process_time);
   }
 
