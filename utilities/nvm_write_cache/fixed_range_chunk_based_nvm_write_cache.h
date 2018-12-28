@@ -94,6 +94,8 @@ public:
     /*bool NeedCompaction() override { return !vinfo_->range_queue_.empty(); }*/
     bool NeedCompaction() override { return vinfo_->compaction_requested_; }
 
+    double CompactionScore();
+
     //get iterator of data that will be drained
     // get 之后释放没有 ?
     void GetCompactionData(CompactionItem *compaction);

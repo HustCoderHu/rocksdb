@@ -389,5 +389,14 @@ FixedRangeTab *FixedRangeChunkBasedNVMWriteCache::GetRangeTab(const std::string 
     return res_->second;
 }
 
+double FixedRangeChunkBasedNVMWriteCache::CompactionScore() {
+    double range_score;
+    uint64_t total_size = 0;
+    for(auto range : vinfo_->prefix2range){
+        total_size += range.second->RangeTotalSize();
+    }
+    return static_cast<double>(total_size) / (vinfo_->internal_options_->range_size_ * vinfo_->internal_options_->range_num_);
+}
+
 } // namespace rocksdb
 
