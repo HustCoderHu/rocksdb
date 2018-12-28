@@ -19,6 +19,8 @@
 #include "options/options_helper.h"
 #include "util/sync_point.h"
 
+#define  DEBUG_FOR_COMPACTION
+
 namespace rocksdb {
 // Convenience methods
 Status DBImpl::Put(const WriteOptions& o, ColumnFamilyHandle* column_family,
@@ -747,6 +749,14 @@ Status DBImpl::PreprocessWrite(const WriteOptions& write_options,
 
   if (UNLIKELY(status.ok() && (write_controller_.IsStopped() ||
                                write_controller_.NeedsDelay()))) {
+#ifdef DEBUG_FOR_COMPACTION
+      if(write_controller_.IsStopped()){
+          printf("Is Stopprd\n");
+      }
+      if(write_controller_.NeedsDelay()){
+          printf("need delay\n");
+      }
+#endif
     PERF_TIMER_STOP(write_pre_and_post_process_time);
     PERF_TIMER_GUARD(write_delay_time);
     // We don't know size of curent batch so that we always use the size
@@ -1224,11 +1234,14 @@ Status DBImpl::DelayWrite(uint64_t num_bytes,
       // fail any pending writers with no_slowdown
       write_thread_.BeginWriteStall();
       TEST_SYNC_POINT("DBImpl::DelayWrite:BeginWriteStallDone");
+#ifdef DEBUG_FOR_COMPACTION
+      printf("write_thread.BeginWriteStall\n");
+#endif
       mutex_.Unlock();
       // We will delay the write until we have slept for delay ms or
       // we don't need a delay anymore
       //const uint64_t kDelayInterval = 1000;
-      const uint64_t kDelayInterval = 10;
+      const uint64_t kDelayInterval = 1000;
       uint64_t stall_end = sw.start_time() + delay;
       while (write_controller_.NeedsDelay()) {
         if (env_->NowMicros() >= stall_end) {
@@ -1242,6 +1255,9 @@ Status DBImpl::DelayWrite(uint64_t num_bytes,
       }
       mutex_.Lock();
       write_thread_.EndWriteStall();
+#ifdef DEBUG_FOR_COMPACTION
+      printf("write_thread.EndWriteStall\n");
+#endif
     }
 
     // Don't wait if there's a background error, even if its a soft error. We
@@ -1257,6 +1273,9 @@ Status DBImpl::DelayWrite(uint64_t num_bytes,
       // Notify write_thread_ about the stall so it can setup a barrier and
       // fail any pending writers with no_slowdown
       write_thread_.BeginWriteStall();
+#ifdef DEBUG_FOR_COMPACTION
+      printf("write_thread.BeginWriteStall\n");
+#endif
       TEST_SYNC_POINT("DBImpl::DelayWrite:Wait");
       DBG_PRINT("DBImpl::DelayWrite:Wait");
 
@@ -1266,6 +1285,9 @@ Status DBImpl::DelayWrite(uint64_t num_bytes,
       //printf("delay %lu\n", delay_count);
       bg_cv_.Wait();
       write_thread_.EndWriteStall();
+#ifdef DEBUG_FOR_COMPACTION
+        printf("write_thread.EndWriteStall\n");
+#endif
     }
   }
   assert(!delayed || !write_options.no_slowdown);
