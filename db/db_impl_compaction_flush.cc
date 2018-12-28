@@ -2176,6 +2176,7 @@ namespace rocksdb {
             bg_flush_scheduled_--;
             // See if there's more work to be done
             MaybeScheduleFlushOrCompaction();
+            printf("signal from progressed flush\n");
             bg_cv_.SignalAll();
             // IMPORTANT: there should be no code after calling SignalAll. This call may
             // signal the DB destructor that it's OK to proceed with destruction. In
@@ -2289,6 +2290,7 @@ namespace rocksdb {
                 // * HasPendingManualCompaction -- need to wakeup RunManualCompaction
                 // If none of this is true, there is no need to signal since nobody is
                 // waiting for it
+                printf("signal from progressed compaction\n");
                 bg_cv_.SignalAll();
             }
             // IMPORTANT: there should be no code after calling SignalAll. This call may

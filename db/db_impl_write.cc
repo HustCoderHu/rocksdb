@@ -1282,7 +1282,6 @@ Status DBImpl::DelayWrite(uint64_t num_bytes,
 #ifdef DELAY_COUNT
       rocksdb::delay_count++;
 #endif
-      //printf("delay %lu\n", delay_count);
       bg_cv_.Wait();
       write_thread_.EndWriteStall();
 #ifdef DEBUG_FOR_COMPACTION
