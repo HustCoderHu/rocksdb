@@ -1302,6 +1302,7 @@ void LevelCompactionBuilder::SetupInitialFiles() {
         // 按照score的高低检查各个level
         // 返回第i高的score
         start_level_score_ = vstorage_->CompactionScore(i);
+        printf("compaction score[%f]\n",start_level_score_);
         // 返回第i高的score的level
         start_level_ = vstorage_->CompactionScoreLevel(i);
         assert(i == 0 || start_level_score_ <= vstorage_->CompactionScore(i - 1));
