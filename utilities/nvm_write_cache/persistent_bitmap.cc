@@ -8,7 +8,7 @@
 
 namespace rocksdb{
 PersistentBitMap::PersistentBitMap(pool_base& pop, size_t maplen) : pop_(pop), len_(maplen){
-    bytes_ = static_cast<size_t >(ceil(len_ / 8));
+    bytes_ = static_cast<size_t >(ceil(len_ / 8.0));
     assert(bytes_ > 0);
     transaction::run(pop, [&]{
         bitmap_ = make_persistent<unsigned char[]>(bytes_);
