@@ -57,6 +57,7 @@ jlong rocksdb_open_helper(
   nvm_cache_setup->range_size = atol(getenv("RANGE_SIZE"));
   nvm_cache_setup->key_num = atoi(getenv("KEY_NUM"));
   opt->nvm_cache_setup.reset(nvm_cache_setup);
+  opt->max_background_jobs = atoi(getenv("MAX_BACKGROUD_JOBS"));
 
   rocksdb::DB* db = nullptr;
   rocksdb::Status s = open_fn(*opt, db_path, &db);
@@ -159,6 +160,7 @@ jlongArray rocksdb_open_helper(
   nvm_cache_setup->range_size = atol(getenv("RANGE_SIZE"));
   nvm_cache_setup->key_num = atoi(getenv("KEY_NUM"));
   opt->nvm_cache_setup.reset(nvm_cache_setup);
+  opt->max_background_jobs = atoi(getenv("MAX_BACKGROUD_JOBS"));
 
   std::vector<rocksdb::ColumnFamilyHandle*> handles;
   rocksdb::DB* db = nullptr;
