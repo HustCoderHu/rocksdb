@@ -86,6 +86,7 @@ public:
         pmemaddr = static_cast<char*>(pmem_map_file(rangefile_path.c_str(), total_size_, PMEM_FILE_CREATE, 0666, &mapped_len, &is_pmem));
         DBG_PRINT("map [%f]GB file", mapped_len / 1048576.0 / 1024);
         assert(pmemaddr != nullptr);
+        raw_ = pmemaddr;
     }
 
     char* raw(){return raw_;}
