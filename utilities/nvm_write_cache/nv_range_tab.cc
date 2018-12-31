@@ -10,7 +10,7 @@ NvRangeTab::NvRangeTab(pool_base &pop, uint64_t off, const string &prefix, uint6
     transaction::run(pop, [&] {
         //buf_ = buf;
         offset_ = off;
-        writting_ = true;
+        writting_ = false;
         prefix_ = make_persistent<char[]>(prefix.size());
         memcpy(prefix_.get(), prefix.c_str(), prefix.size());
 
