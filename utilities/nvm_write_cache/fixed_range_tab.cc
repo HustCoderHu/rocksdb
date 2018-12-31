@@ -432,7 +432,7 @@ void FixedRangeTab::RebuildBlkList() {
             blklist.emplace_back(bloom_size, offset, chunk_size);
             // next chunk block
             offset += bloom_size + chunk_size + sizeof(uint64_t) * 2;
-            //DBG_PRINT("off = %lu, bloom_size = %lu, chunk_size = %lu", offset, bloom_size, chunk_size);
+            DBG_PRINT("off = %lu, bloom_size = %lu, chunk_size = %lu", offset, bloom_size, chunk_size);
         }
 
     };
