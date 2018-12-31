@@ -23,7 +23,10 @@
 #include "rocksdb/types.h"
 #include "rocksjni/portal.h"
 
-#include "nvm_cache_options.h"
+#include "utilities/nvm_write_cache/nvm_cache_options.h"
+
+using rocksdb::NVMCacheSetup;
+using rocksdb::kRangeFixedChunk;
 
 #ifdef min
 #undef min
@@ -50,10 +53,10 @@ jlong rocksdb_open_helper(
   nvm_cache_setup->reset_cache_ = 0;
   nvm_cache_setup->use_nvm_cache_ = 1;
   nvm_cache_setup->pmem_path = getenv("PMEM_PATH");
-  nvm_cache_setup->range_num = getenv("RANGE_NUM");
-  nvm_cache_setup->range_size = getenv("RANGE_SIZE");
-  nvm_cache_setup->key_num = getenv("KEY_NUM");
-  opt.nvm_cache_setup.reset(nvm_cache_setup);
+  nvm_cache_setup->range_num = atoi(getenv("RANGE_NUM"));
+  nvm_cache_setup->range_size = atol(getenv("RANGE_SIZE"));
+  nvm_cache_setup->key_num = atoi(getenv("KEY_NUM"));
+  opt->nvm_cache_setup.reset(nvm_cache_setup);
 
   rocksdb::DB* db = nullptr;
   rocksdb::Status s = open_fn(*opt, db_path, &db);
@@ -152,10 +155,10 @@ jlongArray rocksdb_open_helper(
   nvm_cache_setup->reset_cache_ = 0;
   nvm_cache_setup->use_nvm_cache_ = 1;
   nvm_cache_setup->pmem_path = getenv("PMEM_PATH");
-  nvm_cache_setup->range_num = getenv("RANGE_NUM");
-  nvm_cache_setup->range_size = getenv("RANGE_SIZE");
-  nvm_cache_setup->key_num = getenv("KEY_NUM");
-  opt.nvm_cache_setup.reset(nvm_cache_setup);
+  nvm_cache_setup->range_num = atoi(getenv("RANGE_NUM"));
+  nvm_cache_setup->range_size = atol(getenv("RANGE_SIZE"));
+  nvm_cache_setup->key_num = atoi(getenv("KEY_NUM"));
+  opt->nvm_cache_setup.reset(nvm_cache_setup);
 
   std::vector<rocksdb::ColumnFamilyHandle*> handles;
   rocksdb::DB* db = nullptr;
