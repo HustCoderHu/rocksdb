@@ -86,7 +86,10 @@ bool FixedRangeChunkBasedNVMWriteCache::Get(const InternalKeyComparator &interna
         // found
         DBG_PRINT("Found prefix");
         FixedRangeTab *tab = found_tab->second;
-        return tab->Get(s, lkey, value);
+        tab->lock();
+        bool result = tab->Get(s, lkey, value);
+        tab->unlock();
+        return result;
     }
 }
 
