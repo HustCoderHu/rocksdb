@@ -59,7 +59,7 @@
 #include "util/trace_replay.h"
 
 #include "utilities/nvm_write_cache/global_statistic.h"
-//#define TIME_CACULE
+#define TIME_CACULE
 
 
 namespace rocksdb {

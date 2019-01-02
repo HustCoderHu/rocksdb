@@ -606,7 +606,7 @@ Status DBImpl::CloseHelper() {
 #ifdef TIME_CACULE
     FILE* fp = fopen("time_recored", "w");
     fprintf(fp, "total write,total flush, total_comapct\n");
-    fprintf(fp, "%lu,%lu,%lu\n", total_write_time, total_flush_time, total_compact_time);
+    fprintf(fp, "%f,%f,%f\n", total_write_time/1e6, total_flush_time/1e6, total_compact_time/1e6);
     fclose(fp);
 #endif
     return ret;

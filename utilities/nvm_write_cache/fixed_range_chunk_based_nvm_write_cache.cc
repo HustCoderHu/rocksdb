@@ -1,7 +1,7 @@
 #include "utilities/nvm_write_cache/skiplist/test_common.h"
 #include "fixed_range_chunk_based_nvm_write_cache.h"
 #include "global_statistic.h"
-//#define RANGE_SIZE_TEST
+#define RANGE_SIZE_TEST
 //#define FLUSH_CACUL
 namespace rocksdb {
 
@@ -157,11 +157,13 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
             fclose(fp);*/
 
             uint64_t total_size = 0;
+            FILE* fp2 = fopen("/home/hustzyw/nvm-rocksdb/range_statitics", "a");
             for(auto range : vinfo_->prefix2range){
-                total_size += range.second->RangeTotalSize();
+                uint64_t range_size = range.second->RangeTotalSize();
+                fprintf(fp2, "%f,\n", range_size / 1048576.0 / 1024);
+                total_size += range_size;
             }
-            FILE* fp2 = fopen("/home/hustzyw/nvm-rocksdb/total_data_size", "a");
-            fprintf(fp2, "%f\n", total_size / 1048576.0 / 1024);
+            fprintf(fp2, "\n%f\n", total_size / 1048576.0 / 1024);
             fclose(fp2);
 
         }
