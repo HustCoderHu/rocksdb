@@ -124,6 +124,8 @@ private:
         pinfo_->allocator_->Free(offset);
     }
 
+    void CaculateScore();
+
     struct PersistentInfo {
         p<bool> inited_;
         p<uint64_t> allocated_bits_;
@@ -145,6 +147,7 @@ private:
         atomic_bool compaction_requested_;
         bool queue_sorted_;
         FixedRangeTab* last_canceled_;
+        double compaction_score_;
 
 
         explicit VolatileInfo(const FixedRangeBasedOptions *ioptions, const InternalKeyComparator* icmp)
@@ -154,6 +157,7 @@ private:
             queue_sorted_ = false;
             compaction_requested_ = false;
             last_canceled_ = nullptr;
+            compaction_score_ = 0.0;
         }
     };
 

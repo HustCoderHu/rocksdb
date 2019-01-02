@@ -100,6 +100,10 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
      * 1. 获取prefix
      * 2. 调用tangetab的append
      * */
+
+    while(CompactionScore() > 1){
+        sleep(1);
+    }
     FixedRangeTab *now_range = nullptr;
     auto tab_found = vinfo_->prefix2range.find(meta.prefix);
     assert(tab_found != vinfo_->prefix2range.end());
@@ -263,6 +267,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
             total_size += range.second->RangeTotalSize();
         }
     }*/
+    CaculateScore();
     if (CompactionScore() > 0.8) {
         vinfo_->compaction_requested_ = true;
     }
@@ -335,10 +340,10 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
     compaction->pending_compated_range_->SetCompactionWorking(true);
 
     // total size decline and caculate state
-    uint64_t total_buffer_size = vinfo_->internal_options_->range_size_ * vinfo_->internal_options_->range_num_;
+    //uint64_t total_buffer_size = vinfo_->internal_options_->range_size_ * vinfo_->internal_options_->range_num_;
     //atomic sub
     //vinfo_->total_size_.fetch_sub(compaction->range_usage.range_size);
-    uint64_t total_size = 0;
+    //uint64_t total_size = 0;
     /*for (auto range : vinfo_->prefix2range) {
         if(range.second->IsCompactWorking()){
             total_size += range.second->WriteBufferSize();
@@ -346,6 +351,7 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
             total_size += range.second->RangeTotalSize();
         }
     }*/
+    CaculateScore();
     if (CompactionScore() < 0.8) vinfo_->compaction_requested_ = false;
 
     //vinfo_->queue_lock_.Unlock();
@@ -408,6 +414,10 @@ FixedRangeTab *FixedRangeChunkBasedNVMWriteCache::GetRangeTab(const std::string 
 }
 
 double FixedRangeChunkBasedNVMWriteCache::CompactionScore() {
+    return vinfo_->compaction_score_;
+}
+
+void FixedRangeChunkBasedNVMWriteCache::CaculateScore() {
     uint64_t total_size = 0;
     for(auto range : vinfo_->prefix2range){
         if(range.second->IsCompactWorking()){
@@ -416,7 +426,7 @@ double FixedRangeChunkBasedNVMWriteCache::CompactionScore() {
             total_size += range.second->RangeTotalSize();
         }
     }
-    return static_cast<double>(total_size) / (vinfo_->internal_options_->range_size_ * vinfo_->internal_options_->range_num_);
+    vinfo_->compaction_score_ = static_cast<double>(total_size) / (vinfo_->internal_options_->range_size_ * vinfo_->internal_options_->range_num_);
 }
 
 } // namespace rocksdb
