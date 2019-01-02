@@ -160,10 +160,10 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
             FILE* fp2 = fopen("/home/hustzyw/nvm-rocksdb/range_statitics", "a");
             for(auto range : vinfo_->prefix2range){
                 uint64_t range_size = range.second->RangeTotalSize();
-                fprintf(fp2, "%f,\n", range_size / 1048576.0 / 1024);
+                fprintf(fp2, "%f,", range_size / 1048576.0 / 1024);
                 total_size += range_size;
             }
-            fprintf(fp2, "\n%f\n", total_size / 1048576.0 / 1024);
+            fprintf(fp2, "\ntotal,%f\n", total_size / 1048576.0 / 1024);
             fclose(fp2);
 
         }
