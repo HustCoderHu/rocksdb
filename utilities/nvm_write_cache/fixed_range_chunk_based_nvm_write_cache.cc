@@ -254,7 +254,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
         vinfo_->compaction_requested_ = true;
     }
 #else
-    uint64_t total_buffer_size = vinfo_->internal_options_->range_num_ * vinfo_->internal_options_->range_size_;
+    /*uint64_t total_buffer_size = vinfo_->internal_options_->range_num_ * vinfo_->internal_options_->range_size_;
     uint64_t total_size = 0;
     for (auto range : vinfo_->prefix2range) {
         if(range.second->IsCompactWorking()){
@@ -262,8 +262,8 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
         }else{
             total_size += range.second->RangeTotalSize();
         }
-    }
-    if (total_size > total_buffer_size * 0.95) {
+    }*/
+    if (CompactionScore() > 0.8) {
         vinfo_->compaction_requested_ = true;
     }
 #endif
@@ -339,14 +339,14 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
     //atomic sub
     //vinfo_->total_size_.fetch_sub(compaction->range_usage.range_size);
     uint64_t total_size = 0;
-    for (auto range : vinfo_->prefix2range) {
+    /*for (auto range : vinfo_->prefix2range) {
         if(range.second->IsCompactWorking()){
             total_size += range.second->WriteBufferSize();
         }else{
             total_size += range.second->RangeTotalSize();
         }
-    }
-    if (total_size < total_buffer_size * 0.8) vinfo_->compaction_requested_ = false;
+    }*/
+    if (CompactionScore() < 0.8) vinfo_->compaction_requested_ = false;
 
     //vinfo_->queue_lock_.Unlock();
     //DBG_PRINT("end get compaction and unlock");
@@ -408,7 +408,6 @@ FixedRangeTab *FixedRangeChunkBasedNVMWriteCache::GetRangeTab(const std::string 
 }
 
 double FixedRangeChunkBasedNVMWriteCache::CompactionScore() {
-    double range_score;
     uint64_t total_size = 0;
     for(auto range : vinfo_->prefix2range){
         if(range.second->IsCompactWorking()){
