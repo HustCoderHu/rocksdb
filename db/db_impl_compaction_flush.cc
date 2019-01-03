@@ -2207,8 +2207,18 @@ namespace rocksdb {
             assert((bg_thread_pri == Env::Priority::BOTTOM &&
                     bg_bottom_compaction_scheduled_) ||
                    (bg_thread_pri == Env::Priority::LOW && bg_compaction_scheduled_));
+#ifdef TIME_CACULE
+            uint64_t compaction_start = env_->NowMicros();
+#endif
             Status s = BackgroundCompaction(&made_progress, &job_context, &log_buffer,
                                             prepicked_compaction);
+#ifdef TIME_CACULE
+            uint64_t compaction_end = env_->NowMicros();
+            total_compact_time += (compaction_end - compaction_start);
+            FILE* fp = fopen("time_compaction", "a");
+            fprintf(fp, "%lu\n", compaction_end - compaction_start);
+            fclose(fp);
+#endif
             TEST_SYNC_POINT("BackgroundCallCompaction:1");
             if (!s.ok() && !s.IsShutdownInProgress()) {
                 // Wait a little bit before retrying background compaction in
@@ -2634,9 +2644,7 @@ namespace rocksdb {
                 snapshot_checker = DisableGCSnapshotChecker::Instance();
             }
             assert(is_snapshot_supported_ || snapshots_.empty());
-#ifdef TIME_CACULE
-            uint64_t compaction_start = env_->NowMicros();
-#endif
+
             CompactionJob compaction_job(
                     job_context->job_id, c.get(), immutable_db_options_,
                     env_options_for_compaction_, versions_.get(), &shutting_down_,
@@ -2671,13 +2679,6 @@ namespace rocksdb {
                         *c->mutable_cf_options(), FlushReason::kAutoCompaction);
             }
             *made_progress = true;
-#ifdef TIME_CACULE
-            uint64_t compaction_end = env_->NowMicros();
-            total_compact_time += (compaction_end - compaction_start);
-            FILE* fp = fopen("time_compaction", "a");
-            fprintf(fp, "%lu\n", compaction_end - compaction_start);
-            fclose(fp);
-#endif
         }
         if (c != nullptr) {
             if(c->compaction_range() != nullptr){
