@@ -317,10 +317,13 @@ bool Compaction::IsTrivialMove() const {
 
     // Check if start level have files with overlapping ranges
     //return false;
-    if (start_level_ == 0 && input_vstorage_->level0_non_overlapping() == false) {
-        // We cannot move files from L0 to L1 if the files are overlapping
+    if(start_level_ == 0){
         return false;
     }
+    /*if (start_level_ == 0 && input_vstorage_->level0_non_overlapping() == false) {
+        // We cannot move files from L0 to L1 if the files are overlapping
+        return false;
+    }*/
 
     if (is_manual_compaction_ &&
         (immutable_cf_options_.compaction_filter != nullptr ||
