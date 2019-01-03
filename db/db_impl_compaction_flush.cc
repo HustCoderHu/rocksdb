@@ -2525,8 +2525,8 @@ namespace rocksdb {
                              c->num_input_files(0));
             *made_progress = true;
         } else if (!trivial_move_disallowed && c->IsTrivialMove()) {
- * Modified by Glitter
- * // TODO: No Trivial move allowed
+            // Modified by Glitter
+            // TODO: No Trivial move allowed
             TEST_SYNC_POINT("DBImpl::BackgroundCompaction:TrivialMove");
             // Instrument for event update
             // TODO(yhchiang): add op details for showing trivial-move.
