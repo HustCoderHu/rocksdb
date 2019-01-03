@@ -2524,7 +2524,7 @@ namespace rocksdb {
                              c->column_family_data()->GetName().c_str(),
                              c->num_input_files(0));
             *made_progress = true;
-        } /*else if (!trivial_move_disallowed && c->IsTrivialMove()) {
+        } else if (!trivial_move_disallowed && c->IsTrivialMove()) {
  * Modified by Glitter
  * // TODO: No Trivial move allowed
             TEST_SYNC_POINT("DBImpl::BackgroundCompaction:TrivialMove");
@@ -2599,7 +2599,7 @@ namespace rocksdb {
 
             // Clear Instrument
             ThreadStatusUtil::ResetThreadStatus();
-        }*/ else if (!is_prepicked && c->output_level() > 0 &&
+        }else if (!is_prepicked && c->output_level() > 0 &&
                    c->output_level() ==
                    c->column_family_data()
                            ->current()
