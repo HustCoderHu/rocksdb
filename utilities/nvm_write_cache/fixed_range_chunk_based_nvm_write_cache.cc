@@ -36,8 +36,8 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
             //DBG_PRINT("alloc raw buf[%f]GB", range_pool_size/(1073741824.0));
             DBG_PRINT("alloc bitmap[%d]bits", ioptions->range_num_);
             persistent_ptr<PersistentBitMap> bitmap = make_persistent<PersistentBitMap>(pop_, total_range_num);
-            pinfo_->allocator_ = make_persistent<PersistentAllocator>(total_range_num * ioptions->range_size_ * 5,
-                                                                      ioptions->range_size_ * 5, bitmap);
+            pinfo_->allocator_ = make_persistent<PersistentAllocator>(total_range_num * ioptions->range_size_ * 2,
+                                                                      ioptions->range_size_ * 2, bitmap);
             pinfo_->inited_ = true;
             FixedRangeTab::base_raw_ = pinfo_->allocator_->raw();
         });
@@ -196,7 +196,7 @@ persistent_ptr<NvRangeTab> FixedRangeChunkBasedNVMWriteCache::NewContent(const s
 
 
 FixedRangeTab *FixedRangeChunkBasedNVMWriteCache::NewRange(const std::string &prefix) {
-    persistent_ptr<NvRangeTab> p_content = NewContent(prefix, vinfo_->internal_options_->range_size_ * 5);
+    persistent_ptr<NvRangeTab> p_content = NewContent(prefix, vinfo_->internal_options_->range_size_ * 2);
     pinfo_->range_map_->put(pop_, p_content);
     p_content->writting_ = true;
     FixedRangeTab *range = new FixedRangeTab(pop_, vinfo_->internal_options_, vinfo_->icmp_, p_content);
