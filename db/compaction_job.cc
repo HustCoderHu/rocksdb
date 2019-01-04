@@ -704,6 +704,11 @@ Status CompactionJob::Run() {
     UpdateCompactionStats();
     RecordCompactionIOStats();
     LogFlush(db_options_.info_log);
+#ifdef COMPACTION_SIZE
+    FILE* fp = fopen("compaction_size.csv", "a");
+    fprintf(fp,"%f\n",compact_->total_bytes/1048576.0);
+    fclose(fp);
+#endif
     TEST_SYNC_POINT("CompactionJob::Run():End");
 
     compact_->status = status;
