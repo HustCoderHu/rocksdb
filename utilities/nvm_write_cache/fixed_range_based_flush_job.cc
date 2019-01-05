@@ -95,7 +95,8 @@ FixedRangeBasedFlushJob::FixedRangeBasedFlushJob(const std::string &dbname,
           nvm_write_cache_(dynamic_cast<FixedRangeChunkBasedNVMWriteCache *>(nvm_cache_options_->nvm_write_cache_)),
         //range_list_(nvm_write_cache_->GetRangeList()),
           last_chunk(nullptr),
-          write_manifest_(write_manifest) {
+          write_manifest_(write_manifest),
+          edit_(nullptr){
 
 }
 
@@ -116,6 +117,13 @@ void FixedRangeBasedFlushJob::Prepare() {
 
     //Report flush inpyt size
     ReportFlushInputSize(mems_);
+    MemTable* m = mems_[0];
+    edit_ = m->GetEdits();
+    edit_->SetPrevLogNumber(0);
+    // SetLogNumber(log_num) indicates logs with number smaller than log_num
+    // will no longer be picked up for recovery.
+    edit_->SetLogNumber(mems_.back()->GetNextLogNumber());
+    edit_->SetColumnFamily(cfd_->GetID());
 }
 
 

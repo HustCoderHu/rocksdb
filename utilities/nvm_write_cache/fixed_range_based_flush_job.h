@@ -115,6 +115,7 @@ private:
     BuildingChunk *last_chunk;
 
     const bool write_manifest_;
+    VersionEdit* edit_;
 
 
 };
