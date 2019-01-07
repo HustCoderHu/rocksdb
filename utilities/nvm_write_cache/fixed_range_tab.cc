@@ -205,6 +205,13 @@ bool FixedRangeTab::SearchBlockList(char* buf, vector<rocksdb::ChunkBlk> &blklis
         // bloom data
         char *chunk_head = buf + blk.offset_;
         uint64_t bloom_bytes = blk.bloom_bytes_;
+        {
+            Slice filter_data = Slice(chunk_head + 8, bloom_bytes);
+            for(int i = 0; i < bloom_bytes; i++){
+                printf("%d ", filter_data.data_[i]);
+            }
+            printf("\n");
+        }
         if (interal_options_->filter_policy_->KeyMayMatch(lkey.user_key(), Slice(chunk_head + 8, bloom_bytes))) {
             // 3.如果有则读取元数据进行chunk内的查找
             DBG_PRINT("Key in chunk and search");
