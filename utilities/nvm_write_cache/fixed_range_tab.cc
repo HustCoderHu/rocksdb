@@ -446,7 +446,7 @@ void FixedRangeTab::RebuildBlkList() {
 
     //raw_ = w_buffer_->raw_ + 2 * sizeof(uint64_t);
     raw_ = get_raw(w_buffer_.get())+ 2 * sizeof(uint64_t);
-    DBG_PRINT("wchunk[%lu][%d] cchunk[%lu][%d]", w_buffer_->chunk_num_, w_buffer_->writting_, c_buffer_->chunk_num_, c_buffer_->writting_);
+    DBG_PRINT("wchunk[%lu][%d] cchunk[%lu][%d]", w_buffer_->chunk_num_, w_buffer_->writting_, w_buffer_->pair_buf_->chunk_num_, w_buffer_->pair_buf_->writting_);
 }
 
 Usage FixedRangeTab::RangeUsage(UsageType type) const{
