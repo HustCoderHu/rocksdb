@@ -420,6 +420,7 @@ void FixedRangeTab::RebuildBlkList() {
     // TODO :check consistency
     //ConsistencyCheck();
     // TODO : 确保传进来的是wbuffer
+    DBG_PRINT("wchunk[%lu][%d] cchunk[%lu][%d]", w_buffer_->chunk_num_, w_buffer_->writting_, c_buffer_->chunk_num_, c_buffer_->writting_);
 
     auto build_blklist = [](NvRangeTab* tab, vector<ChunkBlk>& blklist) {
         char *chunk_head = get_raw(tab) + 2 * sizeof(uint64_t);
