@@ -540,14 +540,18 @@ void FixedRangeTab::GetProperties() const{
     Usage usage = RangeUsage(kForTotal);
     cout << "datalen in vtab = [" << vtab->data_len_ << "]" << endl;
     cout << "range size = [" << usage.range_size / 1048576.0 << "]MB, chunk_num = [" << usage.chunk_num << "]" << endl;
-    if (vtab->key_range_ != nullptr) {
+    if(vtab->pair_buf_->data_len_ != 0){
+        cout << "datalen in vtab = [" << vtab->pair_buf_->data_len_ << "]" << endl;
+        cout << "range size = [" << vtab->pair_buf_->data_len_ / 1048576.0 << "]MB, chunk_num = [" << vtab->pair_buf_->chunk_num_ << "]" << endl;
+    }
+    /*if (vtab->key_range_ != nullptr) {
         if (!usage.start_.empty()) {
             cout << "start_key = [" << usage.start().user_key().data() << "]" << endl;
         }
         if (!usage.end_.empty()) {
             cout << "end_key = [" << usage.end().user_key().data() << "]" << endl;
         }
-    }
+    }*/
     cout << endl;
 }
 
