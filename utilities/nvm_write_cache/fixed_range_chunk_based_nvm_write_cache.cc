@@ -427,7 +427,7 @@ void FixedRangeChunkBasedNVMWriteCache::CaculateScore() {
             total_size += range.second->RangeTotalSize();
         }
     }
-    vinfo_->compaction_score_ = static_cast<double>(total_size) / (vinfo_->internal_options_->range_size_ * RANGE_SIZE_MULTIPLE * vinfo_->internal_options_->range_num_);
+    vinfo_->compaction_score_ = static_cast<double>(total_size) / (vinfo_->internal_options_->range_size_ * vinfo_->internal_options_->range_num_);
 }
 
 } // namespace rocksdb
