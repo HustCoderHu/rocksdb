@@ -205,14 +205,21 @@ bool FixedRangeTab::SearchBlockList(char* buf, vector<rocksdb::ChunkBlk> &blklis
         // bloom data
         char *chunk_head = buf + blk.offset_;
         uint64_t bloom_bytes = blk.bloom_bytes_;
-        {
+        /*{
             Slice filter_data = Slice(chunk_head + 8, bloom_bytes);
             for(int i = 0; i < bloom_bytes; i++){
                 printf("%d ", filter_data.data_[i]);
             }
             printf("\n");
+        }*/
+        new(iter) PersistentChunkIterator(buf + blk.getDatOffset(), blk.chunkLen_, nullptr);
+        Status result = searchInChunk(iter, lkey.user_key(), value);
+        if (result.ok()) {
+            *s = Status::OK();
+            DBG_PRINT("found it!");
+            return true;
         }
-        if (interal_options_->filter_policy_->KeyMayMatch(lkey.user_key(), Slice(chunk_head + 8, bloom_bytes))) {
+        /*if (interal_options_->filter_policy_->KeyMayMatch(lkey.user_key(), Slice(chunk_head + 8, bloom_bytes))) {
             // 3.如果有则读取元数据进行chunk内的查找
             DBG_PRINT("Key in chunk and search");
             new(iter) PersistentChunkIterator(buf + blk.getDatOffset(), blk.chunkLen_, nullptr);
@@ -224,10 +231,10 @@ bool FixedRangeTab::SearchBlockList(char* buf, vector<rocksdb::ChunkBlk> &blklis
             }
         } else {
             DBG_PRINT("key[%s]filtered by bloom", lkey.user_key().ToString().c_str());
-            DBG_PRINT("key prefix[%s], range prefix[%s]", string(w_buffer_->prefix_.get(), w_buffer_->prefix_len_).c_str(),
-                      (*interal_options_->prefix_extractor_)(lkey.user_key().data(), lkey.user_key().size()).c_str());
+            *//*DBG_PRINT("key prefix[%s], range prefix[%s]", string(w_buffer_->prefix_.get(), w_buffer_->prefix_len_).c_str(),
+                      (*interal_options_->prefix_extractor_)(lkey.user_key().data(), lkey.user_key().size()).c_str());*//*
             continue;
-        }
+        }*/
     } // 4.循环直到查找完所有的chunk
     return false;
 }
