@@ -439,6 +439,7 @@ void FixedRangeTab::RebuildBlkList() {
 
     build_blklist(w_buffer_.get(), wblklist_);
     if(w_buffer_->pair_buf_->chunk_num_ != 0){
+        DBG_PRINT("recover cbuffer");
         build_blklist(w_buffer_->pair_buf_.get(), cblklist_);
         c_buffer_ = w_buffer_->pair_buf_;
     }
