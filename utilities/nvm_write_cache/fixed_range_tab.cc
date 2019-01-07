@@ -216,7 +216,9 @@ bool FixedRangeTab::SearchBlockList(char* buf, vector<rocksdb::ChunkBlk> &blklis
                 return true;
             }
         } else {
-            DBG_PRINT("filtered by bloom");
+            DBG_PRINT("key[%s]filtered by bloom", lkey.user_key().ToString().c_str());
+            DBG_PRINT("key prefix[%s], range prefix[%s]", string(w_buffer_->prefix_.get(), w_buffer_->prefix_len_),
+                      (*interal_options_->prefix_extractor_)(lkey.user_key().data(), lkey.user_key().size()));
             continue;
         }
     } // 4.循环直到查找完所有的chunk
