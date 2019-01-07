@@ -1325,7 +1325,7 @@ Status DBImpl::GetImpl(const ReadOptions &read_options,
             done = true;
             pinnable_val->PinSelf();
             RecordTick(stats_, MEMTABLE_HIT);
-            printf("find in memtable\n");
+            //printf("find in memtable\n");
         } else if ((s.ok() || s.IsMergeInProgress()) &&
                    sv->imm->Get(lkey, pinnable_val->GetSelf(), &s, &merge_context,
                                 &max_covering_tombstone_seq, read_options, callback,
@@ -1333,7 +1333,7 @@ Status DBImpl::GetImpl(const ReadOptions &read_options,
             done = true;
             pinnable_val->PinSelf();
             RecordTick(stats_, MEMTABLE_HIT);
-            printf("find in imm-memtable\n");
+            //printf("find in imm-memtable\n");
         }
         if (!done && !s.ok() && !s.IsMergeInProgress()) {
             ReturnAndCleanupSuperVersion(cfd, sv);
@@ -1345,15 +1345,15 @@ Status DBImpl::GetImpl(const ReadOptions &read_options,
                 cfd->ioptions()->internal_comparator, &s, lkey, pinnable_val->GetSelf())){
         done = true;
         pinnable_val->PinSelf();
-        printf("find in range cache\n");
+        //printf("find in range cache\n");
     }
     if (!done) {
-        printf("not found in range\n");
+        //printf("not found in range\n");
         PERF_TIMER_GUARD(get_from_output_files_time);
         sv->current->Get(read_options, lkey, pinnable_val, &s, &merge_context,
                          &max_covering_tombstone_seq, value_found, nullptr, nullptr,
                          callback, is_blob_index);
-        printf("find in sst\n");
+        //printf("find in sst\n");
         RecordTick(stats_, MEMTABLE_MISS);
     }
 
