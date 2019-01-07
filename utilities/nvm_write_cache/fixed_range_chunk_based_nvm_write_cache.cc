@@ -82,6 +82,7 @@ bool FixedRangeChunkBasedNVMWriteCache::Get(const InternalKeyComparator &interna
     if (found_tab == vinfo_->prefix2range.end()) {
         // not found
         DBG_PRINT("NotFound prefix");
+        printf("NotFound prefix\n");
         return false;
     } else {
         // found
@@ -90,6 +91,11 @@ bool FixedRangeChunkBasedNVMWriteCache::Get(const InternalKeyComparator &interna
         tab->lock();
         bool result = tab->Get(s, lkey, value);
         tab->unlock();
+        if(result){
+            printf("found\n");
+        }else{
+            printf("not found\n");
+        }
         return result;
     }
 }
