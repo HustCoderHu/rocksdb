@@ -216,6 +216,7 @@ bool FixedRangeTab::SearchBlockList(char* buf, vector<rocksdb::ChunkBlk> &blklis
                 return true;
             }
         } else {
+            DBG_PRINT("filtered by bloom");
             continue;
         }
     } // 4.循环直到查找完所有的chunk
