@@ -212,14 +212,14 @@ bool FixedRangeTab::SearchBlockList(char* buf, vector<rocksdb::ChunkBlk> &blklis
             }
             printf("\n");
         }*/
-        new(iter) PersistentChunkIterator(buf + blk.getDatOffset(), blk.chunkLen_, nullptr);
+        /*new(iter) PersistentChunkIterator(buf + blk.getDatOffset(), blk.chunkLen_, nullptr);
         Status result = searchInChunk(iter, lkey.user_key(), value);
         if (result.ok()) {
             *s = Status::OK();
             DBG_PRINT("found it!");
             return true;
-        }
-        /*if (interal_options_->filter_policy_->KeyMayMatch(lkey.user_key(), Slice(chunk_head + 8, bloom_bytes))) {
+        }*/
+        if (interal_options_->filter_policy_->KeyMayMatch(lkey.user_key(), Slice(chunk_head + 8, bloom_bytes))) {
             // 3.如果有则读取元数据进行chunk内的查找
             DBG_PRINT("Key in chunk and search");
             new(iter) PersistentChunkIterator(buf + blk.getDatOffset(), blk.chunkLen_, nullptr);
@@ -234,7 +234,7 @@ bool FixedRangeTab::SearchBlockList(char* buf, vector<rocksdb::ChunkBlk> &blklis
             *//*DBG_PRINT("key prefix[%s], range prefix[%s]", string(w_buffer_->prefix_.get(), w_buffer_->prefix_len_).c_str(),
                       (*interal_options_->prefix_extractor_)(lkey.user_key().data(), lkey.user_key().size()).c_str());*//*
             continue;
-        }*/
+        }
     } // 4.循环直到查找完所有的chunk
     return false;
 }
@@ -266,10 +266,12 @@ InternalIterator *FixedRangeTab::NewInternalIterator(Arena *arena, bool for_coma
         }
     }
     // add chunk in cbuffer to iterator
-    char *rbuf = get_raw(c_buffer_.get()) + 2 * sizeof(uint64_t);
-    for (auto chunk : cblklist_) {
-        pchk.reset(chunk.bloom_bytes_, chunk.chunkLen_, rbuf + chunk.getDatOffset());
-        list[num++] = pchk.NewIterator(arena);
+    if(c_buffer_ != nullptr){
+        char *rbuf = get_raw(c_buffer_.get()) + 2 * sizeof(uint64_t);
+        for (auto chunk : cblklist_) {
+            pchk.reset(chunk.bloom_bytes_, chunk.chunkLen_, rbuf + chunk.getDatOffset());
+            list[num++] = pchk.NewIterator(arena);
+        }
     }
     InternalIterator *result = NewMergingIterator(icmp_, list, num, arena, false);
     delete[] list;
