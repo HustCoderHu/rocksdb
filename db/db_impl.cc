@@ -1345,7 +1345,7 @@ Status DBImpl::GetImpl(const ReadOptions &read_options,
                 cfd->ioptions()->internal_comparator, &s, lkey, pinnable_val->GetSelf())){
         done = true;
         pinnable_val->PinSelf();
-        printf("find in range cache\n");
+        //printf("find in range cache\n");
     }
     if (!done) {
         //printf("not found in range\n");
