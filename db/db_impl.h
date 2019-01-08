@@ -59,7 +59,7 @@
 #include "util/trace_replay.h"
 
 #include "utilities/nvm_write_cache/global_statistic.h"
-//#define TIME_CACULE
+#define TIME_CACULE
 //#define COMPACTION_SIZE
 
 
@@ -1785,9 +1785,9 @@ namespace rocksdb {
 
 #ifdef TIME_CACULE
         uint64_t total_write_time;
-        uint64_t total_flush_time;
         uint64_t total_compact_time;
         uint64_t total_write;
+        uint64_t total_WAL_time;
 #endif
     };
 

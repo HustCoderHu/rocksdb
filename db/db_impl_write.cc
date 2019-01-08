@@ -418,9 +418,7 @@ Status DBImpl::PipelinedWriteImpl(const WriteOptions& write_options,
                                   WriteBatch* my_batch, WriteCallback* callback,
                                   uint64_t* log_used, uint64_t log_ref,
                                   bool disable_memtable, uint64_t* seq_used) {
-#ifdef TIME_CACULE
-  uint64_t write_start = env_->NowMicros();
-#endif
+
   PERF_TIMER_GUARD(write_pre_and_post_process_time);
   StopWatch write_sw(env_, immutable_db_options_.statistics.get(), DB_WRITE);
 
@@ -490,8 +488,15 @@ Status DBImpl::PipelinedWriteImpl(const WriteOptions& write_options,
                           wal_write_group.size - 1);
         RecordTick(stats_, WRITE_DONE_BY_OTHER, wal_write_group.size - 1);
       }
+#ifdef TIME_CACULE
+      uint64_t WAL_start = env_->NowMicros();
+#endif
       w.status = WriteToWAL(wal_write_group, log_writer, log_used,
                             need_log_sync, need_log_dir_sync, current_sequence);
+#ifdef TIME_CACULE
+      uint64_t WAL_end = env_->NowMicros();
+      total_WAL_time += (WAL_end - WAL_start);
+#endif
     }
 
     if (!w.CallbackFailed()) {
@@ -516,11 +521,18 @@ Status DBImpl::PipelinedWriteImpl(const WriteOptions& write_options,
         immutable_db_options_.allow_concurrent_memtable_write) {
       write_thread_.LaunchParallelMemTableWriters(&memtable_write_group);
     } else {
+#ifdef TIME_CACULE
+      uint64_t write_start = env_->NowMicros();
+#endif
       memtable_write_group.status = WriteBatchInternal::InsertInto(
           memtable_write_group, w.sequence, column_family_memtables_.get(),
           &flush_scheduler_, write_options.ignore_missing_column_families,
           0 /*log_number*/, this, false /*concurrent_memtable_writes*/,
           seq_per_batch_, batch_per_txn_);
+#ifdef TIME_CACULE
+      uint64_t write_end = env_->NowMicros();
+      total_write_time += (write_end - write_start);
+#endif
       versions_->SetLastSequence(memtable_write_group.last_sequence);
       write_thread_.ExitAsMemTableWriter(&w, memtable_write_group);
     }
@@ -530,10 +542,17 @@ Status DBImpl::PipelinedWriteImpl(const WriteOptions& write_options,
     assert(w.ShouldWriteToMemtable());
     ColumnFamilyMemTablesImpl column_family_memtables(
         versions_->GetColumnFamilySet());
+#ifdef TIME_CACULE
+    uint64_t write_start = env_->NowMicros();
+#endif
     w.status = WriteBatchInternal::InsertInto(
         &w, w.sequence, &column_family_memtables, &flush_scheduler_,
         write_options.ignore_missing_column_families, 0 /*log_number*/, this,
         true /*concurrent_memtable_writes*/);
+#ifdef TIME_CACULE
+    uint64_t write_end = env_->NowMicros();
+    total_write_time += (write_end - write_start);
+#endif
     if (write_thread_.CompleteParallelMemTableWriter(&w)) {
       MemTableInsertStatusCheck(w.status);
       versions_->SetLastSequence(w.write_group->last_sequence);
@@ -543,10 +562,7 @@ Status DBImpl::PipelinedWriteImpl(const WriteOptions& write_options,
   if (seq_used != nullptr) {
     *seq_used = w.sequence;
   }
-#ifdef TIME_CACULE
-  uint64_t write_end = env_->NowMicros();
-  total_write_time += (write_end - write_start);
-#endif
+
 
   assert(w.state == WriteThread::STATE_COMPLETED);
   return w.FinalStatus();

@@ -2121,7 +2121,7 @@ namespace rocksdb {
                     BackgroundFlush(&made_progress, &job_context, &log_buffer, &reason);
 #ifdef TIME_CACULE
             uint64_t flush_end = env_->NowMicros();
-            total_flush_time += (flush_end - flush_start);
+            total_compact_time += (flush_end - flush_start);
             FILE* fp = fopen("time_compaction", "a");
             fprintf(fp, "%lu\n", flush_end - flush_start);
             fclose(fp);
