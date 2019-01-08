@@ -269,7 +269,7 @@ DBImpl::DBImpl(const DBOptions &options, const std::string &dbname,
 
 #ifdef TIME_CACULE
     total_write_time = 0;
-    total_flush_time = 0;
+    total_WAL_time = 0;
     total_compact_time = 0;
     total_write = 0;
 #endif
@@ -605,8 +605,8 @@ Status DBImpl::CloseHelper() {
 
 #ifdef TIME_CACULE
     FILE* fp = fopen("time_recored", "w");
-    fprintf(fp, "total write,total flush, total_comapct\n");
-    fprintf(fp, "%f,%f,%f\n", total_write_time/1e6, total_flush_time/1e6, total_compact_time/1e6);
+    fprintf(fp, "total write,total WAL, total_comapct\n");
+    fprintf(fp, "%f,%f,%f\n", total_write_time/1e6, total_WAL_time/1e6, total_compact_time/1e6);
     fclose(fp);
 #endif
     return ret;
