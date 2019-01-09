@@ -143,7 +143,7 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
 #ifdef FLUSH_CACUL
     uint64_t start_time = Env::Default()->NowMicros();
 #endif
-    printf("num key = [%d]\n", key_num);
+    //printf("num key = [%d]\n", key_num);
     now_range->Append(bloom_data, chunk_data, meta.cur_start, meta.cur_end, key_num);
 #ifdef FLUSH_CACUL
     uint64_t end_time = Env::Default()->NowMicros();
@@ -279,7 +279,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
     if (CompactionScore() > 0.8) {
         vinfo_->compaction_requested_ = true;
     }
-    printf("score = [%f]\n", vinfo_->compaction_score_);
+    //printf("score = [%f]\n", vinfo_->compaction_score_);
 #endif
 #endif
 
