@@ -102,7 +102,7 @@ bool FixedRangeChunkBasedNVMWriteCache::Get(const InternalKeyComparator &interna
 
 void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKeyComparator &icmp,
                                                       const string &bloom_data, const rocksdb::Slice &chunk_data,
-                                                      const rocksdb::ChunkMeta &meta) {
+                                                      const rocksdb::ChunkMeta &meta, int key_num) {
     /*
      * 1. 获取prefix
      * 2. 调用tangetab的append

@@ -351,7 +351,7 @@ Status FixedRangeBasedFlushJob::BuildChunkAndInsert(InternalIterator *iter,
 #ifdef FLUSH_CACUL
                 uint64_t start_time = Env::Default()->NowMicros();
 #endif
-                cache->AppendToRange(icmp, bloom_data, Slice(output_data->c_str(), output_data->size()), meta);
+                cache->AppendToRange(icmp, bloom_data, Slice(output_data->c_str(), output_data->size()), meta, chunk->NumEntries());
 #ifdef FLUSH_CACUL
                 uint64_t end_time = Env::Default()->NowMicros();
                 FILE* fp = fopen("range_flush", "a");

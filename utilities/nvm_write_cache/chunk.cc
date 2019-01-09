@@ -43,6 +43,7 @@ void ArrayBasedChunk::Insert(const Slice &key, const Slice &value) {
 
     entry_offset_.push_back(now_offset_);
     now_offset_ += total_size;
+    num_entries++;
 }
 
 /*
