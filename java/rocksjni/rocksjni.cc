@@ -35,6 +35,8 @@ using std::endl;
 #undef min
 #endif
 
+static rocksdb::Env *FLAGS_env = rocksdb::Env::Default();
+
 //////////////////////////////////////////////////////////////////////////////
 // rocksdb::DB::Open
 jlong rocksdb_open_helper(
@@ -49,24 +51,36 @@ jlong rocksdb_open_helper(
   }
 
   rocksdb::Options *opt = reinterpret_cast<rocksdb::Options*>(jopt_handle);
+  opt->write_buffer_size = 64 << 20;
+  opt->max_bytes_for_level_base = 8 << 30;
+  opt->create_if_missing = true;
+//  int num = atoi(getenv("FLAGS_num_high_pri_threads"));
+  FLAGS_env->SetBackgroundThreads(1, rocksdb::Env::Priority::HIGH);
+//  num = atoi(getenv("FLAGS_num_low_pri_threads"));
+  FLAGS_env->SetBackgroundThreads(4, rocksdb::Env::Priority::LOW);
+//  opt->max_background_jobs = atoi(getenv("MAX_BACKGROUD_JOBS"));
+  opt->max_background_compactions = 4; //atoi(getenv("FLAGS_max_background_compactions"));
+  opt->compression = rocksdb::kNoCompression;
+  opt->wal_dir = getenv("FLAGS_wal_dir");
+  //
   NVMCacheSetup *nvm_cache_setup = new NVMCacheSetup;
-  nvm_cache_setup->bloom_bits = 16;
-  nvm_cache_setup->cache_type_ = kRangeFixedChunk;
-  nvm_cache_setup->prefix_bytes = 16;
-  nvm_cache_setup->reset_cache_ = 0;
-  nvm_cache_setup->use_nvm_cache_ = 1;
+  nvm_cache_setup->use_nvm_cache_ = true;
   nvm_cache_setup->pmem_path = getenv("PMEM_PATH");
+  nvm_cache_setup->reset_cache_ = false;
+  nvm_cache_setup->bloom_bits = 16;  
   nvm_cache_setup->range_num = atoi(getenv("RANGE_NUM"));
   nvm_cache_setup->range_size = atol(getenv("RANGE_SIZE"));
+//  nvm_cache_setup->key_num = atoi(getenv("KEY_NUM"));
+  nvm_cache_setup->prefix_bytes = 16;
+//  nvm_cache_setup->cache_type_ = kRangeFixedChunk;
   nvm_cache_setup->key_num = atoi(getenv("KEY_NUM"));
   opt->nvm_cache_setup.reset(nvm_cache_setup);
-  opt->max_background_jobs = atoi(getenv("MAX_BACKGROUD_JOBS"));
-
-  cout << "PMEM_PATH: " << getenv("PMEM_PATH") << endl;
-  cout << "RANGE_NUM: " << getenv("RANGE_NUM") << endl;
-  cout << "RANGE_SIZE: " << getenv("RANGE_SIZE") << endl;
-  cout << "KEY_NUM: " << getenv("KEY_NUM") << endl;
-  cout << "MAX_BACKGROUD_JOBS: " << getenv("MAX_BACKGROUD_JOBS") << endl;
+  cout << "FLAGS_wal_dir: " << getenv("FLAGS_wal_dir") << endl;
+  cout << "PMEM_PATH:     " << getenv("PMEM_PATH") << endl;
+  cout << "RANGE_NUM:     " << getenv("RANGE_NUM") << endl;
+  cout << "RANGE_SIZE:    " << getenv("RANGE_SIZE") << endl;
+  cout << "KEY_NUM:       " << getenv("KEY_NUM") << endl;
+//  cout << "MAX_BACKGROUD_JOBS: " << getenv("MAX_BACKGROUD_JOBS") << endl;
   
   rocksdb::DB* db = nullptr;
   rocksdb::Status s = open_fn(*opt, db_path, &db);
@@ -158,24 +172,30 @@ jlongArray rocksdb_open_helper(
   }
 
   rocksdb::Options *opt = reinterpret_cast<rocksdb::Options*>(jopt_handle);
+  opt->write_buffer_size = 64 << 20;
+  opt->max_bytes_for_level_base = 8 << 30;
+  opt->create_if_missing = true;
+  FLAGS_env->SetBackgroundThreads(1, rocksdb::Env::Priority::HIGH);
+  FLAGS_env->SetBackgroundThreads(4, rocksdb::Env::Priority::LOW);
+  opt->max_background_compactions = 4; //atoi(getenv("FLAGS_max_background_compactions"));
+  opt->compression = rocksdb::kNoCompression;
+  opt->wal_dir = getenv("FLAGS_wal_dir");
+  //
   NVMCacheSetup *nvm_cache_setup = new NVMCacheSetup;
-  nvm_cache_setup->bloom_bits = 16;
-  nvm_cache_setup->cache_type_ = kRangeFixedChunk;
-  nvm_cache_setup->prefix_bytes = 16;
-  nvm_cache_setup->reset_cache_ = 0;
-  nvm_cache_setup->use_nvm_cache_ = 1;
+  nvm_cache_setup->use_nvm_cache_ = true;
   nvm_cache_setup->pmem_path = getenv("PMEM_PATH");
+  nvm_cache_setup->reset_cache_ = false;
+  nvm_cache_setup->bloom_bits = 16;  
   nvm_cache_setup->range_num = atoi(getenv("RANGE_NUM"));
-  nvm_cache_setup->range_size = atol(getenv("RANGE_SIZE"));
+  nvm_cache_setup->range_size = atol(getenv("RANGE_SIZE")); 
+  nvm_cache_setup->prefix_bytes = 16;
   nvm_cache_setup->key_num = atoi(getenv("KEY_NUM"));
   opt->nvm_cache_setup.reset(nvm_cache_setup);
-  opt->max_background_jobs = atoi(getenv("MAX_BACKGROUD_JOBS"));
-
-  cout << "PMEM_PATH: " << getenv("PMEM_PATH") << endl;
-  cout << "RANGE_NUM: " << getenv("RANGE_NUM") << endl;
-  cout << "RANGE_SIZE: " << getenv("RANGE_SIZE") << endl;
-  cout << "KEY_NUM: " << getenv("KEY_NUM") << endl;
-  cout << "MAX_BACKGROUD_JOBS: " << getenv("MAX_BACKGROUD_JOBS") << endl;
+  cout << "FLAGS_wal_dir: " << getenv("FLAGS_wal_dir") << endl;
+  cout << "PMEM_PATH:     " << getenv("PMEM_PATH") << endl;
+  cout << "RANGE_NUM:     " << getenv("RANGE_NUM") << endl;
+  cout << "RANGE_SIZE:    " << getenv("RANGE_SIZE") << endl;
+  cout << "KEY_NUM:       " << getenv("KEY_NUM") << endl;
 
   std::vector<rocksdb::ColumnFamilyHandle*> handles;
   rocksdb::DB* db = nullptr;
