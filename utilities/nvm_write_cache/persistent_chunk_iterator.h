@@ -23,6 +23,8 @@ public:
 
     PersistentChunkIterator() =default;
 
+    ~PersistentChunkIterator();
+
     bool Valid() const override { return current_ < vKey_.size(); }
 
     void SeekToFirst() override { current_ = 0; }

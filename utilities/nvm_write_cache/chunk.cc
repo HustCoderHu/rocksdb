@@ -28,11 +28,17 @@ ArrayBasedChunk::ArrayBasedChunk() {
  * ------------
  * */
 void ArrayBasedChunk::Insert(const Slice &key, const Slice &value) {
-    unsigned int total_size = key.size_ + value.size_ + 8 + 8;
+    //unsigned int total_size = key.size_ + value.size_ + 8 + 8;
+    unsigned int total_size = key.size_ + 1 + 8 + 8;
     PutFixed64(&raw_data_, key.size_);
     raw_data_.append(key.data_, key.size_);
-    PutFixed64(&raw_data_, value.size_);
-    raw_data_.append(value.data_, value.size_);
+
+    // put fake data
+    string fakedata("0");
+    PutFixed64(&raw_data_, fakedata.size());
+    raw_data_.append(fakedata);
+    /*PutFixed64(&raw_data_, value.size_);
+    raw_data_.append(value.data_, value.size_);*/
 
 
     entry_offset_.push_back(now_offset_);

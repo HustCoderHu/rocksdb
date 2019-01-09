@@ -37,7 +37,10 @@ PersistentChunkIterator::PersistentChunkIterator(char* data,
         uint64_t _size = DecodeFixed64(pairAddr);
         //printf("get key size [%lu]\n", _size);
         // key
-        vKey_.emplace_back(pairAddr + sizeof_uint64_t, _size);
+        char* fakedata = new char[4096];
+        memset(fakedata, 0, 4096);
+        vKey_.emplace_back(fakedata, 4096);
+        //vKey_.emplace_back(pairAddr + sizeof_uint64_t, _size);
 //    size_t _size = *(reinterpret_cast<size_t*>(pairAddr));
 //    vKey_.emplace_back(pairAddr + sizeof(_size), _size);
 
@@ -55,6 +58,13 @@ PersistentChunkIterator::PersistentChunkIterator(char* data,
         metaOffset += sizeof_uint64_t;
     }
     //printf("finish consrtuctor of persistent chunk iter\n");
+
+
+}
+PersistentChunkIterator::~PersistentChunkIterator(){
+    for(auto value : vValue_){
+        delete value.data_;
+    }
 }
 
 } // namespace rocksdb
