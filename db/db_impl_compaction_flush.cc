@@ -2115,16 +2115,19 @@ namespace rocksdb {
                     CaptureCurrentFileNumberInPendingOutputs();
             FlushReason reason;
 #ifdef TIME_CACULE
-            uint64_t flush_start = env_->NowMicros();
+            //uint64_t flush_start = env_->NowMicros();
+            std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
 #endif
             Status s =
                     BackgroundFlush(&made_progress, &job_context, &log_buffer, &reason);
 #ifdef TIME_CACULE
-            uint64_t flush_end = env_->NowMicros();
+            /*uint64_t flush_end = env_->NowMicros();
             total_compact_time += (flush_end - flush_start);
             FILE* fp = fopen("time_compaction", "a");
             fprintf(fp, "%lu\n", flush_end - flush_start);
-            fclose(fp);
+            fclose(fp);*/
+            std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+            total_compact_time += std::chrono::duration_cast<std::chrono::microseconds>(end - now).count();
 #endif
             if (!s.ok() && !s.IsShutdownInProgress() &&
                 reason != FlushReason::kErrorRecovery) {
@@ -2208,16 +2211,19 @@ namespace rocksdb {
                     bg_bottom_compaction_scheduled_) ||
                    (bg_thread_pri == Env::Priority::LOW && bg_compaction_scheduled_));
 #ifdef TIME_CACULE
-            uint64_t compaction_start = env_->NowMicros();
+            //uint64_t compaction_start = env_->NowMicros();
+            std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
 #endif
             Status s = BackgroundCompaction(&made_progress, &job_context, &log_buffer,
                                             prepicked_compaction);
 #ifdef TIME_CACULE
-            uint64_t compaction_end = env_->NowMicros();
+            /*uint64_t compaction_end = env_->NowMicros();
             total_compact_time += (compaction_end - compaction_start);
             FILE* fp = fopen("time_compaction", "a");
             fprintf(fp, "%lu\n", compaction_end - compaction_start);
-            fclose(fp);
+            fclose(fp);*/
+            std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+            total_compact_time += std::chrono::duration_cast<std::chrono::microseconds>(end - now).count();
 #endif
             TEST_SYNC_POINT("BackgroundCallCompaction:1");
             if (!s.ok() && !s.IsShutdownInProgress()) {

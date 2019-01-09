@@ -1784,10 +1784,10 @@ namespace rocksdb {
         bool atomic_flush_commit_in_progress_;
 
 #ifdef TIME_CACULE
-        uint64_t total_write_time;
-        uint64_t total_compact_time;
-        uint64_t total_write;
-        uint64_t total_WAL_time;
+        long long int total_write_time;
+        long long int total_compact_time;
+        long long int total_write;
+        long long int total_WAL_time;
 #endif
     };
 

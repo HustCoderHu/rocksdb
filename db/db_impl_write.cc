@@ -489,13 +489,16 @@ Status DBImpl::PipelinedWriteImpl(const WriteOptions& write_options,
         RecordTick(stats_, WRITE_DONE_BY_OTHER, wal_write_group.size - 1);
       }
 #ifdef TIME_CACULE
-      uint64_t WAL_start = env_->NowMicros();
+      //uint64_t WAL_start = env_->NowMicros();
+      std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
 #endif
       w.status = WriteToWAL(wal_write_group, log_writer, log_used,
                             need_log_sync, need_log_dir_sync, current_sequence);
 #ifdef TIME_CACULE
-      uint64_t WAL_end = env_->NowMicros();
-      total_WAL_time += (WAL_end - WAL_start);
+      //uint64_t WAL_end = env_->NowMicros();
+      //total_WAL_time += (WAL_end - WAL_start);
+      std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+      total_WAL_time += std::chrono::duration_cast<std::chrono::microseconds>(end - now).count();
 #endif
     }
 
@@ -522,7 +525,8 @@ Status DBImpl::PipelinedWriteImpl(const WriteOptions& write_options,
       write_thread_.LaunchParallelMemTableWriters(&memtable_write_group);
     } else {
 #ifdef TIME_CACULE
-      uint64_t write_start = env_->NowMicros();
+      //uint64_t write_start = env_->NowMicros();
+        std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
 #endif
       memtable_write_group.status = WriteBatchInternal::InsertInto(
           memtable_write_group, w.sequence, column_family_memtables_.get(),
@@ -530,8 +534,10 @@ Status DBImpl::PipelinedWriteImpl(const WriteOptions& write_options,
           0 /*log_number*/, this, false /*concurrent_memtable_writes*/,
           seq_per_batch_, batch_per_txn_);
 #ifdef TIME_CACULE
-      uint64_t write_end = env_->NowMicros();
-      total_write_time += (write_end - write_start);
+      //uint64_t write_end = env_->NowMicros();
+      //total_write_time += (write_end - write_start);
+        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        total_write_time += std::chrono::duration_cast<std::chrono::microseconds>(end - now).count();
 #endif
       versions_->SetLastSequence(memtable_write_group.last_sequence);
       write_thread_.ExitAsMemTableWriter(&w, memtable_write_group);
@@ -543,15 +549,18 @@ Status DBImpl::PipelinedWriteImpl(const WriteOptions& write_options,
     ColumnFamilyMemTablesImpl column_family_memtables(
         versions_->GetColumnFamilySet());
 #ifdef TIME_CACULE
-    uint64_t write_start = env_->NowMicros();
+    //uint64_t write_start = env_->NowMicros();
+      std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
 #endif
     w.status = WriteBatchInternal::InsertInto(
         &w, w.sequence, &column_family_memtables, &flush_scheduler_,
         write_options.ignore_missing_column_families, 0 /*log_number*/, this,
         true /*concurrent_memtable_writes*/);
 #ifdef TIME_CACULE
-    uint64_t write_end = env_->NowMicros();
-    total_write_time += (write_end - write_start);
+    /*uint64_t write_end = env_->NowMicros();
+    total_write_time += (write_end - write_start);*/
+      std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+      total_write_time += std::chrono::duration_cast<std::chrono::microseconds>(end - now).count();
 #endif
     if (write_thread_.CompleteParallelMemTableWriter(&w)) {
       MemTableInsertStatusCheck(w.status);
