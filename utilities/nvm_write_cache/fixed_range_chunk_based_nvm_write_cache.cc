@@ -279,6 +279,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
     if (CompactionScore() > 0.8) {
         vinfo_->compaction_requested_ = true;
     }
+    printf("score = [%f]\n", vinfo_->compaction_score_);
 #endif
 #endif
 
