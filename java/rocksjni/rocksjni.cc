@@ -28,6 +28,9 @@
 using rocksdb::NVMCacheSetup;
 using rocksdb::kRangeFixedChunk;
 
+using std::cout;
+using std::endl;
+
 #ifdef min
 #undef min
 #endif
@@ -45,8 +48,8 @@ jlong rocksdb_open_helper(
     return 0;
   }
 
-  auto* opt = reinterpret_cast<rocksdb::Options*>(jopt_handle);
-  auto nvm_cache_setup = new NVMCacheSetup;
+  rocksdb::Options *opt = reinterpret_cast<rocksdb::Options*>(jopt_handle);
+  NVMCacheSetup *nvm_cache_setup = new NVMCacheSetup;
   nvm_cache_setup->bloom_bits = 16;
   nvm_cache_setup->cache_type_ = kRangeFixedChunk;
   nvm_cache_setup->prefix_bytes = 16;
@@ -59,6 +62,12 @@ jlong rocksdb_open_helper(
   opt->nvm_cache_setup.reset(nvm_cache_setup);
   opt->max_background_jobs = atoi(getenv("MAX_BACKGROUD_JOBS"));
 
+  cout << "PMEM_PATH: " << getenv("PMEM_PATH") << endl;
+  cout << "RANGE_NUM: " << getenv("RANGE_NUM") << endl;
+  cout << "RANGE_SIZE: " << getenv("RANGE_SIZE") << endl;
+  cout << "KEY_NUM: " << getenv("KEY_NUM") << endl;
+  cout << "MAX_BACKGROUD_JOBS: " << getenv("MAX_BACKGROUD_JOBS") << endl;
+  
   rocksdb::DB* db = nullptr;
   rocksdb::Status s = open_fn(*opt, db_path, &db);
 
@@ -148,8 +157,8 @@ jlongArray rocksdb_open_helper(
     return nullptr;
   }
 
-  auto* opt = reinterpret_cast<rocksdb::DBOptions*>(jopt_handle);
-  auto nvm_cache_setup = new NVMCacheSetup;
+  rocksdb::Options *opt = reinterpret_cast<rocksdb::Options*>(jopt_handle);
+  NVMCacheSetup *nvm_cache_setup = new NVMCacheSetup;
   nvm_cache_setup->bloom_bits = 16;
   nvm_cache_setup->cache_type_ = kRangeFixedChunk;
   nvm_cache_setup->prefix_bytes = 16;
@@ -161,6 +170,12 @@ jlongArray rocksdb_open_helper(
   nvm_cache_setup->key_num = atoi(getenv("KEY_NUM"));
   opt->nvm_cache_setup.reset(nvm_cache_setup);
   opt->max_background_jobs = atoi(getenv("MAX_BACKGROUD_JOBS"));
+
+  cout << "PMEM_PATH: " << getenv("PMEM_PATH") << endl;
+  cout << "RANGE_NUM: " << getenv("RANGE_NUM") << endl;
+  cout << "RANGE_SIZE: " << getenv("RANGE_SIZE") << endl;
+  cout << "KEY_NUM: " << getenv("KEY_NUM") << endl;
+  cout << "MAX_BACKGROUD_JOBS: " << getenv("MAX_BACKGROUD_JOBS") << endl;
 
   std::vector<rocksdb::ColumnFamilyHandle*> handles;
   rocksdb::DB* db = nullptr;
