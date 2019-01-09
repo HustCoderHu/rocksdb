@@ -143,6 +143,7 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
 #ifdef FLUSH_CACUL
     uint64_t start_time = Env::Default()->NowMicros();
 #endif
+    printf("num key = [%d]\n", key_num);
     now_range->Append(bloom_data, chunk_data, meta.cur_start, meta.cur_end, key_num);
 #ifdef FLUSH_CACUL
     uint64_t end_time = Env::Default()->NowMicros();
