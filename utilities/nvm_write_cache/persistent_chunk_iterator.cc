@@ -47,10 +47,10 @@ PersistentChunkIterator::PersistentChunkIterator(char* data,
         _size = DecodeFixed64(pairAddr);
         //printf("get value size [%lu]\n", _size);
         // value
-        char* fakedata = new char[4096];
+        /*char* fakedata = new char[4096];
         memset(fakedata, 0, 4096);
-        vValue_.emplace_back(fakedata, 4096);
-        //vValue_.emplace_back(pairAddr + sizeof_uint64_t, _size);
+        vValue_.emplace_back(fakedata, 4096);*/
+        vValue_.emplace_back(pairAddr + sizeof_uint64_t, _size);
 //    _size = *(reinterpret_cast<size_t*>(pairAddr));
 //    vValue_.emplace_back(pairAddr + sizeof(_size), _size);
 
@@ -62,9 +62,9 @@ PersistentChunkIterator::PersistentChunkIterator(char* data,
 
 }
 PersistentChunkIterator::~PersistentChunkIterator(){
-    for(auto value : vValue_){
+    /*for(auto value : vValue_){
         delete value.data_;
-    }
+    }*/
 }
 
 } // namespace rocksdb

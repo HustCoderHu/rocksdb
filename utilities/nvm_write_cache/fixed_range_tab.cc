@@ -158,7 +158,7 @@ Status FixedRangeTab::Append(const string &bloom_data, const Slice &chunk_data,
     // TODO : transaction2
     w_buffer_->seq_num_ = w_buffer_->seq_num_ + 1;
     w_buffer_->chunk_num_ = w_buffer_->chunk_num_ + 1;
-    w_buffer_->data_len_ = w_buffer_->data_len_ + chunk_blk_len + num_key * 4096;
+    w_buffer_->data_len_ = w_buffer_->data_len_ + chunk_blk_len/* + num_key * 4096*/;
 
 #ifdef FLUSH_CACUL
     uint64_t meta_end_time = Env::Default()->NowMicros();
