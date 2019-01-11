@@ -276,7 +276,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
         }
     }*/
     CaculateScore();
-    if (CompactionScore() > 0.8) {
+    if (CompactionScore() > 0.7) {
         vinfo_->compaction_requested_ = true;
     }
     //printf("score = [%f]\n", vinfo_->compaction_score_);
@@ -361,7 +361,7 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
         }
     }*/
     CaculateScore();
-    if (CompactionScore() < 0.8) vinfo_->compaction_requested_ = false;
+    if (CompactionScore() <= 0.7) vinfo_->compaction_requested_ = false;
 
     //vinfo_->queue_lock_.Unlock();
     //DBG_PRINT("end get compaction and unlock");
