@@ -1284,7 +1284,7 @@ void LevelCompactionBuilder::SetupInitialFiles() {
         auto nvm_write_cache = dynamic_cast<FixedRangeChunkBasedNVMWriteCache *>(
                 ioptions_.nvm_cache_options->nvm_write_cache_
         );
-        double range_score = nvm_write_cache->CompactionScore()
+        double range_score = nvm_write_cache->CompactionScore();
         // TODO：权衡一下最优先compact NVMcache还是其他的level
         printf("range compaction:range score[%f] compaction score[%f]\n",range_score, vstorage_->CompactionScore(0));
         start_level_ = 0;
