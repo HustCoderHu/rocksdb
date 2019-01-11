@@ -2615,14 +2615,14 @@ namespace rocksdb {
 
             // Clear Instrument
             ThreadStatusUtil::ResetThreadStatus();
-        }else if (!is_prepicked && c->output_level() > 0 &&
+        }else if (c->start_level() == 0 || (!is_prepicked && c->output_level() > 0 &&
                    c->output_level() ==
                    c->column_family_data()
                            ->current()
                            ->storage_info()
                            ->MaxOutputLevel(
                                    immutable_db_options_.allow_ingest_behind) &&
-                   env_->GetBackgroundThreads(Env::Priority::BOTTOM) > 0) {
+                   env_->GetBackgroundThreads(Env::Priority::BOTTOM) > 0)) {
             // Forward compactions involving last level to the bottom pool if it exists,
             // such that compactions unlikely to contribute to write stalls can be
             // delayed or deprioritized.
