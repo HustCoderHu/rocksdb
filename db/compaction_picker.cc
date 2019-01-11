@@ -1284,8 +1284,16 @@ void LevelCompactionBuilder::SetupInitialFiles() {
         auto nvm_write_cache = dynamic_cast<FixedRangeChunkBasedNVMWriteCache *>(
                 ioptions_.nvm_cache_options->nvm_write_cache_
         );
+        double range_score = nvm_write_cache->CompactionScore()
         // TODO：权衡一下最优先compact NVMcache还是其他的level
-        double range_score = nvm_write_cache->CompactionScore();
+        printf("range compaction:range score[%f] compaction score[%f]\n",range_score, vstorage_->CompactionScore(0));
+        start_level_ = 0;
+        start_level_inputs_.level = 0;
+        output_level_ = vstorage_->base_level();
+        compaction_reason_ = CompactionReason::kNVMCacheRangeFull;
+        DBG_PRINT("Need Compaction");
+        return;
+        /*double range_score = nvm_write_cache->CompactionScore();
         if(range_score > 0.95 || vstorage_->CompactionScore(0) < 1.5){
             // 当超过总容量1.5倍（12G）或者没有超过1.5倍但是score大于最大的compaction score的时候
             printf("range compaction:range score[%f] compaction score[%f]\n",range_score, vstorage_->CompactionScore(0));
@@ -1297,9 +1305,10 @@ void LevelCompactionBuilder::SetupInitialFiles() {
             return;
         }else{
             printf("normal compaction:range score[%f] compaction score[%f]\n",range_score, vstorage_->CompactionScore(0));
-        }
+        }*/
 
     }
+    printf("normal compaction:compaction score[%f]\n", vstorage_->CompactionScore(0));
     for (int i = 0; i < compaction_picker_->NumberLevels() - 1; i++) {
         // 按照score的高低检查各个level
         // 返回第i高的score
