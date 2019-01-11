@@ -262,7 +262,7 @@ void ThreadPoolImpl::Impl::BGThread(size_t thread_id) {
     (void)decrease_io_priority;  // avoid 'unused variable' error
     (void)decrease_cpu_priority;
 #endif
-    printf("pri:[%d]\n", priority_);
+    //printf("pri:[%d]\n", priority_);
     func();
   }
 }
