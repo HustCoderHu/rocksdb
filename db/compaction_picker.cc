@@ -1294,7 +1294,7 @@ void LevelCompactionBuilder::SetupInitialFiles() {
         DBG_PRINT("Need Compaction");
         return;*/
         double range_score = nvm_write_cache->CompactionScore();
-        if(vstorage_->CompactionScore(0) > 1){
+        if(vstorage_->CompactionScore(0) > 2.0){
 
         }else{
             printf("range compaction:range score[%f] compaction score[%f]\n",range_score, vstorage_->CompactionScore(0));
