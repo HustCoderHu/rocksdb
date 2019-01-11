@@ -1279,7 +1279,7 @@ void LevelCompactionBuilder::SetupInitialFiles() {
     // Find the compactions by size on all levels.
     // 选择一个待compaction的level
     bool skipped_l0_to_base = false;
-    if (vstorage_->CompactionScore(0) < 2.0 &&
+    if (vstorage_->CompactionScore(0) < 1.5 &&
         ioptions_.nvm_cache_options->nvm_write_cache_ != nullptr &&
         ioptions_.nvm_cache_options->nvm_write_cache_->NeedCompaction()) {
         auto nvm_write_cache = dynamic_cast<FixedRangeChunkBasedNVMWriteCache *>(
