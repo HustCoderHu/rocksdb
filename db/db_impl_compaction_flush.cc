@@ -2615,7 +2615,7 @@ namespace rocksdb {
 
             // Clear Instrument
             ThreadStatusUtil::ResetThreadStatus();
-        }else if ((!is_prepicked && c->start_level() == 0) || (!is_prepicked && c->output_level() > 0 &&
+        }else if ((!is_prepicked && c->start_level() != 0) || (!is_prepicked && c->output_level() > 0 &&
                    c->output_level() ==
                    c->column_family_data()
                            ->current()
