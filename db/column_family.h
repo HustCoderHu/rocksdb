@@ -269,9 +269,11 @@ class ColumnFamilyData {
   // See documentation in compaction_picker.h
   // REQUIRES: DB mutex held
   bool NeedsCompaction() const;
+
+  bool NeedsRangeCompaction() const;
   // REQUIRES: DB mutex held
   Compaction* PickCompaction(const MutableCFOptions& mutable_options,
-                             LogBuffer* log_buffer);
+                             LogBuffer* log_buffer, bool for_range_compaction = false);
 
   // Check if the passed range overlap with any running compactions.
   // REQUIRES: DB mutex held

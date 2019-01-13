@@ -46,7 +46,8 @@ public:
     virtual Compaction *PickCompaction(const std::string &cf_name,
                                        const MutableCFOptions &mutable_cf_options,
                                        VersionStorageInfo *vstorage,
-                                       LogBuffer *log_buffer) = 0;
+                                       LogBuffer *log_buffer,
+                                       bool for_range_compaction) = 0;
 
     // Return a compaction object for compacting the range [begin,end] in
     // the specified level.  Returns nullptr if there is nothing in that
@@ -252,7 +253,7 @@ public:
     virtual Compaction *PickCompaction(const std::string &cf_name,
                                        const MutableCFOptions &mutable_cf_options,
                                        VersionStorageInfo *vstorage,
-                                       LogBuffer *log_buffer) override;
+                                       LogBuffer *log_buffer, bool for_range_compaction = false) override;
 
     virtual bool NeedsCompaction(
             const VersionStorageInfo *vstorage) const override;
@@ -269,7 +270,7 @@ public:
     virtual Compaction *PickCompaction(const std::string &cf_name,
                                        const MutableCFOptions &mutable_cf_options,
                                        VersionStorageInfo *version,
-                                       LogBuffer *log_buffer) override;
+                                       LogBuffer *log_buffer, bool for_range_compaction = false) override;
 
     virtual Compaction *CompactRange(
             const std::string &cf_name, const MutableCFOptions &mutable_cf_options,
@@ -308,7 +309,7 @@ public:
     Compaction *PickCompaction(const std::string & /*cf_name*/,
                                const MutableCFOptions & /*mutable_cf_options*/,
                                VersionStorageInfo * /*vstorage*/,
-                               LogBuffer * /*log_buffer*/) override {
+                               LogBuffer * /*log_buffer*/, bool for_range_compaction = false) override {
         return nullptr;
     }
 

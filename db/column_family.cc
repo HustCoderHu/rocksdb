@@ -933,16 +933,19 @@ namespace rocksdb {
 
     // Modified by Glitter
     bool ColumnFamilyData::NeedsCompaction() const {
-        return (ioptions_.nvm_cache_options->nvm_write_cache_ != nullptr &&
-                ioptions_.nvm_cache_options->nvm_write_cache_->NeedCompaction()) ||
-               compaction_picker_->NeedsCompaction(current_->storage_info());
+        return compaction_picker_->NeedsCompaction(current_->storage_info();
     }
 
+    bool ColumnFamilyData::NeedsRangeCompaction() const {
+        return ioptions_.nvm_cache_options->nvm_write_cache_ != nullptr &&
+            ioptions_.nvm_cache_options->nvm_write_cache_->NeedCompaction();
+}
+
     Compaction *ColumnFamilyData::PickCompaction(
-            const MutableCFOptions &mutable_options, LogBuffer *log_buffer) {
+            const MutableCFOptions &mutable_options, LogBuffer *log_buffer, bool for_range_compaction) {
         // 调用compaction_picker的PickCompaction接口获取compaction
         auto *result = compaction_picker_->PickCompaction(
-                GetName(), mutable_options, current_->storage_info(), log_buffer);
+                GetName(), mutable_options, current_->storage_info(), log_buffer, for_range_compaction);
         if (result != nullptr) {
             result->SetInputVersion(current_);
         }

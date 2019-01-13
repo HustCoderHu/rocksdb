@@ -1174,11 +1174,11 @@ public:
               ioptions_(ioptions) {}
 
     // Pick and return a compaction.
-    Compaction *PickCompaction();
+    Compaction *PickCompaction(bool for_range_compaction = false);
 
     // Pick the initial files to compact to the next level. (or together
     // in Intra-L0 compactions)
-    void SetupInitialFiles();
+    void SetupInitialFiles(bool for_range_compaction = false);
 
     // If the initial files are from L0 level, pick other L0
     // files if needed.
@@ -1275,50 +1275,24 @@ void LevelCompactionBuilder::PickExpiredTtlFiles() {
     start_level_inputs_.files.clear();
 }
 
-void LevelCompactionBuilder::SetupInitialFiles() {
+void LevelCompactionBuilder::SetupInitialFiles(bool for_range_compaction) {
     // Find the compactions by size on all levels.
     // 选择一个待compaction的level
     bool skipped_l0_to_base = false;
-    if (vstorage_->CompactionScore(0) < 1.5 &&
+    if(for_range_compaction &&
         ioptions_.nvm_cache_options->nvm_write_cache_ != nullptr &&
-        ioptions_.nvm_cache_options->nvm_write_cache_->NeedCompaction()) {
+        ioptions_.nvm_cache_options->nvm_write_cache_->NeedCompaction()){
         auto nvm_write_cache = dynamic_cast<FixedRangeChunkBasedNVMWriteCache *>(
                 ioptions_.nvm_cache_options->nvm_write_cache_
         );
-        // TODO：权衡一下最优先compact NVMcache还是其他的level
-        /*double range_score = nvm_write_cache->CompactionScore();
+        double range_score = nvm_write_cache->CompactionScore();
         printf("range compaction:range score[%f] compaction score[%f]\n",range_score, vstorage_->CompactionScore(0));
         start_level_ = 0;
         start_level_inputs_.level = 0;
         output_level_ = vstorage_->base_level();
         compaction_reason_ = CompactionReason::kNVMCacheRangeFull;
         DBG_PRINT("Need Compaction");
-        return;*/
-        double range_score = nvm_write_cache->CompactionScore();
-        /*if(vstorage_->CompactionScore(0) > 2.0){
-
-        }else{*/
-            printf("range compaction:range score[%f] compaction score[%f]\n",range_score, vstorage_->CompactionScore(0));
-            start_level_ = 0;
-            start_level_inputs_.level = 0;
-            output_level_ = vstorage_->base_level();
-            compaction_reason_ = CompactionReason::kNVMCacheRangeFull;
-            DBG_PRINT("Need Compaction");
-            return;
-        //}
-        /*if(range_score > 0.95 || vstorage_->CompactionScore(0) < 1.5){
-            // 当超过总容量1.5倍（12G）或者没有超过1.5倍但是score大于最大的compaction score的时候
-            printf("range compaction:range score[%f] compaction score[%f]\n",range_score, vstorage_->CompactionScore(0));
-            start_level_ = 0;
-            start_level_inputs_.level = 0;
-            output_level_ = vstorage_->base_level();
-            compaction_reason_ = CompactionReason::kNVMCacheRangeFull;
-            DBG_PRINT("Need Compaction");
-            return;
-        }else{
-            printf("normal compaction:range score[%f] compaction score[%f]\n",range_score, vstorage_->CompactionScore(0));
-        }*/
-
+        return;
     }
     printf("normal compaction:compaction score[%f]\n", vstorage_->CompactionScore(0));
     for (int i = 0; i < compaction_picker_->NumberLevels() - 1; i++) {
@@ -1508,11 +1482,11 @@ bool LevelCompactionBuilder::SetupOtherInputsIfNeeded() {
     return true;
 }
 
-Compaction *LevelCompactionBuilder::PickCompaction() {
+Compaction *LevelCompactionBuilder::PickCompaction(bool for_range_compaction) {
     // Pick up the first file to start compaction. It may have been extended
     // to a clean cut.
     // 选取compaction的初始file
-    SetupInitialFiles();
+    SetupInitialFiles(for_range_compaction);
 
     if (start_level_ != 0 && start_level_inputs_.empty()) {
         return nullptr;
@@ -1725,11 +1699,11 @@ bool LevelCompactionBuilder::PickIntraL0Compaction() {
 
 Compaction *LevelCompactionPicker::PickCompaction(
         const std::string &cf_name, const MutableCFOptions &mutable_cf_options,
-        VersionStorageInfo *vstorage, LogBuffer *log_buffer) {
+        VersionStorageInfo *vstorage, LogBuffer *log_buffer, bool for_range_compaction) {
     // 构造LevelCompactionBuilder
     LevelCompactionBuilder builder(cf_name, vstorage, this, log_buffer,
                                    mutable_cf_options, ioptions_);
-    return builder.PickCompaction();
+    return builder.PickCompaction(for_range_compaction);
 }
 
 #ifndef ROCKSDB_LITE
@@ -1917,7 +1891,7 @@ Compaction *FIFOCompactionPicker::PickSizeCompaction(
 
 Compaction *FIFOCompactionPicker::PickCompaction(
         const std::string &cf_name, const MutableCFOptions &mutable_cf_options,
-        VersionStorageInfo *vstorage, LogBuffer *log_buffer) {
+        VersionStorageInfo *vstorage, LogBuffer *log_buffer, bool for_range_compaction) {
     assert(vstorage->num_levels() == 1);
 
     Compaction *c = nullptr;
