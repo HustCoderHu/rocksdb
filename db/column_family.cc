@@ -933,7 +933,7 @@ namespace rocksdb {
 
     // Modified by Glitter
     bool ColumnFamilyData::NeedsCompaction() const {
-        return compaction_picker_->NeedsCompaction(current_->storage_info();
+        return compaction_picker_->NeedsCompaction(current_->storage_info());
     }
 
     bool ColumnFamilyData::NeedsRangeCompaction() const {
