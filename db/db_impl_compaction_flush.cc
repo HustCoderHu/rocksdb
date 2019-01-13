@@ -1965,6 +1965,7 @@ namespace rocksdb {
 
     void DBImpl::SchedulePendingCompaction(ColumnFamilyData *cfd) {
         if(!cfd->queued_for_compaction() && cfd->NeedsRangeCompaction()){
+            AddToCompactionQueue(cfd);
             ++unscheduled_range_compaction_;
         }
         if (!cfd->queued_for_compaction() && cfd->NeedsCompaction()) {
@@ -2553,6 +2554,7 @@ namespace rocksdb {
         // compaction被选好了
         if (!c) {
             // Nothing to do
+            DBG_PRINT("nothing to do");
             ROCKS_LOG_BUFFER(log_buffer, "Compaction nothing to do");
         } else if (c->deletion_compaction()) {
             // TODO(icanadi) Do we want to honor snapshots here? i.e. not delete old
