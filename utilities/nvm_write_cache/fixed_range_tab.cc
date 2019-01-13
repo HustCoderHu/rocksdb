@@ -97,7 +97,7 @@ FixedRangeTab::FixedRangeTab(pool_base &pop, const FixedRangeBasedOptions *optio
 
 Status FixedRangeTab::Append(const string &bloom_data, const Slice &chunk_data,
                              const Slice &start, const Slice &end, int num_key) {
-    DBG_PRINT("start Append bloom size[%lu] chunk size[%lu]", bloom_data.size(), chunk_data.size());
+    //DBG_PRINT("start Append bloom size[%lu] chunk size[%lu]", bloom_data.size(), chunk_data.size());
     assert(w_buffer_->data_len_ + chunk_data.size_ + 2 * 8 <= max_range_size());
     size_t chunk_blk_len = bloom_data.size() + chunk_data.size() + 2 * sizeof(uint64_t);
     uint64_t raw_cur = DecodeFixed64(raw_ - 2 * sizeof(uint64_t));
