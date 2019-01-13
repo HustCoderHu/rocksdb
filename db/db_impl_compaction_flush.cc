@@ -2430,6 +2430,7 @@ namespace rocksdb {
             }
         } else if (!is_prepicked && !compaction_queue_.empty()) {
             // 条件：非manual && compaction_queue_不为空
+            DBG_PRINT("not manual");
             if (HasExclusiveManualCompaction()) {
                 // Can't compact right now, but try again later
                 TEST_SYNC_POINT("DBImpl::BackgroundCompaction()::Conflict");
