@@ -2304,7 +2304,12 @@ namespace rocksdb {
             assert(num_running_compactions_ > 0);
             num_running_compactions_--;
             if (bg_thread_pri == Env::Priority::LOW) {
-                bg_compaction_scheduled_--;
+                if(for_range_compaction){
+                    bg_range_compaction_scheduled_--;
+                }else{
+                    bg_compaction_scheduled_--;
+                }
+
             } else {
                 assert(bg_thread_pri == Env::Priority::BOTTOM);
                 bg_bottom_compaction_scheduled_--;
