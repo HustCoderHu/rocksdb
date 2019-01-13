@@ -1874,6 +1874,7 @@ namespace rocksdb {
             ca->prepicked_compaction = nullptr;
             bg_range_compaction_scheduled_++;
             unscheduled_range_compaction_--;
+            DBG_PRINT("schedule range compaction");
             env_->Schedule(&DBImpl::BGWorkRangeCompaction, ca, Env::Priority::LOW, this,
                            &DBImpl::UnscheduleCallback);
         }
@@ -1885,6 +1886,7 @@ namespace rocksdb {
             ca->prepicked_compaction = nullptr;
             bg_compaction_scheduled_++;
             unscheduled_compactions_--;
+            DBG_PRINT("schedule normal compaction");
             env_->Schedule(&DBImpl::BGWorkCompaction, ca, Env::Priority::LOW, this,
                            &DBImpl::UnscheduleCallback);
         }
@@ -2359,6 +2361,7 @@ namespace rocksdb {
 
         CompactionJobStats compaction_job_stats;
         Status status;
+        DBG_PRINT("start compaction2");
         if (!error_handler_.IsBGWorkStopped()) {
             if (shutting_down_.load(std::memory_order_acquire)) {
                 status = Status::ShutdownInProgress();
@@ -2381,6 +2384,7 @@ namespace rocksdb {
             }
             return status;
         }
+        DBG_PRINT("start compaction3");
 
         if (is_manual) {
             // another thread cannot pick up the same work
@@ -2391,6 +2395,7 @@ namespace rocksdb {
         // InternalKey* manual_end = &manual_end_storage;
         bool sfm_reserved_compact_space = false;
         if (is_manual) {
+            DBG_PRINT("manual compaction");
             // munal compaction
             ManualCompactionState *m = manual_compaction;
             assert(m->in_progress);
