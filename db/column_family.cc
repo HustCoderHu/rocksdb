@@ -480,6 +480,7 @@ namespace rocksdb {
         // NVMRangeCache:init nvm write cache
         if (ioptions_.nvm_cache_setup->use_nvm_cache_ && name_.size() != 0) {
             string pmem_file_name(ioptions_.nvm_cache_setup->pmem_path + name_);
+            ioptions_.nvm_cache_options->pmem_info_.pmem_path_ = pmem_file_name;
             // TODO: multi type of cache
             DBG_PRINT("open pmem file name[%s]", pmem_file_name.c_str());
             auto foptions = new FixedRangeBasedOptions(ioptions_.nvm_cache_setup->bloom_bits,
