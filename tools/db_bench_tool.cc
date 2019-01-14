@@ -4258,9 +4258,9 @@ private:
             }
             // test
 
-            if ((num_written) % FLAGS_num_stat == 0) {
-            //cur_ = time(NULL);
-            //if ((cur_ - last_) >= 10) {
+            //if ((num_written) % FLAGS_num_stat == 0) {
+            cur_ = time(NULL);
+            if ((cur_ - last_) >= 10) {
                 last_ = cur_;
                 double now = Env::Default()->NowMicros();
                 double time = now - finish_last_;
