@@ -1286,7 +1286,7 @@ void LevelCompactionBuilder::SetupInitialFiles(bool for_range_compaction) {
                 ioptions_.nvm_cache_options->nvm_write_cache_
         );
         double range_score = nvm_write_cache->CompactionScore();
-        printf("range compaction:range score[%f] compaction score[%f]\n",range_score, vstorage_->CompactionScore(0));
+        //printf("range compaction:range score[%f] compaction score[%f]\n",range_score, vstorage_->CompactionScore(0));
         start_level_ = 0;
         start_level_inputs_.level = 0;
         output_level_ = vstorage_->base_level();
@@ -1294,7 +1294,7 @@ void LevelCompactionBuilder::SetupInitialFiles(bool for_range_compaction) {
         DBG_PRINT("Need Compaction");
         return;
     }
-    printf("normal compaction:compaction score[%f]\n", vstorage_->CompactionScore(0));
+    //printf("normal compaction:compaction score[%f]\n", vstorage_->CompactionScore(0));
     for (int i = 0; i < compaction_picker_->NumberLevels() - 1; i++) {
         // 按照score的高低检查各个level
         // 返回第i高的score
