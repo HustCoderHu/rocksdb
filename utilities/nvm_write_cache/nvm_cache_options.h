@@ -58,7 +58,7 @@ struct FixedRangeBasedOptions {
             //range_num_threshold_(range_num_threashold),
             range_size_(range_size),
             range_num_(range_num){
-        DBG_PRINT("num per range [%lu]", key_num / range_num);
+        DBG_PRINT("num per range [%d]", key_num / range_num);
 
     }
 

@@ -52,9 +52,9 @@ DBBenchDedicatedExtractor *DBBenchDedicatedExtractor::NewDBBenchDedicatedExtract
 }
 
 
-ArbitrarilyExtractor::ArbitrarilyExtractor(size_t  range_num)
+ArbitrarilyExtractor::ArbitrarilyExtractor(size_t range_num)
         : range_num_(range_num) {
-    DBG_PRINT("new extractor [%d]", range_num);
+    DBG_PRINT("new extractor [%zu]", range_num);
 
 }
 
