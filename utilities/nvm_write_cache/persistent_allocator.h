@@ -19,7 +19,7 @@ using pmem::obj::pool_base;
 using pmem::obj::make_persistent;
 using pmem::obj::delete_persistent;
 
-static std::string rangefile_path = "/pmem/rocksdb_dir/nvmtest/rangefile";
+static std::string rangefile_path = "/pmem/PersistentAllocator_0.mapfile";
 class PersistentAllocator {
 public:
     explicit PersistentAllocator(uint64_t total_size, uint64_t range_size,
