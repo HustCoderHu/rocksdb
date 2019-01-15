@@ -113,7 +113,7 @@ public:
 
 	//TODO: DeleteCache;
 
-private:
+//private:
 
     persistent_ptr<NvRangeTab> NewContent(const string& prefix, size_t bufSize);
     FixedRangeTab *NewRange(const std::string &prefix);
@@ -134,7 +134,8 @@ private:
         persistent_ptr<PersistentAllocator> allocator_;
     };
 
-    pool<PersistentInfo> pop_;
+    static pool<PersistentInfo> pop_;
+    static int refs_;
     persistent_ptr<PersistentInfo> pinfo_;
 
     struct VolatileInfo {

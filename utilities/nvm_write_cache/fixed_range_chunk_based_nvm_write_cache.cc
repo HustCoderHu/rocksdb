@@ -5,6 +5,9 @@
 //#define FLUSH_CACUL
 #define RANGE_SIZE_MULTIPLE 5
 namespace rocksdb {
+pool<FixedRangeChunkBasedNVMWriteCache::PersistentInfo> FixedRangeChunkBasedNVMWriteCache::pop_ =
+	pool<FixedRangeChunkBasedNVMWriteCache::PersistentInfo>();
+int FixedRangeChunkBasedNVMWriteCache::refs_ = 0;
 
 using std::string;
 
@@ -17,12 +20,19 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
     vinfo_ = new VolatileInfo(ioptions, icmp);
     if (file_exists(file.c_str()) != 0) {
         // creat pool
+        DBG_PRINT("pool:create : %s", file.c_str());
         DBG_PRINT("pmem size[%f]GB", pmem_size / (1073741824.0));
-        pop_ = pmem::obj::pool<PersistentInfo>::create(file.c_str(), "FixedRangeChunkBasedNVMWriteCache", pmem_size,
+        pop_ = pmem::obj::pool<PersistentInfo>::create(file, "FixedRangeChunkBasedNVMWriteCache", pmem_size,
                                                        CREATE_MODE_RW | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-    } else {
+        ++refs_;
+    } else if (0 == refs_){
         // open pool
-        pop_ = pmem::obj::pool<PersistentInfo>::open(file.c_str(), "FixedRangeChunkBasedNVMWriteCache");
+        DBG_PRINT("pool:open : %s", file.c_str());
+        pop_ = pmem::obj::pool<PersistentInfo>::open(file, "FixedRangeChunkBasedNVMWriteCache");
+        DBG_PRINT("pool:open finish");
+        ++refs_;
+    } else {
+        DBG_PRINT("%s opened already", file.c_str());
     }
 
     pinfo_ = pop_.root();
@@ -69,7 +79,9 @@ FixedRangeChunkBasedNVMWriteCache::~FixedRangeChunkBasedNVMWriteCache() {
     vinfo_->prefix2range.clear();
     delete vinfo_->internal_options_;
     delete vinfo_;
-    pop_.close();
+	--refs_;
+	if (0 == refs_)
+        pop_.close();
 }
 
 bool FixedRangeChunkBasedNVMWriteCache::Get(const InternalKeyComparator &internal_comparator, Status *s,
