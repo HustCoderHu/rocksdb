@@ -52,7 +52,7 @@ jlong rocksdb_open_helper(
 
   rocksdb::Options *opt = reinterpret_cast<rocksdb::Options*>(jopt_handle);
   opt->write_buffer_size = 64 << 20;
-  opt->max_bytes_for_level_base = 8 << 30;
+  opt->max_bytes_for_level_base = (long)8 << 30;
   opt->create_if_missing = true;
 //  int num = atoi(getenv("FLAGS_num_high_pri_threads"));
   FLAGS_env->SetBackgroundThreads(1, rocksdb::Env::Priority::HIGH);
@@ -173,7 +173,7 @@ jlongArray rocksdb_open_helper(
 
   rocksdb::Options *opt = reinterpret_cast<rocksdb::Options*>(jopt_handle);
   opt->write_buffer_size = 64 << 20;
-  opt->max_bytes_for_level_base = 8 << 30;
+  opt->max_bytes_for_level_base = (long)8 << 30;
   opt->create_if_missing = true;
   FLAGS_env->SetBackgroundThreads(1, rocksdb::Env::Priority::HIGH);
   FLAGS_env->SetBackgroundThreads(4, rocksdb::Env::Priority::LOW);
