@@ -481,12 +481,13 @@ namespace rocksdb {
         if (ioptions_.nvm_cache_setup->use_nvm_cache_ && name_.size() != 0) {
             string pmem_file_name(ioptions_.nvm_cache_setup->pmem_path + name_);
             // TODO: multi type of cache
-            DBG_PRINT("open pmem file name[%s]", pmem_file_name.c_str());
+            DBG_PRINT("open pmem file name[%s]", ioptions_.nvm_cache_setup->pmem_path.c_str());
             auto foptions = new FixedRangeBasedOptions(ioptions_.nvm_cache_setup->bloom_bits,
                                                        ioptions_.nvm_cache_setup->prefix_bytes,
                                                        ioptions_.nvm_cache_setup->range_size * 1048576,
                                                        ioptions_.nvm_cache_setup->range_num,
                                                        ioptions_.nvm_cache_setup->key_num);
+            ioptions_.nvm_cache_options->pmem_info_.pmem_path_ = ioptions_.nvm_cache_setup->pmem_path;
             ioptions_.nvm_cache_options->nvm_write_cache_ =
                     reinterpret_cast<NVMWriteCache*>(NVMCacheOptions::NewFixedRangeChunkBasedCache(
                             ioptions_.nvm_cache_options.get(), foptions, &ioptions_.internal_comparator));
