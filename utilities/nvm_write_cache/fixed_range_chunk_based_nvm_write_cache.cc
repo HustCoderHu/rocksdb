@@ -3,7 +3,7 @@
 #include "global_statistic.h"
 //#define RANGE_SIZE_TEST
 //#define FLUSH_CACUL
-#define RANGE_SIZE_MULTIPLE 1
+#define RANGE_SIZE_MULTIPLE 5
 namespace rocksdb {
 pool<FixedRangeChunkBasedNVMWriteCache::PersistentInfo> FixedRangeChunkBasedNVMWriteCache::pop_ =
 	pool<FixedRangeChunkBasedNVMWriteCache::PersistentInfo>();
