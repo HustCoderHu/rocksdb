@@ -85,7 +85,7 @@ public:
     bool Get(const InternalKeyComparator &internal_comparator, Status *s, const LookupKey &lkey, std::string *value) override;
 
     void AppendToRange(const InternalKeyComparator &icmp, const string& bloom_data, const Slice &chunk_data,
-                       const ChunkMeta &meta);
+                       const ChunkMeta &meta, int key_num);
 
     // get iterator of the total cache
     InternalIterator *NewIterator(const InternalKeyComparator *icmp, Arena *arena) override;

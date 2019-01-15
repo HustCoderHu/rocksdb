@@ -1220,12 +1220,14 @@ namespace rocksdb {
 
         static void BGWorkFlush(void *db);
 
+        static void BGWorkRangeCompaction(void *arg);
+
         static void BGWorkPurge(void *arg);
 
         static void UnscheduleCallback(void *arg);
 
         void BackgroundCallCompaction(PrepickedCompaction *prepicked_compaction,
-                                      Env::Priority bg_thread_pri);
+                                      Env::Priority bg_thread_pri, bool for_range_compaction = false);
 
         void BackgroundCallFlush();
 
@@ -1233,7 +1235,8 @@ namespace rocksdb {
 
         Status BackgroundCompaction(bool *madeProgress, JobContext *job_context,
                                     LogBuffer *log_buffer,
-                                    PrepickedCompaction *prepicked_compaction);
+                                    PrepickedCompaction *prepicked_compaction,
+                                    bool for_range_compaction = false);
 
         Status BackgroundFlush(bool *madeProgress, JobContext *job_context,
                                LogBuffer *log_buffer, FlushReason *reason);
@@ -1542,6 +1545,10 @@ namespace rocksdb {
 
         // number of background obsolete file purge jobs, submitted to the HIGH pool
         int bg_purge_scheduled_;
+
+        int bg_range_compaction_scheduled_;
+
+        int unscheduled_range_compaction_;
 
         // Information for a manual compaction
         struct ManualCompactionState {

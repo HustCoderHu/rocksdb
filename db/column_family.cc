@@ -480,6 +480,8 @@ namespace rocksdb {
         // NVMRangeCache:init nvm write cache
         if (ioptions_.nvm_cache_setup->use_nvm_cache_ && name_.size() != 0) {
             string pmem_file_name(ioptions_.nvm_cache_setup->pmem_path + name_);
+            ioptions_.nvm_cache_options->pmem_info_.pmem_path_ = pmem_file_name;
+            ioptions_.nvm_cache_options->pmem_info_.pmem_size_ = 10ul * 1024 * 1024 * 1024;
             // TODO: multi type of cache
             DBG_PRINT("open pmem file name[%s]", ioptions_.nvm_cache_setup->pmem_path.c_str());
             auto foptions = new FixedRangeBasedOptions(ioptions_.nvm_cache_setup->bloom_bits,
@@ -934,16 +936,19 @@ namespace rocksdb {
 
     // Modified by Glitter
     bool ColumnFamilyData::NeedsCompaction() const {
-        return (ioptions_.nvm_cache_options->nvm_write_cache_ != nullptr &&
-                ioptions_.nvm_cache_options->nvm_write_cache_->NeedCompaction()) ||
-               compaction_picker_->NeedsCompaction(current_->storage_info());
+        return compaction_picker_->NeedsCompaction(current_->storage_info());
     }
 
+    bool ColumnFamilyData::NeedsRangeCompaction() const {
+        return ioptions_.nvm_cache_options->nvm_write_cache_ != nullptr &&
+            ioptions_.nvm_cache_options->nvm_write_cache_->NeedCompaction();
+}
+
     Compaction *ColumnFamilyData::PickCompaction(
-            const MutableCFOptions &mutable_options, LogBuffer *log_buffer) {
+            const MutableCFOptions &mutable_options, LogBuffer *log_buffer, bool for_range_compaction) {
         // 调用compaction_picker的PickCompaction接口获取compaction
         auto *result = compaction_picker_->PickCompaction(
-                GetName(), mutable_options, current_->storage_info(), log_buffer);
+                GetName(), mutable_options, current_->storage_info(), log_buffer, for_range_compaction);
         if (result != nullptr) {
             result->SetInputVersion(current_);
         }

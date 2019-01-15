@@ -120,7 +120,7 @@ public:
 public:
     // 将新的chunk数据添加到RangeMemtable
     Status Append(const string& bloom_data, const Slice &chunk_data,
-                  const Slice &start, const Slice &end);
+                  const Slice &start, const Slice &end, int key_num);
 
     bool Get(Status *s, const LookupKey &lkey, std::string *value);
 

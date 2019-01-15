@@ -1867,6 +1867,18 @@ namespace rocksdb {
             return;
         }
 
+        while (bg_range_compaction_scheduled_ < 1 &&
+               unscheduled_range_compaction_ > 0) {
+            CompactionArg *ca = new CompactionArg;
+            ca->db = this;
+            ca->prepicked_compaction = nullptr;
+            bg_range_compaction_scheduled_++;
+            unscheduled_range_compaction_--;
+            DBG_PRINT("schedule range compaction");
+            env_->Schedule(&DBImpl::BGWorkRangeCompaction, ca, Env::Priority::LOW, this,
+                           &DBImpl::UnscheduleCallback);
+        }
+
         while (bg_compaction_scheduled_ < bg_job_limits.max_compactions &&
                unscheduled_compactions_ > 0) {
             CompactionArg *ca = new CompactionArg;
@@ -1874,6 +1886,7 @@ namespace rocksdb {
             ca->prepicked_compaction = nullptr;
             bg_compaction_scheduled_++;
             unscheduled_compactions_--;
+            DBG_PRINT("schedule normal compaction");
             env_->Schedule(&DBImpl::BGWorkCompaction, ca, Env::Priority::LOW, this,
                            &DBImpl::UnscheduleCallback);
         }
@@ -1951,6 +1964,10 @@ namespace rocksdb {
     }
 
     void DBImpl::SchedulePendingCompaction(ColumnFamilyData *cfd) {
+        if(!cfd->queued_for_compaction() && cfd->NeedsRangeCompaction()){
+            AddToCompactionQueue(cfd);
+            ++unscheduled_range_compaction_;
+        }
         if (!cfd->queued_for_compaction() && cfd->NeedsCompaction()) {
             AddToCompactionQueue(cfd);
             ++unscheduled_compactions_;
@@ -1980,6 +1997,18 @@ namespace rocksdb {
                 static_cast<PrepickedCompaction *>(ca.prepicked_compaction);
         reinterpret_cast<DBImpl *>(ca.db)->BackgroundCallCompaction(
                 prepicked_compaction, Env::Priority::LOW);
+        delete prepicked_compaction;
+    }
+
+    void DBImpl::BGWorkRangeCompaction(void *arg) {
+        CompactionArg ca = *(reinterpret_cast<CompactionArg *>(arg));
+        delete reinterpret_cast<CompactionArg *>(arg);
+        IOSTATS_SET_THREAD_POOL_ID(Env::Priority::LOW);
+        TEST_SYNC_POINT("DBImpl::BGWorkCompaction");
+        auto prepicked_compaction =
+                static_cast<PrepickedCompaction *>(ca.prepicked_compaction);
+        reinterpret_cast<DBImpl *>(ca.db)->BackgroundCallCompaction(
+                prepicked_compaction, Env::Priority::LOW, true);
         delete prepicked_compaction;
     }
 
@@ -2189,7 +2218,7 @@ namespace rocksdb {
     }
 
     void DBImpl::BackgroundCallCompaction(PrepickedCompaction *prepicked_compaction,
-                                          Env::Priority bg_thread_pri) {
+                                          Env::Priority bg_thread_pri, bool for_range_compaction) {
         bool made_progress = false;
         JobContext job_context(next_job_id_.fetch_add(1), true);
         TEST_SYNC_POINT("BackgroundCallCompaction:0");
@@ -2215,7 +2244,7 @@ namespace rocksdb {
             std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
 #endif
             Status s = BackgroundCompaction(&made_progress, &job_context, &log_buffer,
-                                            prepicked_compaction);
+                                            prepicked_compaction, for_range_compaction);
 #ifdef TIME_CACULE
             /*uint64_t compaction_end = env_->NowMicros();
             total_compact_time += (compaction_end - compaction_start);
@@ -2275,7 +2304,12 @@ namespace rocksdb {
             assert(num_running_compactions_ > 0);
             num_running_compactions_--;
             if (bg_thread_pri == Env::Priority::LOW) {
-                bg_compaction_scheduled_--;
+                if(for_range_compaction){
+                    bg_range_compaction_scheduled_--;
+                }else{
+                    bg_compaction_scheduled_--;
+                }
+
             } else {
                 assert(bg_thread_pri == Env::Priority::BOTTOM);
                 bg_bottom_compaction_scheduled_--;
@@ -2308,7 +2342,8 @@ namespace rocksdb {
     Status DBImpl::BackgroundCompaction(bool *made_progress,
                                         JobContext *job_context,
                                         LogBuffer *log_buffer,
-                                        PrepickedCompaction *prepicked_compaction) {
+                                        PrepickedCompaction *prepicked_compaction,
+                                        bool for_range_compaction) {
         DBG_PRINT("start compaction");
         ManualCompactionState *manual_compaction =
                 prepicked_compaction == nullptr
@@ -2332,6 +2367,7 @@ namespace rocksdb {
 
         CompactionJobStats compaction_job_stats;
         Status status;
+        DBG_PRINT("start compaction2");
         if (!error_handler_.IsBGWorkStopped()) {
             if (shutting_down_.load(std::memory_order_acquire)) {
                 status = Status::ShutdownInProgress();
@@ -2354,6 +2390,7 @@ namespace rocksdb {
             }
             return status;
         }
+        DBG_PRINT("start compaction3");
 
         if (is_manual) {
             // another thread cannot pick up the same work
@@ -2364,6 +2401,7 @@ namespace rocksdb {
         // InternalKey* manual_end = &manual_end_storage;
         bool sfm_reserved_compact_space = false;
         if (is_manual) {
+            DBG_PRINT("manual compaction");
             // munal compaction
             ManualCompactionState *m = manual_compaction;
             assert(m->in_progress);
@@ -2403,6 +2441,7 @@ namespace rocksdb {
             }
         } else if (!is_prepicked && !compaction_queue_.empty()) {
             // 条件：非manual && compaction_queue_不为空
+            DBG_PRINT("not manual");
             if (HasExclusiveManualCompaction()) {
                 // Can't compact right now, but try again later
                 TEST_SYNC_POINT("DBImpl::BackgroundCompaction()::Conflict");
@@ -2445,7 +2484,7 @@ namespace rocksdb {
                 // until we make a copy in the following code
                 TEST_SYNC_POINT("DBImpl::BackgroundCompaction():BeforePickCompaction");
                 // PickCompaction
-                c.reset(cfd->PickCompaction(*mutable_cf_options, log_buffer));
+                c.reset(cfd->PickCompaction(*mutable_cf_options, log_buffer, for_range_compaction));
                 if(c != nullptr){
                     DBG_PRINT("[%s]", c->compaction_range() != nullptr ? "get a range" : "didn't get a range");
                 }else{
@@ -2498,6 +2537,13 @@ namespace rocksdb {
                         // it to the queue and schedule a new thread.
                         // 当选取了一个compaction之后，移除这些文件再看看还需不需要compaction，如果
                         // 仍然需要，那么我们再将这个compaction放到queue中，触发另一次compaction
+                        if (cfd->NeedsRangeCompaction()) {
+                            // Yes, we need more compactions!
+                            // oh,more compactions!
+                            AddToCompactionQueue(cfd);
+                            ++unscheduled_range_compaction_;
+                            MaybeScheduleFlushOrCompaction();
+                        }
                         if (cfd->NeedsCompaction()) {
                             // Yes, we need more compactions!
                             // oh,more compactions!
@@ -2513,6 +2559,7 @@ namespace rocksdb {
         // compaction被选好了
         if (!c) {
             // Nothing to do
+            DBG_PRINT("nothing to do");
             ROCKS_LOG_BUFFER(log_buffer, "Compaction nothing to do");
         } else if (c->deletion_compaction()) {
             // TODO(icanadi) Do we want to honor snapshots here? i.e. not delete old

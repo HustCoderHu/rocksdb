@@ -114,7 +114,7 @@ bool FixedRangeChunkBasedNVMWriteCache::Get(const InternalKeyComparator &interna
 
 void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKeyComparator &icmp,
                                                       const string &bloom_data, const rocksdb::Slice &chunk_data,
-                                                      const rocksdb::ChunkMeta &meta) {
+                                                      const rocksdb::ChunkMeta &meta, int key_num) {
     /*
      * 1. 获取prefix
      * 2. 调用tangetab的append
@@ -155,7 +155,8 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
 #ifdef FLUSH_CACUL
     uint64_t start_time = Env::Default()->NowMicros();
 #endif
-    now_range->Append(bloom_data, chunk_data, meta.cur_start, meta.cur_end);
+    //printf("num key = [%d]\n", key_num);
+    now_range->Append(bloom_data, chunk_data, meta.cur_start, meta.cur_end, key_num);
 #ifdef FLUSH_CACUL
     uint64_t end_time = Env::Default()->NowMicros();
     FILE *fp = fopen("append_time", "a");
@@ -287,9 +288,10 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
         }
     }*/
     CaculateScore();
-    if (CompactionScore() > 0.8) {
+    if (CompactionScore() > 0.7) {
         vinfo_->compaction_requested_ = true;
     }
+    //printf("score = [%f]\n", vinfo_->compaction_score_);
 #endif
 #endif
 
@@ -371,7 +373,7 @@ void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionIte
         }
     }*/
     CaculateScore();
-    if (CompactionScore() < 0.8) vinfo_->compaction_requested_ = false;
+    if (CompactionScore() <= 0.7) vinfo_->compaction_requested_ = false;
 
     //vinfo_->queue_lock_.Unlock();
     //DBG_PRINT("end get compaction and unlock");
