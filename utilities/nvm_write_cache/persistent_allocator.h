@@ -27,9 +27,14 @@ public:
         char* pmemaddr;
         size_t mapped_len;
         int is_pmem;
+        rangefile_path = getenv("RANGEFILE_PATH");
+        if (rangefile_path.empty()) {
+            std::cout << "env RANGEFILE_PATH not set !" << std::endl;
+            exit(-1);
+        }
         DBG_PRINT("prepare map [%f]GB file", total_size / 1048576.0 / 1024);
         pmemaddr = static_cast<char*>(pmem_map_file(rangefile_path.c_str(), total_size, PMEM_FILE_CREATE, 0666, &mapped_len, &is_pmem));
-        DBG_PRINT("map [%f]GB file", mapped_len / 1048576.0 / 1024);
+        DBG_PRINT("map file: %s [%f]GB ", rangefile_path.c_str(), mapped_len / 1048576.0 / 1024);
         assert(pmemaddr != nullptr);
         raw_ = pmemaddr;
         bitmap_ = bitmap;
