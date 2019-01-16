@@ -70,7 +70,7 @@ FixedRangeTab::FixedRangeTab(pool_base &pop, const FixedRangeBasedOptions *optio
         // rebuild
         DBG_PRINT("seq != 0");
         RebuildBlkList();
-        GetProperties();
+//        GetProperties();
     }
 }
 
