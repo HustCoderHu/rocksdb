@@ -2685,9 +2685,9 @@ namespace rocksdb {
                            this, &DBImpl::UnscheduleCallback);
         } else {
             // make normal compaction thread wait for range compaction thread
-            if(c->start_level() != 0 && bg_range_compaction_scheduled_ > 0){
+            /*if(c->start_level() != 0 && bg_range_compaction_scheduled_ > 0){
                 sleep(1);
-            }
+            }*/
             int output_level __attribute__((__unused__));
             output_level = c->output_level();
             TEST_SYNC_POINT_CALLBACK("DBImpl::BackgroundCompaction:NonTrivial",
