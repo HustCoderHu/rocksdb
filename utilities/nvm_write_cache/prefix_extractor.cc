@@ -65,7 +65,7 @@ ArbitrarilyExtractor *ArbitrarilyExtractor::NewArbitrarilyExtractor(size_t range
 std::string ArbitrarilyExtractor::operator()(const char *input, size_t length) {
     uint64_t key_num = 0;
     for (size_t x = 0; x < 8; ++x) {
-        key_num = key_num * 16 * 16 + *(unsigned char *) (input + x);
+        key_num = (key_num << 8) + *(unsigned char *) (input + x);
     }
     key_num /= range_num_;
     //DBG_PRINT("get num [%u] base[%d]", key_num, range_num_);
