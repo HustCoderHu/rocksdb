@@ -19,7 +19,7 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
         // creat pool
         DBG_PRINT("pmem size[%f]GB", pmem_size / (1073741824.0));
         pop_ = pmem::obj::pool<PersistentInfo>::create(file.c_str(), "FixedRangeChunkBasedNVMWriteCache", pmem_size,
-                                                       CREATE_MODE_RW);
+                                                       CREATE_MODE_RW | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
     } else {
         // open pool
         pop_ = pmem::obj::pool<PersistentInfo>::open(file.c_str(), "FixedRangeChunkBasedNVMWriteCache");
