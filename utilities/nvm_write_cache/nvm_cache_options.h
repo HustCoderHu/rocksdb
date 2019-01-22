@@ -59,7 +59,8 @@ struct FixedRangeBasedOptions {
             range_num_(range_num){
         DBG_PRINT("num per range [%d]", key_num / range_num);
 
-        if (getenv("YCSBExtractor") != NULL) {
+        char *YCSBExtractor = getenv("YCSBExtractor");
+        if (YCSBExtractor != NULL && strlen(YCSBExtractor) >= 3) {
             std::cout << "use NewYCSBExtractor" <<std::endl;
             prefix_extractor_.reset(PrefixExtractor::NewYCSBExtractor(key_num / range_num));
         } else {
