@@ -8,6 +8,15 @@
 
 namespace rocksdb {
 
+ArbitrarilyExtractor* PrefixExtractor::NewArbitrarilyExtractor(size_t range_num)
+{
+    return new ArbitrarilyExtractor(range_num);
+}
+YCSBExtractor* PrefixExtractor::NewYCSBExtractor(size_t range_num)
+{
+    return new YCSBExtractor(range_num);
+}
+
 SimplePrefixExtractor::SimplePrefixExtractor(size_t prefix_bits) : PrefixExtractor(), prefix_bits_(prefix_bits) {}
 
 std::string SimplePrefixExtractor::operator()(const char *input, size_t length) {
@@ -75,6 +84,11 @@ std::string ArbitrarilyExtractor::operator()(const char *input, size_t length) {
         key_num /= 10;
     }
     return std::string(buf, 16);
+}
+
+YCSBExtractor::YCSBExtractor(size_t range_num)
+        : range_num_(range_num) {
+    DBG_PRINT("new YCSBExtractor [%zu]", range_num);
 }
 
 }//end rocksdb

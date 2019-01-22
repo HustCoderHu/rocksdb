@@ -53,13 +53,19 @@ struct FixedRangeBasedOptions {
             :
             chunk_bloom_bits_(chunk_bloom_bits),
             prefix_bits_(prefix_bits),
-            prefix_extractor_(ArbitrarilyExtractor::NewArbitrarilyExtractor(key_num / range_num)),
             filter_policy_(NewBloomFilterPolicy(chunk_bloom_bits, false)),
             //range_num_threshold_(range_num_threashold),
             range_size_(range_size),
             range_num_(range_num){
         DBG_PRINT("num per range [%d]", key_num / range_num);
 
+        if (strlen(getenv("YCSBExtractor")) != 0) {
+            std::cout << "use NewYCSBExtractor" <<std::endl;
+            prefix_extractor_.reset(PrefixExtractor::NewYCSBExtractor(key_num / range_num));
+        } else {
+            std::cout << "use ArbitrarilyExtractor" <<std::endl;
+            prefix_extractor_.reset(PrefixExtractor::NewArbitrarilyExtractor(key_num / range_num));
+        }
     }
 
     ~FixedRangeBasedOptions(){
