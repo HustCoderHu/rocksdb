@@ -489,7 +489,6 @@ namespace rocksdb {
                                                        ioptions_.nvm_cache_setup->range_size * 1048576,
                                                        ioptions_.nvm_cache_setup->range_num,
                                                        ioptions_.nvm_cache_setup->key_num);
-            ioptions_.nvm_cache_options->pmem_info_.pmem_path_ = ioptions_.nvm_cache_setup->pmem_path;
             ioptions_.nvm_cache_options->nvm_write_cache_ =
                     reinterpret_cast<NVMWriteCache*>(NVMCacheOptions::NewFixedRangeChunkBasedCache(
                             ioptions_.nvm_cache_options.get(), foptions, &ioptions_.internal_comparator));
