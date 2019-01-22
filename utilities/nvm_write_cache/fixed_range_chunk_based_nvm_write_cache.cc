@@ -47,8 +47,9 @@ FixedRangeChunkBasedNVMWriteCache::FixedRangeChunkBasedNVMWriteCache(
             //DBG_PRINT("alloc raw buf[%f]GB", range_pool_size/(1073741824.0));
             DBG_PRINT("alloc bitmap[%d]bits", ioptions->range_num_);
             persistent_ptr<PersistentBitMap> bitmap = make_persistent<PersistentBitMap>(pop_, total_range_num);
-            pinfo_->allocator_ = make_persistent<PersistentAllocator>(total_range_num * ioptions->range_size_ * RANGE_SIZE_MULTIPLE,
-                                                                      ioptions->range_size_ * RANGE_SIZE_MULTIPLE, bitmap);
+            pinfo_->allocator_ = make_persistent<PersistentAllocator>(file + ".PersistentAllocator",
+                total_range_num * ioptions->range_size_ * RANGE_SIZE_MULTIPLE,
+                ioptions->range_size_ * RANGE_SIZE_MULTIPLE, bitmap);
             pinfo_->inited_ = true;
             FixedRangeTab::base_raw_ = pinfo_->allocator_->raw();
         });
