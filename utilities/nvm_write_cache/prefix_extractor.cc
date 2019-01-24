@@ -8,13 +8,13 @@
 
 namespace rocksdb {
 
-ArbitrarilyExtractor* PrefixExtractor::NewArbitrarilyExtractor(size_t range_num)
+ArbitrarilyExtractor* PrefixExtractor::NewArbitrarilyExtractor(size_t num_in_range)
 {
-    return new ArbitrarilyExtractor(range_num);
+    return new ArbitrarilyExtractor(num_in_range);
 }
-YCSBExtractor* PrefixExtractor::NewYCSBExtractor(size_t range_num)
+YCSBExtractor* PrefixExtractor::NewYCSBExtractor(size_t num_in_range)
 {
-    return new YCSBExtractor(range_num);
+    return new YCSBExtractor(num_in_range);
 }
 
 SimplePrefixExtractor::SimplePrefixExtractor(size_t prefix_bits) : PrefixExtractor(), prefix_bits_(prefix_bits) {}
@@ -61,14 +61,14 @@ DBBenchDedicatedExtractor *DBBenchDedicatedExtractor::NewDBBenchDedicatedExtract
 }
 
 
-ArbitrarilyExtractor::ArbitrarilyExtractor(size_t range_num)
-        : range_num_(range_num) {
-    DBG_PRINT("new extractor [%zu]", range_num);
+ArbitrarilyExtractor::ArbitrarilyExtractor(size_t num_in_range)
+        : num_in_range_(num_in_range) {
+    DBG_PRINT("new extractor [%zu]", num_in_range);
 
 }
 
-ArbitrarilyExtractor *ArbitrarilyExtractor::NewArbitrarilyExtractor(size_t range_num) {
-    return new ArbitrarilyExtractor(range_num);
+ArbitrarilyExtractor *ArbitrarilyExtractor::NewArbitrarilyExtractor(size_t num_in_range) {
+    return new ArbitrarilyExtractor(num_in_range);
 }
 
 std::string ArbitrarilyExtractor::operator()(const char *input, size_t length) {
@@ -76,8 +76,8 @@ std::string ArbitrarilyExtractor::operator()(const char *input, size_t length) {
     for (size_t x = 0; x < 8; ++x) {
         key_num = (key_num << 8) + *(unsigned char *) (input + x);
     }
-    key_num /= range_num_;
-    //DBG_PRINT("get num [%u] base[%d]", key_num, range_num_);
+    key_num /= num_in_range_;
+    //DBG_PRINT("get num [%u] base[%d]", key_num, num_in_range_);
     char buf[16];
     for (int i = 15; i >= 0; i--) {
         buf[i] = static_cast<unsigned char>(key_num % 10) + '0';
@@ -88,7 +88,7 @@ std::string ArbitrarilyExtractor::operator()(const char *input, size_t length) {
 
 YCSBExtractor::YCSBExtractor(size_t range_num)
         : range_num_(range_num) {
-    DBG_PRINT("new YCSBExtractor [%zu]", range_num);
+    DBG_PRINT("new YCSBExtractor range_num_: [%zu]", range_num_);
 }
 
 }//end rocksdb
