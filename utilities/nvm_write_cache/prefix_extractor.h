@@ -21,8 +21,8 @@ public:
 
     virtual std::string operator()(const char *input, size_t length) = 0;
 
-    static ArbitrarilyExtractor *NewArbitrarilyExtractor(size_t range_num);
-    static YCSBExtractor *NewYCSBExtractor(size_t range_num);
+    static ArbitrarilyExtractor *NewArbitrarilyExtractor(size_t num_in_range);
+    static YCSBExtractor *NewYCSBExtractor(size_t num_in_range);
 };
 
 
@@ -58,16 +58,16 @@ private:
 
 class ArbitrarilyExtractor : public PrefixExtractor {
 public:
-    explicit ArbitrarilyExtractor(size_t range_num);
+    explicit ArbitrarilyExtractor(size_t num_in_range);
 
     ~ArbitrarilyExtractor() = default;
 
     std::string operator()(const char *input, size_t length);
 
-    static ArbitrarilyExtractor *NewArbitrarilyExtractor(size_t range_num);
+    static ArbitrarilyExtractor *NewArbitrarilyExtractor(size_t num_in_range);
 
 private:
-    size_t range_num_;
+    size_t num_in_range_;
 };
 
 class YCSBExtractor : public PrefixExtractor {
@@ -79,12 +79,13 @@ public:
     std::string operator()(const char *input, size_t length) override
     {
         uint64_t key_num = 0;
-        // ycsb key: user000...
-        for (size_t x = 4; x < 4 + 8; ++x) {
-            key_num = (key_num << 8) | input[x];
+        size_t _min = length < 8? length : 8;
+        for (size_t x = 0; x < _min; ++x) {
+          uint64_t toLL = input[x];
+          key_num |= (toLL << 8*x);
         }
-        key_num /= range_num_;
-        //DBG_PRINT("get num [%u] base[%d]", key_num, range_num_);
+        key_num %= range_num_;
+        //DBG_PRINT("get num [%u] base[%d]", key_num, num_in_range_);
         char buf[16];
         for (int i = 15; i >= 0; i--) {
             buf[i] = key_num % 10 + '0';
