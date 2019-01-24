@@ -62,7 +62,7 @@ struct FixedRangeBasedOptions {
         char *YCSBExtractor = getenv("YCSBExtractor");
         if (YCSBExtractor != NULL && strlen(YCSBExtractor) >= 3) {
             std::cout << "use NewYCSBExtractor" <<std::endl;
-            prefix_extractor_.reset(PrefixExtractor::NewYCSBExtractor(key_num / range_num));
+            prefix_extractor_.reset(PrefixExtractor::NewYCSBExtractor(range_num));
         } else {
             std::cout << "use ArbitrarilyExtractor" <<std::endl;
             prefix_extractor_.reset(PrefixExtractor::NewArbitrarilyExtractor(key_num / range_num));
