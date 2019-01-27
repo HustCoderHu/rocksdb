@@ -126,6 +126,8 @@ public:
 
     void CaculateScore();
 
+    bool CheckRangeUsage();
+
     struct PersistentInfo {
         p<bool> inited_;
         p<uint64_t> allocated_bits_;

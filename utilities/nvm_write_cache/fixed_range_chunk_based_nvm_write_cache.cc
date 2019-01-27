@@ -289,7 +289,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
         }
     }*/
     CaculateScore();
-    if (CompactionScore() > 0.7) {
+    if (CompactionScore() > 0.7 || CheckRangeUsage()) {
         vinfo_->compaction_requested_ = true;
     }
     //printf("score = [%f]\n", vinfo_->compaction_score_);
@@ -449,6 +449,12 @@ void FixedRangeChunkBasedNVMWriteCache::CaculateScore() {
         }
     }
     vinfo_->compaction_score_ = static_cast<double>(total_size) / (vinfo_->internal_options_->range_size_ * vinfo_->internal_options_->range_num_);
+}
+
+bool FixedRangeChunkBasedNVMWriteCache::CheckRangeUsage() {
+    for(auto range : vinfo_->prefix2range){
+        if(range.second->RangeTotalSize() > vinfo_->internal_options_->range_size_ * 2 * RANGE_SIZE_MULTIPLE * 0.8){return true;}
+    }
 }
 
 } // namespace rocksdb
