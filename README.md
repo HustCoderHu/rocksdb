@@ -27,7 +27,7 @@ export RANGE_NUM=128
 export RANGE_SIZE=64
 export KEY_NUM=200000
 echo default > $FLAGS_wal_dir/CF_NAMES
-bin/ycsb.sh load rocksdb -P test-workload -p rocksdb.dir=$FLAGS_wal_dir 2>&1 | tee test-workload.log
+bin/ycsb.sh load rocksdb -s -P test-workload -p rocksdb.dir=$FLAGS_wal_dir 2>&1 | tee test-workload.log
 ```
 
 ## License
