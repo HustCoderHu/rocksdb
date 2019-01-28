@@ -3,7 +3,7 @@
 #include "global_statistic.h"
 //#define RANGE_SIZE_TEST
 //#define FLUSH_CACUL
-#define RANGE_SIZE_MULTIPLE 5
+#define RANGE_SIZE_MULTIPLE 2
 namespace rocksdb {
 
 using std::string;
