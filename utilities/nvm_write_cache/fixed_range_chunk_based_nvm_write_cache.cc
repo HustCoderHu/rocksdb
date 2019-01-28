@@ -276,7 +276,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
         }
     }*/
     CaculateScore();
-    if (CompactionScore() > 0.7 || CheckRangeUsage()) {
+    if (CompactionScore() > 0.7 /*|| CheckRangeUsage()*/) {
         vinfo_->compaction_requested_ = true;
     }
     //printf("score = [%f]\n", vinfo_->compaction_score_);
