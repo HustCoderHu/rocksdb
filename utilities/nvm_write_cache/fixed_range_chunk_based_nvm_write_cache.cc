@@ -118,6 +118,7 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
 
     //DBG_PRINT("Append to Range[%s]", meta.prefix.c_str());
     //DBG_PRINT("start append");
+    printf("append size[%lu]\n", bloom_data.size()+chunk_data.size());
     if (!now_range->EnoughFroWriting(bloom_data.size() + chunk_data.size() + 2 * 8)) {
         // not enough
         /*if (now_range->HasCompactionBuf()) {
