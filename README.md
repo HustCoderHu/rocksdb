@@ -18,6 +18,12 @@ $JAVA_HOME/bin/jar -cf rocksdbjni-5.18.0.jar ../librocksdb.so librocksdbjni-linu
 ```
 
 ## run ycsb
+workload 文件里确保有以下两行
+```
+insertorder=ordered
+table=default
+```
+
 ```
 export YCSBExtractor=111
 export FLAGS_wal_dir=/home/kv-pmem/xiaohu/FLAGS_wal_dir
@@ -28,6 +34,7 @@ export RANGE_SIZE=64
 export KEY_NUM=200000
 echo default > $FLAGS_wal_dir/CF_NAMES
 bin/ycsb.sh load rocksdb -s -P test-workload -p rocksdb.dir=$FLAGS_wal_dir 2>&1 | tee test-workload.log
+bin/ycsb.sh run rocksdb -s -P test-workload -p rocksdb.dir=$FLAGS_wal_dir 2>&1 | tee test-workload.log
 ```
 
 ## License
