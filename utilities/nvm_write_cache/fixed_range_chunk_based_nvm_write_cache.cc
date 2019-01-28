@@ -441,10 +441,11 @@ void FixedRangeChunkBasedNVMWriteCache::CaculateScore() {
 
 bool FixedRangeChunkBasedNVMWriteCache::CheckRangeUsage() {
     for(auto range : vinfo_->prefix2range){
+        if(range.second->IsCompactWorking()) continue;
         DBG_PRINT("range [%s][%f] capacity[%f] score[%f]", range.second->prefix().c_str(), range.second->RangeTotalSize() / 1048576.0,
                   vinfo_->internal_options_->range_size_ * 2.0 * RANGE_SIZE_MULTIPLE / 1048576.0,
                   static_cast<double>(range.second->RangeTotalSize()) / (vinfo_->internal_options_->range_size_ * 2.0 * RANGE_SIZE_MULTIPLE));
-        if(range.second->RangeTotalSize() > (vinfo_->internal_options_->range_size_ * 2 * RANGE_SIZE_MULTIPLE * 0.8)){
+        if(range.second->RangeTotalSize() > (vinfo_->internal_options_->range_size_ * 2 * RANGE_SIZE_MULTIPLE * 0.6)){
             DBG_PRINT("set range");
             return true;
         }
