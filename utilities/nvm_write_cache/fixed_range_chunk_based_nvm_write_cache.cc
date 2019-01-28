@@ -131,6 +131,7 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
 
     //DBG_PRINT("Append to Range[%s]", meta.prefix.c_str());
     //DBG_PRINT("start append");
+    DBG_PRINT("append size[%lu]", bloom_data.size()+chunk_data.size());
     if (!now_range->EnoughFroWriting(bloom_data.size() + chunk_data.size() + 2 * 8)) {
         // not enough
         /*if (now_range->HasCompactionBuf()) {
@@ -144,7 +145,7 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
             //printf("wait for compaction\n");
             // has no space need wait
             // wait fo compaction end
-            //sleep(1);
+            sleep(1);
             //usleep(10);
         }
         // switch buffer
@@ -453,8 +454,16 @@ void FixedRangeChunkBasedNVMWriteCache::CaculateScore() {
 
 bool FixedRangeChunkBasedNVMWriteCache::CheckRangeUsage() {
     for(auto range : vinfo_->prefix2range){
-        if(range.second->RangeTotalSize() > vinfo_->internal_options_->range_size_ * 2 * RANGE_SIZE_MULTIPLE * 0.8){return true;}
+        if(range.second->IsCompactWorking()) continue;
+        DBG_PRINT("range [%s][%f] capacity[%f] score[%f]", range.second->prefix().c_str(), range.second->RangeTotalSize() / 1048576.0,
+                  vinfo_->internal_options_->range_size_ * 2.0 * RANGE_SIZE_MULTIPLE / 1048576.0,
+                  static_cast<double>(range.second->RangeTotalSize()) / (vinfo_->internal_options_->range_size_ * 2.0 * RANGE_SIZE_MULTIPLE));
+        if(range.second->RangeTotalSize() > (vinfo_->internal_options_->range_size_ * 2 * RANGE_SIZE_MULTIPLE * 0.6)){
+            DBG_PRINT("set range");
+            return true;
+        }
     }
+    return false;
 }
 
 } // namespace rocksdb
