@@ -493,6 +493,7 @@ ColumnFamilyOptions* ColumnFamilyOptions::OptimizeForPointLookup(
 ColumnFamilyOptions* ColumnFamilyOptions::OptimizeLevelStyleCompaction(
     uint64_t memtable_memory_budget) {
   write_buffer_size = static_cast<size_t>(memtable_memory_budget / 4);
+  std::cout << "write_buffer_size: " << write_buffer_size << std::endl;
   // merge two memtables when flushing to L0
   // for our double V2
   min_write_buffer_number_to_merge = 1;
