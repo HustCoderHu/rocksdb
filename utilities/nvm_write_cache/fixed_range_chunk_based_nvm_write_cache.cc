@@ -311,7 +311,7 @@ void FixedRangeChunkBasedNVMWriteCache::RollbackCompaction(rocksdb::FixedRangeTa
 
 // call by compaction thread
 void FixedRangeChunkBasedNVMWriteCache::GetCompactionData(rocksdb::CompactionItem *compaction) {
-    assert(!vinfo_->range_queue_.empty());
+//    assert(!vinfo_->range_queue_.empty());
     //vinfo_->queue_lock_.Lock();
     /*if(!vinfo_->queue_sorted_){
         std::sort(vinfo_->range_queue_.begin(), vinfo_->range_queue_.end(),
