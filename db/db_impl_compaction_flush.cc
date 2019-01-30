@@ -2238,7 +2238,8 @@ namespace rocksdb {
 
             assert((bg_thread_pri == Env::Priority::BOTTOM &&
                     bg_bottom_compaction_scheduled_) ||
-                   (bg_thread_pri == Env::Priority::LOW && bg_compaction_scheduled_));
+                   (bg_thread_pri == Env::Priority::LOW && bg_compaction_scheduled_) ||
+                   (bg_thread_pri == Env::Priority::LOW && bg_range_compaction_scheduled_));
 #ifdef TIME_CACULE
             //uint64_t compaction_start = env_->NowMicros();
             std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
