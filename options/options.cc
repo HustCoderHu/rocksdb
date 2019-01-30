@@ -508,7 +508,7 @@ ColumnFamilyOptions* ColumnFamilyOptions::OptimizeLevelStyleCompaction(
   // doesn't really matter much, but we don't want to create too many files
   target_file_size_base = memtable_memory_budget / 8;
   // make Level1 size equal to Level0 size, so that L0->L1 compactions are fast
-  max_bytes_for_level_base = 8 << 30;
+  max_bytes_for_level_base = (uint64_t)8 << 30;
   std::cout << "max_bytes_for_level_base: " << max_bytes_for_level_base << std::endl;
 
   // level style compaction
