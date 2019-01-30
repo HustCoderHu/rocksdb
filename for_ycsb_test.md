@@ -22,6 +22,12 @@ Release 快很多，但是缺少很多关键输出，不方便调试定位代码
 ## 参数传递
 通过 ycsb 把参数传到 rocksdb 需要大范围修改 ycsb，目前是直接在 rocksjni.cc 里通过环境变量获取，修改集中在两个`rocksdb_open_helper` 函数
 
+下面的函数在 rocksdbClient 里被用来生成 options
+```
+ColumnFamilyOptions* ColumnFamilyOptions::OptimizeLevelStyleCompaction(
+    uint64_t memtable_memory_budget)
+```
+
 ## run ycsb
 ```
 export YCSBExtractor=111
