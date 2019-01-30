@@ -8,7 +8,7 @@
 #include <iostream>
 namespace rocksdb{
 #ifndef NVM_DEBUG
-//  #define NVM_DEBUG
+  #define NVM_DEBUG
 #endif
 
 #ifdef NVM_DEBUG
