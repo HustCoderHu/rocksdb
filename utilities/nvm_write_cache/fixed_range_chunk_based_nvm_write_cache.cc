@@ -3,7 +3,7 @@
 #include "global_statistic.h"
 //#define RANGE_SIZE_TEST
 //#define FLUSH_CACUL
-#define RANGE_SIZE_MULTIPLE 1
+#define RANGE_SIZE_MULTIPLE 2
 namespace rocksdb {
 pool<FixedRangeChunkBasedNVMWriteCache::PersistentInfo> FixedRangeChunkBasedNVMWriteCache::pop_ =
 	pool<FixedRangeChunkBasedNVMWriteCache::PersistentInfo>();
@@ -131,6 +131,7 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
 
     //DBG_PRINT("Append to Range[%s]", meta.prefix.c_str());
     //DBG_PRINT("start append");
+    DBG_PRINT("append size[%lu]", bloom_data.size()+chunk_data.size());
     if (!now_range->EnoughFroWriting(bloom_data.size() + chunk_data.size() + 2 * 8)) {
         // not enough
         /*if (now_range->HasCompactionBuf()) {
@@ -141,10 +142,10 @@ void FixedRangeChunkBasedNVMWriteCache::AppendToRange(const rocksdb::InternalKey
         }*/
         printf("no enough for w_buffer\n");
         while (now_range->HasCompactionBuf()) {
-            printf("wait for compaction\n");
+            //printf("wait for compaction\n");
             // has no space need wait
             // wait fo compaction end
-            //sleep(1);
+            sleep(1);
             //usleep(10);
         }
         // switch buffer
@@ -289,7 +290,7 @@ void FixedRangeChunkBasedNVMWriteCache::MaybeNeedCompaction() {
         }
     }*/
     CaculateScore();
-    if (CompactionScore() > 0.7) {
+    if (CompactionScore() > 0.7 || CheckRangeUsage()) {
         vinfo_->compaction_requested_ = true;
     }
     //printf("score = [%f]\n", vinfo_->compaction_score_);
@@ -449,6 +450,20 @@ void FixedRangeChunkBasedNVMWriteCache::CaculateScore() {
         }
     }
     vinfo_->compaction_score_ = static_cast<double>(total_size) / (vinfo_->internal_options_->range_size_ * vinfo_->internal_options_->range_num_);
+}
+
+bool FixedRangeChunkBasedNVMWriteCache::CheckRangeUsage() {
+    for(auto range : vinfo_->prefix2range){
+        if(range.second->IsCompactWorking()) continue;
+        DBG_PRINT("range [%s][%f] capacity[%f] score[%f]", range.second->prefix().c_str(), range.second->RangeTotalSize() / 1048576.0,
+                  vinfo_->internal_options_->range_size_ * 2.0 * RANGE_SIZE_MULTIPLE / 1048576.0,
+                  static_cast<double>(range.second->RangeTotalSize()) / (vinfo_->internal_options_->range_size_ * 2.0 * RANGE_SIZE_MULTIPLE));
+        if(range.second->RangeTotalSize() > (vinfo_->internal_options_->range_size_ * 2 * RANGE_SIZE_MULTIPLE * 0.6)){
+            DBG_PRINT("set range");
+            return true;
+        }
+    }
+    return false;
 }
 
 } // namespace rocksdb
