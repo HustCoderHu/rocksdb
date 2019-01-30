@@ -3,7 +3,9 @@
 //
 
 #pragma once
-
+#include <iostream>
+#include <stdlib.h>
+#include "common.h"
 #include <fcntl.h>
 #include "libpmem.h"
 
@@ -24,7 +26,6 @@ public:
     explicit PersistentAllocator(const std::string &rangefile_path,
                                  uint64_t total_size, uint64_t range_size,
                                  persistent_ptr<PersistentBitMap> bitmap)
-                                 : rangefile_path_(rangefile_path)
     {
         char* pmemaddr;
         size_t mapped_len;
@@ -81,11 +82,15 @@ public:
         cur_ = cur_ - 1;
     }
 
-    void Recover(){
+    void Recover(const std::string &rangefile_path){
         char* pmemaddr;
         size_t mapped_len;
         int is_pmem;
-        pmemaddr = static_cast<char*>(pmem_map_file(rangefile_path_.c_str(), total_size_, PMEM_FILE_CREATE, 0666, &mapped_len, &is_pmem));
+        if (file_exists(rangefile_path.c_str()) != 0) {
+            std::cout << "file not exist: " << rangefile_path << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        pmemaddr = static_cast<char*>(pmem_map_file(rangefile_path.c_str(), total_size_, PMEM_FILE_CREATE, 0666, &mapped_len, &is_pmem));
         DBG_PRINT("map [%f]GB file", mapped_len / 1048576.0 / 1024);
         assert(pmemaddr != nullptr);
         raw_ = pmemaddr;
@@ -95,7 +100,6 @@ public:
 
 
 private:
-    std::string rangefile_path_;
     char* raw_;
     persistent_ptr<PersistentBitMap> bitmap_;
     p<uint64_t> total_size_;
