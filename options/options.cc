@@ -494,7 +494,8 @@ ColumnFamilyOptions* ColumnFamilyOptions::OptimizeLevelStyleCompaction(
     uint64_t memtable_memory_budget) {
   write_buffer_size = static_cast<size_t>(memtable_memory_budget / 4);
   // merge two memtables when flushing to L0
-  min_write_buffer_number_to_merge = 2;
+  // for our double V2
+  min_write_buffer_number_to_merge = 1;
   // this means we'll use 50% extra memory in the worst case, but will reduce
   // write stalls.
   max_write_buffer_number = 6;
@@ -505,7 +506,8 @@ ColumnFamilyOptions* ColumnFamilyOptions::OptimizeLevelStyleCompaction(
   // doesn't really matter much, but we don't want to create too many files
   target_file_size_base = memtable_memory_budget / 8;
   // make Level1 size equal to Level0 size, so that L0->L1 compactions are fast
-  max_bytes_for_level_base = memtable_memory_budget;
+  max_bytes_for_level_base = 8 << 30;
+  std::cout << "max_bytes_for_level_base: " << max_bytes_for_level_base << std::endl;
 
   // level style compaction
   compaction_style = kCompactionStyleLevel;
