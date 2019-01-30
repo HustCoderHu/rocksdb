@@ -371,5 +371,5 @@ public interface ColumnFamilyOptionsInterface
    *   <li>{@link #optimizeUniversalStyleCompaction()}</li>
    * </ol>
    */
-  long DEFAULT_COMPACTION_MEMTABLE_MEMORY_BUDGET = 512 * 1024 * 1024;
+  long DEFAULT_COMPACTION_MEMTABLE_MEMORY_BUDGET = 256 * 1024 * 1024;
 }
