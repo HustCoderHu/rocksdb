@@ -13,6 +13,7 @@
 #define __STDC_FORMAT_MACROS
 #endif
 
+#include <iostream>
 #include <inttypes.h>
 #include <limits>
 
@@ -496,19 +497,25 @@ ColumnFamilyOptions* ColumnFamilyOptions::OptimizeForPointLookup(
 ColumnFamilyOptions* ColumnFamilyOptions::OptimizeLevelStyleCompaction(
     uint64_t memtable_memory_budget) {
   write_buffer_size = static_cast<size_t>(memtable_memory_budget / 4);
+  std::cout << "write_buffer_size: " << write_buffer_size << std::endl;
   // merge two memtables when flushing to L0
-  min_write_buffer_number_to_merge = 2;
+  // for our double V2
+  min_write_buffer_number_to_merge = 1;
   // this means we'll use 50% extra memory in the worst case, but will reduce
   // write stalls.
-  max_write_buffer_number = 6;
+  max_write_buffer_number = 2;
   // start flushing L0->L1 as soon as possible. each file on level0 is
   // (memtable_memory_budget / 2). This will flush level 0 when it's bigger than
   // memtable_memory_budget.
-  level0_file_num_compaction_trigger = 2;
+  level0_file_num_compaction_trigger = 4;
   // doesn't really matter much, but we don't want to create too many files
-  target_file_size_base = memtable_memory_budget / 8;
+  target_file_size_base = 64 * 1048576;
   // make Level1 size equal to Level0 size, so that L0->L1 compactions are fast
-  max_bytes_for_level_base = memtable_memory_budget;
+  max_bytes_for_level_base = (uint64_t)8 << 30;
+  std::cout << "max_write_buffer_number: " << max_write_buffer_number << std::endl;
+  std::cout << "level0_file_num_compaction_trigger: " << level0_file_num_compaction_trigger << std::endl;
+  std::cout << "target_file_size_base: " << target_file_size_base << std::endl;
+  std::cout << "max_bytes_for_level_base: " << max_bytes_for_level_base << std::endl;
 
   // level style compaction
   compaction_style = kCompactionStyleLevel;
