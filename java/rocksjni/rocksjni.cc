@@ -41,6 +41,9 @@ jlong rocksdb_open_helper(
   }
 
   auto* opt = reinterpret_cast<rocksdb::Options*>(jopt_handle);
+  opt->db_paths.emplace_back("/pmem/xiaohu/opt_db_paths2path", 8ul << 30);
+  opt->db_paths.emplace_back("/mnt/ssd/xiaohu/opt_db_paths2path", 200ul << 30);
+
   rocksdb::DB* db = nullptr;
   rocksdb::Status s = open_fn(*opt, db_path, &db);
 
@@ -131,6 +134,9 @@ jlongArray rocksdb_open_helper(
   }
 
   auto* opt = reinterpret_cast<rocksdb::DBOptions*>(jopt_handle);
+  opt->db_paths.emplace_back("/pmem/xiaohu/opt_db_paths2path", 8ul << 30);
+  opt->db_paths.emplace_back("/mnt/ssd/xiaohu/opt_db_paths2path", 200ul << 30);
+
   std::vector<rocksdb::ColumnFamilyHandle*> handles;
   rocksdb::DB* db = nullptr;
   rocksdb::Status s = open_fn(*opt, db_path, column_families, &handles, &db);
